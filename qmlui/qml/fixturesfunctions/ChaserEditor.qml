@@ -31,13 +31,10 @@ Rectangle
     color: "transparent"
 
     property int functionID: -1
-    // the index of the step currently being edited
-    property int timeEditStepIndex: -1
-    // the type of time editing currently being performed
-    property string timeEditType: ""
 
     signal requestView(int ID, string qmlSrc)
 
+    Component.onDestruction: functionManager.setEditorFunction(-1)
 
     ModelSelector
     {
@@ -52,7 +49,8 @@ Rectangle
     TimeEditTool
     {
         id: timeEditTool
-        //parent: mainView
+        parent: mainView
+        x: rightSidePanel.x - width
         z: 99
         visible: false
 
@@ -91,14 +89,14 @@ Rectangle
             {
                 color: UISettings.bgMedium
                 width: parent.width
-                height: 40
+                height: UISettings.iconSizeMedium
                 z: 2
 
                 Rectangle
                 {
                     id: backBox
-                    width: 40
-                    height: 40
+                    width: UISettings.iconSizeMedium
+                    height: width
                     color: "transparent"
 
                     Image
@@ -132,26 +130,26 @@ Rectangle
                 {
                     id: cNameEdit
                     x: leftArrow.width + 5
-                    height: 40
+                    height: UISettings.iconSizeMedium
                     width: ceContainer.width - backBox.width - addFunc.width - removeFunc.width - 10
                     color: UISettings.fgMain
                     clip: true
-                    text: chaserEditor.chaserName
+                    text: chaserEditor.functionName
                     verticalAlignment: TextInput.AlignVCenter
                     font.family: "Roboto Condensed"
-                    font.pixelSize: 20
+                    font.pointSize: UISettings.textSizeDefault
                     selectByMouse: true
                     Layout.fillWidth: true
 
-                    onTextChanged: chaserEditor.chaserName = text
+                    onTextChanged: chaserEditor.functionName = text
                 }
 
                 IconButton
                 {
                     id: addFunc
-                    x: parent.width - 90
+                    x: parent.width - (UISettings.iconSizeMedium * 2) - 10
                     width: height
-                    height: 38
+                    height: UISettings.iconSizeMedium - 2
                     imgSource: "qrc:/add.svg"
                     checkable: true
                     tooltip: qsTr("Add a function")
@@ -175,9 +173,9 @@ Rectangle
                 IconButton
                 {
                     id: removeFunc
-                    x: parent.width - 45
+                    x: parent.width - UISettings.iconSizeMedium - 5
                     width: height
-                    height: 38
+                    height: UISettings.iconSizeMedium - 2
                     imgSource: "qrc:/remove.svg"
                     tooltip: qsTr("Remove the selected function")
                     onClicked: {   }
@@ -188,13 +186,13 @@ Rectangle
             {
                 id: chListHeader
                 width: parent.width
-                height: 35
+                height: UISettings.iconSizeMedium
                 color: UISettings.bgLight
-                property int fSize: 11
+                property int fSize: UISettings.textSizeDefault * 0.6
 
                 Row
                 {
-                    height: 35
+                    height: UISettings.iconSizeMedium
                     spacing: 2
 
                     // Step number column
@@ -207,7 +205,7 @@ Rectangle
                         textAlign: Text.AlignHCenter
                         fontSize: chListHeader.fSize
                     }
-                    Rectangle { height: 35; width: 1; color: UISettings.fgMedium }
+                    Rectangle { height: UISettings.iconSizeMedium; width: 1; color: UISettings.fgMedium }
 
                     // Step Function name column
                     RobotoText
@@ -222,7 +220,7 @@ Rectangle
                     Rectangle
                     {
                         id: nameColDrag
-                        height: 35
+                        height: UISettings.iconSizeMedium
                         width: 1
                         color: UISettings.fgMedium
 
@@ -259,7 +257,7 @@ Rectangle
                     Rectangle
                     {
                         id: fInColDrag
-                        height: 35
+                        height: UISettings.iconSizeMedium
                         width: 1
                         color: UISettings.fgMedium
 
@@ -296,7 +294,7 @@ Rectangle
                     Rectangle
                     {
                         id: holdColDrag
-                        height: 35
+                        height: UISettings.iconSizeMedium
                         width: 1
                         color: UISettings.fgMedium
 
@@ -333,7 +331,7 @@ Rectangle
                     Rectangle
                     {
                         id: fOutColDrag
-                        height: 35
+                        height: UISettings.iconSizeMedium
                         width: 1
                         color: UISettings.fgMedium
 
@@ -370,7 +368,7 @@ Rectangle
                     Rectangle
                     {
                         id: durColDrag
-                        height: 35
+                        height: UISettings.iconSizeMedium
                         width: 1
                         color: UISettings.fgMedium
 
@@ -410,23 +408,32 @@ Rectangle
             {
                 id: cStepsList
                 width: parent.width
-                height: ceContainer.height - 40 - chListHeader.height - chModes.height
+                height: ceContainer.height - UISettings.iconSizeDefault - chListHeader.height - chModes.height
                 boundsBehavior: Flickable.StopAtBounds
                 clip: true
 
                 property int dragInsertIndex: -1
 
                 model: chaserEditor.stepsList
+
+                onModelChanged:
+                {
+                    //console.log("Item 0: " + cStepsList.model[0].fadeIn)
+                    //cStepsList.model[0].isSelected = true
+                    console.log(model.data(0, 0x102))
+                }
+
                 delegate:
                     ChaserStepDelegate
                     {
                         width: ceContainer.width
-                        functionID: modelData.funcID
-                        stepFadeIn: modelData.fadeIn
-                        stepHold: modelData.hold
-                        stepFadeOut: modelData.fadeOut
-                        stepDuration: modelData.duration
-                        stepNote: modelData.note
+                        functionID: model.funcID
+                        isSelected: model.isSelected
+                        stepFadeIn: model.fadeIn
+                        stepHold: model.hold
+                        stepFadeOut: model.fadeOut
+                        stepDuration: model.duration
+                        stepNote: model.note
 
                         col1Width: numCol.width
                         col2Width: nameCol.width
@@ -440,44 +447,44 @@ Rectangle
 
                         onClicked:
                         {
-                            ceSelector.selectItem(ID, qItem, mouseMods & Qt.ControlModifier)
+                            ceSelector.selectItem(indexInList, cStepsList.model, mouseMods & Qt.ControlModifier)
                         }
                         onDoubleClicked:
                         {
                             console.log("Double clicked: " + indexInList + ", " + type)
-                            ceContainer.timeEditStepIndex = indexInList
-                            ceContainer.timeEditType = type
+                            var title, timeValueString
 
                             if (type == "FI")
                             {
-                                timeEditTool.x = fInCol.x - 35
-                                timeEditTool.title = fInCol.label
-                                timeEditTool.timeValueString = stepFadeIn
+                                //timeEditTool.x = fInCol.x - 35
+                                title = fInCol.label
+                                timeValueString = stepFadeIn
                             }
                             else if (type == "H")
                             {
-                                timeEditTool.x = holdCol.x - 35
-                                timeEditTool.title = holdCol.label
-                                timeEditTool.timeValueString = stepHold
+                                //timeEditTool.x = holdCol.x - 35
+                                title = holdCol.label
+                                timeValueString = stepHold
                             }
                             else if (type == "FO")
                             {
-                                timeEditTool.x = fOutCol.x - 35
-                                timeEditTool.title = fOutCol.label
-                                timeEditTool.timeValueString = stepFadeOut
+                                //timeEditTool.x = fOutCol.x - 35
+                                title = fOutCol.label
+                                timeValueString = stepFadeOut
                             }
                             else if (type == "D")
                             {
-                                timeEditTool.x = durCol.x - 35
-                                timeEditTool.title = durCol.label
-                                timeEditTool.timeValueString = stepDuration
+                                //timeEditTool.x = durCol.x - 35
+                                title = durCol.label
+                                timeValueString = stepDuration
                             }
 
+                            timeEditTool.indexInList = indexInList
 
-                            timeEditTool.y = height * indexInList - cStepsList.contentY + cStepsList.y
+                            //timeEditTool.y = height * indexInList - cStepsList.contentY + cStepsList.y
                             //timeEditTool.y = height * indexInList - cStepsList.contentY + cStepsList.y - 70
-                            timeEditTool.visible = true
-                            height = timeEditTool.height
+                            //height = timeEditTool.height
+                            timeEditTool.show(-1, this.mapToItem(mainView, 0, 0).y, title, timeValueString, type)
                         }
                     }
 

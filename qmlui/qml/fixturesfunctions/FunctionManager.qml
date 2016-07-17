@@ -57,6 +57,9 @@ Rectangle
             case Function.RGBMatrix:
                 fmContainer.requestView(funcID, "qrc:/RGBMatrixEditor.qml")
             break;
+            case Function.Audio:
+                fmContainer.requestView(funcID, "qrc:/AudioEditor.qml")
+            break;
             case Function.Show:
                 showManager.currentShowID = funcID
                 mainView.switchToContext("SHOWMGR", "qrc:/ShowManager.qml")
@@ -81,7 +84,7 @@ Rectangle
       {
         id: topBar
         width: fmContainer.width
-        height: 44
+        height: UISettings.iconSizeMedium
         z: 5
         gradient: Gradient
         {
@@ -235,7 +238,7 @@ Rectangle
               {
                   Loader
                   {
-                      width: parent.width
+                      width: functionsListView.width
                       source: hasChildren ? "qrc:/TreeNodeDelegate.qml" : "qrc:/FunctionDelegate.qml"
 
                       onLoaded:
@@ -248,7 +251,7 @@ Rectangle
                               console.log("Item path: " + path + ",label: " + label)
                               item.nodePath = path
                               item.isExpanded = isExpanded
-                              item.folderChildren = childrenModel
+                              item.nodeChildren = childrenModel
                           }
                           else
                           {

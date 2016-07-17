@@ -33,11 +33,11 @@ Rectangle
 
     property string contextName: "SHOWMGR"
 
-    property int trackHeight: 80
-    property int trackWidth: 200
+    property int trackHeight: UISettings.mediumItemHeight
+    property int trackWidth: UISettings.bigItemHeight * 1.6
 
     property real timeScale: showManager.timeScale
-    property int headerHeight: 40
+    property int headerHeight: UISettings.iconSizeMedium
 
     property int showID: showManager.currentShowID
 
@@ -52,7 +52,7 @@ Rectangle
     {
         id: topBar
         width: showMgrContainer.width
-        height: 44
+        height: UISettings.iconSizeDefault
         z: 5
         gradient: Gradient
         {
@@ -337,10 +337,10 @@ Rectangle
         boundsBehavior: Flickable.StopAtBounds
         flickableDirection: Flickable.VerticalFlick
 
-        contentHeight: tracksHeight > height ? tracksHeight : height
+        contentHeight: totalTracksHeight > height ? totalTracksHeight : height
         //contentWidth: timelineHeader.contentWidth
 
-        property int tracksHeight: (tracksBox.count + 1) * trackHeight
+        property real totalTracksHeight: (tracksBox.count + 1) * trackHeight
 
         Column
         {

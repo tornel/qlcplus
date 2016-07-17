@@ -25,7 +25,7 @@ Rectangle
 {
     id: funcDelegate
     width: 100
-    height: 35
+    height: UISettings.listItemHeight
 
     color: "transparent"
 
@@ -92,11 +92,7 @@ Rectangle
     MouseArea
     {
         anchors.fill: parent
-        onClicked:
-        {
-            isSelected = true
-            funcDelegate.clicked(functionID, funcDelegate, mouse.modifiers)
-        }
+        onClicked: funcDelegate.clicked(functionID, funcDelegate, mouse.modifiers)
     }
 }
 

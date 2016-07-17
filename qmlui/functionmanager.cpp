@@ -21,10 +21,12 @@
 #include <QQmlEngine>
 #include <QDebug>
 
+#include "collectioneditor.h"
 #include "functionmanager.h"
 #include "rgbmatrixeditor.h"
 #include "chasereditor.h"
 #include "sceneeditor.h"
+#include "audioeditor.h"
 #include "collection.h"
 #include "treemodel.h"
 #include "rgbmatrix.h"
@@ -52,10 +54,6 @@ FunctionManager::FunctionManager(QQuickView *view, Doc *doc, QObject *parent)
     m_showCount = m_audioCount = m_videoCount = 0;
 
     m_currentEditor = NULL;
-
-    qmlRegisterType<Collection>("com.qlcplus.classes", 1, 0, "Collection");
-    qmlRegisterType<Chaser>("com.qlcplus.classes", 1, 0, "Chaser");
-    qmlRegisterType<RGBMatrix>("com.qlcplus.classes", 1, 0, "RGBMatrix");
 
     m_functionTree = new TreeModel(this);
     QQmlEngine::setObjectOwnership(m_functionTree, QQmlEngine::CppOwnership);
@@ -291,7 +289,6 @@ void FunctionManager::setEditorFunction(quint32 fID)
     // reset all the editor functions
     if (m_currentEditor != NULL)
     {
-        //m_currentEditor->setFunctionID(Function::invalidId());
         delete m_currentEditor;
         m_currentEditor = NULL;
     }
@@ -318,9 +315,19 @@ void FunctionManager::setEditorFunction(quint32 fID)
             m_currentEditor = new ChaserEditor(m_view, m_doc, this);
         }
         break;
+        case Function::Collection:
+        {
+            m_currentEditor = new CollectionEditor(m_view, m_doc, this);
+        }
+        break;
         case Function::RGBMatrix:
         {
             m_currentEditor = new RGBMatrixEditor(m_view, m_doc, this);
+        }
+        break;
+        case Function::Audio:
+        {
+            m_currentEditor = new AudioEditor(m_view, m_doc, this);
         }
         break;
         case Function::Show: break; // a Show is edited by the Show Manager

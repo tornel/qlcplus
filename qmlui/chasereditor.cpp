@@ -19,6 +19,7 @@
 
 #include "chasereditor.h"
 #include "chaserstep.h"
+#include "listmodel.h"
 #include "chaser.h"
 
 ChaserEditor::ChaserEditor(QQuickView *view, Doc *doc, QObject *parent)
@@ -26,24 +27,47 @@ ChaserEditor::ChaserEditor(QQuickView *view, Doc *doc, QObject *parent)
     , m_chaser(NULL)
 {
     m_view->rootContext()->setContextProperty("chaserEditor", this);
+
+    m_stepsList = new ListModel(this);
 }
 
 void ChaserEditor::setFunctionID(quint32 ID)
 {
     m_chaser = qobject_cast<Chaser *>(m_doc->function(ID));
     FunctionEditor::setFunctionID(ID);
+    updateStepsList();
 }
 
 QVariant ChaserEditor::stepsList() const
 {
-    QVariantList stepList;
+    return QVariant::fromValue(m_stepsList);
+}
 
+bool ChaserEditor::addFunction(quint32 fid, int insertIndex)
+{
+    if (m_chaser == NULL)
+        return false;
+
+    ChaserStep step(fid);
+    m_chaser->addStep(step, insertIndex);
+    updateStepsList();
+    return true;
+}
+
+void ChaserEditor::updateStepsList()
+{
     if (m_chaser != NULL)
     {
+        m_stepsList->clear();
+        QStringList listRoles;
+        listRoles << "funcID" << "isSelected" << "fadeIn" << "hold" << "fadeOut" << "duration" << "note";
+        m_stepsList->setRoleNames(listRoles);
+
         foreach(ChaserStep step, m_chaser->steps())
         {
             QVariantMap stepMap;
             stepMap.insert("funcID", step.fid);
+            stepMap.insert("isSelected", false);
 
             switch (m_chaser->fadeInMode())
             {
@@ -84,38 +108,10 @@ QVariant ChaserEditor::stepsList() const
             }
 
             stepMap.insert("note", step.note);
-            stepList.append(stepMap);
+            m_stepsList->addDataMap(stepMap);
         }
     }
-
-    return QVariant::fromValue(stepList);
-}
-
-QString ChaserEditor::chaserName() const
-{
-    if (m_chaser == NULL)
-        return "";
-    return m_chaser->name();
-}
-
-void ChaserEditor::setChaserName(QString chaserName)
-{
-    if (m_chaser == NULL || m_chaser->name() == chaserName)
-        return;
-
-    m_chaser->setName(chaserName);
-    emit chaserNameChanged(chaserName);
-}
-
-bool ChaserEditor::addFunction(quint32 fid, int insertIndex)
-{
-    if (m_chaser == NULL)
-        return false;
-
-    ChaserStep step(fid);
-    m_chaser->addStep(step, insertIndex);
     emit stepsListChanged();
-    return true;
 }
 
 /*********************************************************************
@@ -176,7 +172,7 @@ void ChaserEditor::setStepsFadeIn(int stepsFadeIn)
     m_chaser->setFadeInMode(Chaser::SpeedMode(stepsFadeIn));
 
     emit stepsFadeInChanged(stepsFadeIn);
-    emit stepsListChanged();
+    updateStepsList();
 }
 
 int ChaserEditor::stepsFadeOut() const
@@ -195,7 +191,7 @@ void ChaserEditor::setStepsFadeOut(int stepsFadeOut)
     m_chaser->setFadeOutMode(Chaser::SpeedMode(stepsFadeOut));
 
     emit stepsFadeOutChanged(stepsFadeOut);
-    emit stepsListChanged();
+    updateStepsList();
 }
 
 int ChaserEditor::stepsDuration() const
@@ -214,5 +210,5 @@ void ChaserEditor::setStepsDuration(int stepsDuration)
     m_chaser->setDurationMode(Chaser::SpeedMode(stepsDuration));
 
     emit stepsDurationChanged(stepsDuration);
-    emit stepsListChanged();
+    updateStepsList();
 }

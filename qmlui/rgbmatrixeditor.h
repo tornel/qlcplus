@@ -42,6 +42,10 @@ class RGBMatrixEditor : public FunctionEditor
     Q_PROPERTY(QColor endColor READ endColor WRITE setEndColor NOTIFY endColorChanged)
     Q_PROPERTY(bool hasEndColor READ hasEndColor WRITE setHasEndColor NOTIFY hasEndColorChanged)
 
+    Q_PROPERTY(int fadeInSpeed READ fadeInSpeed WRITE setFadeInSpeed NOTIFY fadeInSpeedChanged)
+    Q_PROPERTY(int holdSpeed READ holdSpeed WRITE setHoldSpeed NOTIFY holdSpeedChanged)
+    Q_PROPERTY(int fadeOutSpeed READ fadeOutSpeed WRITE setFadeOutSpeed NOTIFY fadeOutSpeedChanged)
+
     // Text Algorithm specific properties
     Q_PROPERTY(QString algoText READ algoText WRITE setAlgoText NOTIFY algoTextChanged)
     // Image Algorithm specific properties
@@ -121,6 +125,24 @@ signals:
 
     void algoTextChanged(QString text);
     void algoImagePathChanged(QString path);
+
+    /************************************************************************
+     * Speed
+     ************************************************************************/
+public:
+    int fadeInSpeed() const;
+    void setFadeInSpeed(int fadeInSpeed);
+
+    int holdSpeed() const;
+    void setHoldSpeed(int holdSpeed);
+
+    int fadeOutSpeed() const;
+    void setFadeOutSpeed(int fadeOutSpeed);
+
+signals:
+    void fadeInSpeedChanged(int fadeInSpeed);
+    void holdSpeedChanged(int holdSpeed);
+    void fadeOutSpeedChanged(int fadeOutSpeed);
 
     /************************************************************************
      * Run order and direction

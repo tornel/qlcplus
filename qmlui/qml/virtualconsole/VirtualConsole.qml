@@ -69,7 +69,7 @@ Rectangle
         {
             id: vcToolbar
             width: parent.width
-            height: 34
+            height: UISettings.iconSizeMedium
             z: 10
             gradient: Gradient
             {
@@ -85,44 +85,58 @@ Rectangle
                 spacing: 5
                 ExclusiveGroup { id: vcToolbarGroup }
 
-                MenuBarEntry
+                Repeater
                 {
-                    id: vcPage1
-                    entryText: qsTr("Page 1")
-                    checkable: true
-                    checked: true
-                    checkedColor: UISettings.toolbarSelectionSub
-                    bgGradient: vcTbGradient
-                    exclusiveGroup: vcToolbarGroup
-                    onCheckedChanged:
-                    {
-                        if (checked == true)
-                            virtualConsole.selectedPage = 0
-                    }
-                    onRightClicked:
-                    {
-                        vcPage1.visible = false
-                        WinLoader.createVCWindow("qrc:/VCPageArea.qml", 0)
-                    }
+                    model: virtualConsole.pagesList
+                    delegate:
+                        MenuBarEntry
+                        {
+                            entryText: modelData
+                            checkable: true
+                            editable: true
+                            checked: index === virtualConsole.selectedPage ? true : false
+                            checkedColor: UISettings.toolbarSelectionSub
+                            bgGradient: vcTbGradient
+                            exclusiveGroup: vcToolbarGroup
+
+                            onCheckedChanged:
+                            {
+                                if (checked == true)
+                                    virtualConsole.selectedPage = index
+                            }
+                            onRightClicked:
+                            {
+                                visible = false
+                                WinLoader.createVCWindow("qrc:/VCPageArea.qml", index)
+                            }
+                            onTextChanged: virtualConsole.setPageName(index, text)
+                        }
                 }
-                MenuBarEntry
+
+                //Rectangle { Layout.fillWidth: true }
+
+                IconButton
                 {
-                    id: vcPage2
-                    entryText: qsTr("Page 2")
-                    checkable: true
-                    checkedColor: UISettings.toolbarSelectionSub
-                    bgGradient: vcTbGradient
-                    exclusiveGroup: vcToolbarGroup
-                    onCheckedChanged:
-                    {
-                        if (checked == true)
-                            virtualConsole.selectedPage = 1
-                    }
-                    onRightClicked:
-                    {
-                        vcPage1.visible = false
-                        WinLoader.createVCWindow("qrc:/VCPageArea.qml", 1)
-                    }
+                    width: parent.height * 0.8
+                    height: width
+                    tooltip: qsTr("Add a new Virtual Console page")
+                    faSource: FontAwesome.fa_plus_square_o
+                    faColor: UISettings.fgLight
+                    bgColor: "transparent"
+                    border.width: 0
+
+                    onClicked: virtualConsole.addPage()
+                }
+
+                IconButton
+                {
+                    width: parent.height * 0.8
+                    height: width
+                    tooltip: qsTr("Remove the selected Virtual Console page")
+                    faSource: FontAwesome.fa_minus_square_o
+                    faColor: UISettings.fgLight
+                    bgColor: "transparent"
+                    border.width: 0
                 }
 
                 Rectangle { Layout.fillWidth: true }

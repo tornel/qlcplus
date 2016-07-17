@@ -34,6 +34,7 @@ QtObject
 
     property color fgMain:   "white"
     property color fgMedium: "#888"
+    property color fgLight:  "#aaa"
 
     property color sectionHeader:    "#555"
     property color highlight:        "#0978FF"
@@ -49,7 +50,11 @@ QtObject
     property color toolbarSelectionSub:  "yellow"
 
     /* Sizes */
-    property int textSizeDefault: 16
-    property real iconSizeDefault: 40 //Screen.pixelDensity * 20 // more or less the size of a finger
-    property int iconSizeMedium: 34
+    property int textSizeDefault:   Screen.pixelDensity * 3.5
+    property real iconSizeDefault:  Screen.pixelDensity * 10 // more or less the size of a finger
+    property real iconSizeMedium:   Screen.pixelDensity * 8
+    property real listItemHeight:   Screen.pixelDensity * 7
+    property real mediumItemHeight: Screen.pixelDensity * 15
+    property real bigItemHeight:    Screen.pixelDensity * 25
+    property real scrollBarWidth:   Screen.pixelDensity * 6
 }

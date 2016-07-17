@@ -26,14 +26,17 @@ INCLUDEPATH     += ../plugins/interfaces
 
 HEADERS += \
     app.h \
+    audioeditor.h \
     actionmanager.h \
     chasereditor.h \
+    collectioneditor.h \
     contextmanager.h \
     fixturebrowser.h \
     fixturemanager.h \
     functioneditor.h \
     functionmanager.h \
-    inputoutputmanager.h \ 
+    inputoutputmanager.h \
+    listmodel.h \
     mainview2d.h \
     mainviewdmx.h \
     modelselector.h \
@@ -46,14 +49,17 @@ HEADERS += \
 
 SOURCES += main.cpp \
     app.cpp \
+    audioeditor.cpp \
     actionmanager.cpp \
     chasereditor.cpp \
+    collectioneditor.cpp \
     contextmanager.cpp \
     fixturebrowser.cpp \
     fixturemanager.cpp \
     functioneditor.cpp \
     functionmanager.cpp \
     inputoutputmanager.cpp \
+    listmodel.cpp \
     mainview2d.cpp \
     mainviewdmx.cpp \
     modelselector.cpp \

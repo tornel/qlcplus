@@ -24,14 +24,15 @@ Rectangle
 {
     id: customTextEditRect
     width: 200
-    height: 30
+    height: UISettings.listItemHeight
     clip: true
     radius: 3
     color: UISettings.bgMedium
 
     property alias inputFocus: ctEdit.focus
     property alias inputText: ctEdit.text
-    property int fontSize: 16
+    property alias readOnly: ctEdit.readOnly
+    property int fontSize: UISettings.textSizeDefault
     property int textAlignment: TextInput.AlignLeft
 
     signal textChanged(var text)

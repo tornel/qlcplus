@@ -29,7 +29,7 @@ Column
 
     property string textLabel
     property string nodePath
-    property var folderChildren
+    property var nodeChildren
     property bool isExpanded: false
     property bool isSelected: false
     property string nodeIcon: "qrc:/folder.svg"
@@ -44,7 +44,7 @@ Column
     {
         color: "transparent"
         width: nodeContainer.width
-        height: 35
+        height: UISettings.listItemHeight
 
         // selection rectangle
         Rectangle
@@ -57,24 +57,25 @@ Column
 
         Image
         {
-            width: 40
-            height: 35
+            id: nodeIconImg
+            width: parent.height
+            height: parent.height
             source: nodeIcon
         }
 
         TextInput
         {
             id: nodeLabel
-            x: 45
+            x: nodeIconImg.width + 1
             z: 0
             width: parent.width - 45
-            height: 35
+            height: UISettings.listItemHeight
             readOnly: true
             text: textLabel
             verticalAlignment: TextInput.AlignVCenter
             color: UISettings.fgMain
             font.family: "Roboto Condensed"
-            font.pointSize: 12
+            font.pointSize: UISettings.textSizeDefault
             echoMode: TextInput.Normal
             selectByMouse: true
             selectionColor: "#4DB8FF"
@@ -92,18 +93,17 @@ Column
         MouseArea
         {
             anchors.fill: parent
-            height: 35
+            height: UISettings.listItemHeight
             onClicked:
             {
                 isExpanded = !isExpanded
-                //isSelected = true
                 nodeContainer.clicked(-1, nodeContainer, mouse.modifiers)
             }
             onDoubleClicked:
             {
                 nodeLabel.z = 5
                 nodeLabel.readOnly = false
-                nodeLabel.focus = true
+                nodeLabel.forceActiveFocus()
                 nodeLabel.cursorPosition = nodeLabel.text.length
                 nodeLabel.cursorVisible = true
             }
@@ -115,7 +115,7 @@ Column
         id: nodeChildrenView
         visible: isExpanded
         width: nodeContainer.width - 20
-        model: visible ? folderChildren : null
+        model: visible ? nodeChildren : null
         delegate:
             Component
             {
@@ -135,7 +135,7 @@ Column
                         {
                             item.nodePath = nodePath + "/" + path
                             item.isExpanded = isExpanded
-                            item.folderChildren = childrenModel
+                            item.nodeChildren = childrenModel
                             item.nodeIcon = nodeContainer.nodeIcon
                             item.childrenDelegate = childrenDelegate
 

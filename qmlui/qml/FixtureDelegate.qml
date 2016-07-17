@@ -26,7 +26,7 @@ Rectangle
 {
     id: fxDelegate
     width: 100
-    height: 35
+    height: UISettings.listItemHeight
 
     color: "transparent"
 
@@ -81,7 +81,6 @@ Rectangle
 
         onClicked:
         {
-            isSelected = true
             fxDelegate.clicked(cRef.id, fxDelegate, mouse.modifiers)
         }
         onDoubleClicked:

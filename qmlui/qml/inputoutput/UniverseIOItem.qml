@@ -26,7 +26,7 @@ Rectangle
 {
     id: uniItem
     width: parent.width
-    height: 120
+    height: UISettings.bigItemHeight
     color: isSelected ? "#2D444E" : "transparent"
     border.width: 2
     border.color: isSelected ? UISettings.selection : "transparent"
@@ -199,8 +199,9 @@ Rectangle
     {
         id: uniBox
         anchors.centerIn: parent
-        width: 200
-        height: 100
+        z: 5
+        width: UISettings.bigItemHeight * 1.2
+        height: UISettings.bigItemHeight * 0.8
         radius: 5
         //color: "#1C2255"
         gradient:
@@ -213,13 +214,24 @@ Rectangle
         border.width: 2
         border.color: "#111"
 
-        RobotoText
+        EditableTextBox
         {
-            height: parent.height
+            anchors.centerIn: parent
             width: parent.width
-            label: universe ? universe.name : ""
-            wrapText: true
-            textAlign: Text.AlignHCenter
+            maximumHeight: parent.height
+            color: "transparent"
+            inputText: universe ? universe.name : ""
+            textAlignment: Text.AlignHCenter
+
+            onClicked:
+            {
+                if (isSelected == false)
+                {
+                    isSelected = true
+                    ioManager.setSelectedItem(uniItem, universe.id)
+                    uniItem.selected(universe.id);
+                }
+            }
         }
     }
 

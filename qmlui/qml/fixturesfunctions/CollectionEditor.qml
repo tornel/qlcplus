@@ -31,15 +31,10 @@ Rectangle
     color: "transparent"
 
     property int functionID: -1
-    property Collection collection
 
     signal requestView(int ID, string qmlSrc)
 
-    onFunctionIDChanged:
-    {
-        console.log("Collection ID: " + functionID)
-        collection = functionManager.getFunction(functionID)
-    }
+    Component.onDestruction: functionManager.setEditorFunction(-1)
 
     ModelSelector
     {
@@ -79,14 +74,14 @@ Rectangle
                 color: UISettings.bgMedium
                 //width: funcMgrLoader.width ? ceContainer.width / 2 : ceContainer.width
                 width: parent.width
-                height: 40
+                height: UISettings.iconSizeMedium
                 z: 2
 
                 Rectangle
                 {
                     id: backBox
-                    width: 40
-                    height: 40
+                    width: UISettings.iconSizeMedium
+                    height: width
                     color: "transparent"
 
                     Image
@@ -120,29 +115,25 @@ Rectangle
                 {
                     id: cNameEdit
                     x: leftArrow.width + 5
-                    height: 40
+                    height: UISettings.iconSizeMedium
                     width: ceContainer.width - backBox.width - addFunc.width - removeFunc.width
                     color: UISettings.fgMain
                     clip: true
-                    text: collection ? collection.name : ""
+                    text: collectionEditor.functionName
                     verticalAlignment: TextInput.AlignVCenter
                     font.family: "Roboto Condensed"
-                    font.pixelSize: 20
+                    font.pointSize: UISettings.textSizeDefault
                     selectByMouse: true
                     Layout.fillWidth: true
-                    onTextChanged:
-                    {
-                        if (collection)
-                            collection.name = text
-                    }
+                    onTextChanged: collectionEditor.functionName = text
                 }
 
                 IconButton
                 {
                     id: addFunc
-                    x: parent.width - 90
+                    x: parent.width - (UISettings.iconSizeMedium * 2) - 10
                     width: height
-                    height: 40
+                    height: UISettings.iconSizeMedium
                     imgSource: "qrc:/add.svg"
                     checkable: true
                     tooltip: qsTr("Add a function")
@@ -166,9 +157,9 @@ Rectangle
                 IconButton
                 {
                     id: removeFunc
-                    x: parent.width - 45
+                    x: parent.width - UISettings.iconSizeMedium - 5
                     width: height
-                    height: 40
+                    height: UISettings.iconSizeMedium
                     imgSource: "qrc:/remove.svg"
                     tooltip: qsTr("Remove the selected function")
                     onClicked: {   }
@@ -179,24 +170,25 @@ Rectangle
             {
                 id: cFunctionList
                 width: parent.width //ceContainer.width
-                height: ceContainer.height - 40
-                y: 40
+                height: ceContainer.height - UISettings.iconSizeMedium
+                y: UISettings.iconSizeMedium
                 boundsBehavior: Flickable.StopAtBounds
 
                 property int dragInsertIndex: -1
 
-                model: collection ? collection.functions : null
+                model: collectionEditor.functionsList
                 delegate:
                     CollectionFunctionDelegate
                     {
                         width: cFunctionList.width
-                        functionID: modelData
+                        functionID: model.funcID
+                        isSelected: model.isSelected
                         indexInList: index
                         highlightIndex: cFunctionList.dragInsertIndex
 
                         onClicked:
                         {
-                            ceSelector.selectItem(ID, qItem, mouseMods & Qt.ControlModifier)
+                            ceSelector.selectItem(indexInList, cFunctionList.model, mouseMods & Qt.ControlModifier)
                         }
                     }
 
@@ -210,7 +202,7 @@ Rectangle
                     {
                         console.log("Item dropped here. x: " + drag.x + " y: " + drag.y)
                         console.log("Item fID: " + drag.source.funcID)
-                        collection.addFunction(drag.source.funcID, cFunctionList.dragInsertIndex)
+                        collectionEditor.addFunction(drag.source.funcID, cFunctionList.dragInsertIndex)
                         cFunctionList.dragInsertIndex = -1
                     }
                     onPositionChanged:
