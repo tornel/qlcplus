@@ -22,6 +22,7 @@ import QtQuick.Layouts 1.1
 import QtQuick.Controls 1.2
 
 import com.qlcplus.classes 1.0
+import "TimeUtils.js" as TimeUtils
 import "."
 
 Rectangle
@@ -33,8 +34,6 @@ Rectangle
     property int functionID: -1
 
     signal requestView(int ID, string qmlSrc)
-
-    Component.onDestruction: functionManager.setEditorFunction(-1)
 
     ModelSelector
     {
@@ -54,9 +53,9 @@ Rectangle
         z: 99
         visible: false
 
-        onTimeValueChanged:
+        onValueChanged:
         {
-
+            chaserEditor.setStepSpeed(indexInList, val, speedType)
         }
     }
 
@@ -122,6 +121,7 @@ Rectangle
                                 rightSidePanel.width = rightSidePanel.width / 2
                             }
 
+                            functionManager.setEditorFunction(-1)
                             requestView(-1, "qrc:/FunctionManager.qml")
                         }
                     }
@@ -136,8 +136,8 @@ Rectangle
                     clip: true
                     text: chaserEditor.functionName
                     verticalAlignment: TextInput.AlignVCenter
-                    font.family: "Roboto Condensed"
-                    font.pointSize: UISettings.textSizeDefault
+                    font.family: UISettings.robotoFontName
+                    font.pixelSize: UISettings.textSizeDefault
                     selectByMouse: true
                     Layout.fillWidth: true
 
@@ -199,7 +199,7 @@ Rectangle
                     RobotoText
                     {
                         id: numCol
-                        width: 25
+                        width: UISettings.iconSizeMedium
                         label: "#"
                         wrapText: true
                         textAlign: Text.AlignHCenter
@@ -211,7 +211,7 @@ Rectangle
                     RobotoText
                     {
                         id: nameCol
-                        width: 120
+                        width: UISettings.bigItemHeight * 1.5
                         label: qsTr("Function")
                         wrapText: true
                         textAlign: Text.AlignHCenter
@@ -248,7 +248,7 @@ Rectangle
                     RobotoText
                     {
                         id: fInCol
-                        width: 60
+                        width: UISettings.bigItemHeight * 0.5
                         label: qsTr("Fade In")
                         wrapText: true
                         textAlign: Text.AlignHCenter
@@ -285,7 +285,7 @@ Rectangle
                     RobotoText
                     {
                         id: holdCol
-                        width: 60
+                        width: UISettings.bigItemHeight * 0.5
                         label: qsTr("Hold")
                         wrapText: true
                         textAlign: Text.AlignHCenter
@@ -322,7 +322,7 @@ Rectangle
                     RobotoText
                     {
                         id: fOutCol
-                        width: 60
+                        width: UISettings.bigItemHeight * 0.5
                         label: qsTr("Fade Out")
                         wrapText: true
                         textAlign: Text.AlignHCenter
@@ -359,7 +359,7 @@ Rectangle
                     RobotoText
                     {
                         id: durCol
-                        width: 60
+                        width: UISettings.bigItemHeight * 0.5
                         label: qsTr("Duration")
                         wrapText: true
                         textAlign: Text.AlignHCenter
@@ -396,7 +396,7 @@ Rectangle
                     RobotoText
                     {
                         id: noteCol
-                        width: 200
+                        width: UISettings.bigItemHeight * 2
                         label: qsTr("Note")
                         fontSize: chListHeader.fSize
                         //Layout.fillWidth: true
@@ -413,14 +413,14 @@ Rectangle
                 clip: true
 
                 property int dragInsertIndex: -1
+                property int playbackIndex: chaserEditor.playbackIndex
 
                 model: chaserEditor.stepsList
 
-                onModelChanged:
+                onPlaybackIndexChanged:
                 {
-                    //console.log("Item 0: " + cStepsList.model[0].fadeIn)
-                    //cStepsList.model[0].isSelected = true
-                    console.log(model.data(0, 0x102))
+                    if (chaserEditor.previewEnabled)
+                        ceSelector.selectItem(playbackIndex, model, 0)
                 }
 
                 delegate:
@@ -429,10 +429,10 @@ Rectangle
                         width: ceContainer.width
                         functionID: model.funcID
                         isSelected: model.isSelected
-                        stepFadeIn: model.fadeIn
-                        stepHold: model.hold
-                        stepFadeOut: model.fadeOut
-                        stepDuration: model.duration
+                        stepFadeIn: TimeUtils.timeToQlcString(model.fadeIn, chaserEditor.tempoType)
+                        stepHold: TimeUtils.timeToQlcString(model.hold, chaserEditor.tempoType)
+                        stepFadeOut: TimeUtils.timeToQlcString(model.fadeOut, chaserEditor.tempoType)
+                        stepDuration: TimeUtils.timeToQlcString(model.duration, chaserEditor.tempoType)
                         stepNote: model.note
 
                         col1Width: numCol.width
@@ -448,37 +448,45 @@ Rectangle
                         onClicked:
                         {
                             ceSelector.selectItem(indexInList, cStepsList.model, mouseMods & Qt.ControlModifier)
+                            if (mouseMods & Qt.ControlModifier === false)
+                                chaserEditor.playbackIndex = index
                         }
+
                         onDoubleClicked:
                         {
                             console.log("Double clicked: " + indexInList + ", " + type)
                             var title, timeValueString
 
-                            if (type == "FI")
+                            if (type === Function.FadeIn)
                             {
                                 //timeEditTool.x = fInCol.x - 35
                                 title = fInCol.label
                                 timeValueString = stepFadeIn
+                                timeEditTool.allowFractions = Function.AllFractions
                             }
-                            else if (type == "H")
+                            else if (type === Function.Hold)
                             {
                                 //timeEditTool.x = holdCol.x - 35
                                 title = holdCol.label
                                 timeValueString = stepHold
+                                timeEditTool.allowFractions = Function.NoFractions
                             }
-                            else if (type == "FO")
+                            else if (type === Function.FadeOut)
                             {
                                 //timeEditTool.x = fOutCol.x - 35
                                 title = fOutCol.label
                                 timeValueString = stepFadeOut
+                                timeEditTool.allowFractions = Function.AllFractions
                             }
-                            else if (type == "D")
+                            else if (type === Function.Duration)
                             {
                                 //timeEditTool.x = durCol.x - 35
                                 title = durCol.label
                                 timeValueString = stepDuration
+                                timeEditTool.allowFractions = Function.NoFractions
                             }
 
+                            timeEditTool.tempoType = chaserEditor.tempoType
                             timeEditTool.indexInList = indexInList
 
                             //timeEditTool.y = height * indexInList - cStepsList.contentY + cStepsList.y
@@ -568,8 +576,24 @@ Rectangle
                         Layout.fillWidth: true
                     }
 
-                    Rectangle { height: 30; color: "transparent" }
-                    Rectangle { height: 30; color: "transparent"; Layout.fillWidth: true }
+                    IconPopupButton
+                    {
+                        ListModel
+                        {
+                            id: tempoModel
+                            ListElement { mLabel: qsTr("Time"); mTextIcon: "T"; mValue: Function.Time }
+                            ListElement { mLabel: qsTr("Beats"); mTextIcon: "B"; mValue: Function.Beats }
+                        }
+                        model: tempoModel
+
+                        currentValue: chaserEditor.tempoType
+                        onValueChanged: chaserEditor.tempoType = value
+                    }
+                    RobotoText
+                    {
+                        label: qsTr("Tempo")
+                        Layout.fillWidth: true
+                    }
 
                     // Row 2
                     IconPopupButton

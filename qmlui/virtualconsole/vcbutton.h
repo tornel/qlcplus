@@ -139,7 +139,7 @@ public:
      * StopAll: Stop all functions (panic button).
      */
     enum ButtonAction { Toggle, Flash, Blackout, StopAll };
-    Q_ENUMS(ButtonAction)
+    Q_ENUM(ButtonAction)
 
     ButtonAction actionType() const;
 
@@ -189,6 +189,13 @@ public:
 protected:
     bool m_startupIntensityEnabled;
     qreal m_startupIntensity;
+
+    /*********************************************************************
+     * External input
+     *********************************************************************/
+public slots:
+    /** @reimp */
+    void slotInputValueChanged(quint8 id, uchar value);
 
     /*********************************************************************
      * Load & Save

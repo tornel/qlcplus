@@ -53,10 +53,11 @@ class VCSlider : public VCWidget
 {
     Q_OBJECT
 
+    Q_PROPERTY(int value READ value WRITE setValue NOTIFY valueChanged)
+
     /*********************************************************************
      * Initialization
      *********************************************************************/
-
 public:
     VCSlider(Doc* doc = NULL, QObject *parent = 0);
     virtual ~VCSlider();
@@ -75,12 +76,11 @@ public:
      *********************************************************************/
 public:
     enum SliderMode { Level, Playback, Submaster };
-    Q_ENUMS(SliderMode)
+    Q_ENUM(SliderMode)
 
 public:
     /**
-     * Convert a SliderMode enum to a string that can be saved into
-     * an XML file.
+     * Convert a SliderMode enum to a string that can be saved into an XML file.
      *
      * @param mode The mode to convert
      * @return A string
@@ -95,18 +95,33 @@ public:
      */
     static SliderMode stringToSliderMode(const QString& mode);
 
-    /**
-     * Get the slider's current SliderMode
-     */
+    /** Get/Set the current slider mode */
     SliderMode sliderMode() const;
-
-    /**
-     * Change the slider's current SliderMode
-     */
     void setSliderMode(SliderMode mode);
 
 protected:
     SliderMode m_sliderMode;
+
+    /*********************************************************************
+     * Slider value
+     *********************************************************************/
+public:
+    int value() const;
+
+    void setValue(int value);
+
+signals:
+    void valueChanged(int value);
+
+protected:
+    int m_value;
+
+    /*********************************************************************
+     * External input
+     *********************************************************************/
+public slots:
+    /** @reimp */
+    void slotInputValueChanged(quint8 id, uchar value);
 
     /*********************************************************************
      * Load & Save

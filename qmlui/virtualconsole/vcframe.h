@@ -30,6 +30,7 @@
 #define KXMLQLCVCFrameIsDisabled    "Disabled"
 #define KXMLQLCVCFrameEnableSource  "Enable"
 #define KXMLQLCVCFrameShowEnableButton "ShowEnableButton"
+#define KXMLQLCVCFrameSignature     "Signature"
 
 #define KXMLQLCVCFrameMultipage   "Multipage"
 #define KXMLQLCVCFramePagesNumber "PagesNum"
@@ -59,7 +60,11 @@ public:
     VCFrame(Doc* doc = NULL, VirtualConsole *vc = NULL, QObject *parent = 0);
     virtual ~VCFrame();
 
+    /** @reimp */
     virtual void render(QQuickView *view, QQuickItem *parent);
+
+    /** @reimp */
+    QString propertiesResource() const;
 
     /** Method used to indicate if this Frame has a SoloFrame parent
      *  at any lower level. This is used to determine if
@@ -88,7 +93,14 @@ public:
      *  $recursive method */
     QList<VCWidget *>children(bool recursive = false);
 
+    /** Add a new widget of type $wType at position $pos to this frame.
+     *  $parent is used only to render the new widget */
     Q_INVOKABLE void addWidget(QQuickItem *parent, QString wType, QPoint pos);
+
+    /** Add a Function with ID $funcID at position $pos to this frame.
+     *  If $modifierPressed is false, a VC Button is created to represent the Function
+     *  otherwise a VC Slider is created.
+     *  $parent is used only to render the new widget */
     Q_INVOKABLE void addFunction(QQuickItem *parent, quint32 funcID, QPoint pos, bool modifierPressed);
 
     /** Delete all the frame children */
@@ -102,6 +114,13 @@ public:
 
 protected:
     void setupWidget(VCWidget *widget);
+
+    /*********************************************************************
+     * Disable state
+     *********************************************************************/
+public:
+    /** @reimp */
+    void setDisabled(bool disable);
 
     /*********************************************************************
      * Header
@@ -182,8 +201,8 @@ protected:
     /** Flag to cycle through pages when reaching the end */
     bool m_pagesLoop;
 
-    /** Here's where the magic takes place. This holds a map
-     *  of pages/widgets to be shown/hidden when page is changed */
+    /** This holds a map of pages/widgets to be
+     *  shown/hidden when page is changed */
     QMap <VCWidget *, int> m_pagesMap;
 
     /*********************************************************************
@@ -191,6 +210,13 @@ protected:
      *********************************************************************/
 protected slots:
     virtual void slotFunctionStarting(VCWidget *widget, quint32 fid, qreal fIntensity = 1.0);
+
+    /*********************************************************************
+     * External input
+     *********************************************************************/
+public slots:
+    /** @reimp */
+    void slotInputValueChanged(quint8 id, uchar value);
 
     /*********************************************************************
      * Load & Save

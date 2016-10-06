@@ -1,11 +1,12 @@
 [Desktop Entry]
 Type=Application
 Name=QLC+ Fixture Editor
+Name[fr]=Éditeur d'appareil QLC+
 GenericName=Edit fixtures
 GenericName[cz]=Editor definicí zařízení
 GenericName[de]=Gerätedefinitionen bearbeiten
 GenericName[fi]=Muokkaa valaisimia
-GenericName[fr]=Edition des appareils
+GenericName[fr]=Édition des appareils
 GenericName[it]=Editor di Fixture
 GenericName[nl]=Bewerker voor armaturen
 GenericName[es]=Editor de Fixtures

@@ -3,6 +3,10 @@
     <file alias="2dview.svg">2dview.svg</file>
     <file alias="3dview.svg">3dview.svg</file>
     <file alias="add.svg">add.svg</file>
+    <file alias="align-bottom.svg">align-bottom.svg</file>
+    <file alias="align-left.svg">align-left.svg</file>
+    <file alias="align-right.svg">align-right.svg</file>
+    <file alias="align-top.svg">align-top.svg</file>
     <file alias="amber.svg">amber.svg</file>
     <file alias="animation.svg">animation.svg</file>
     <file alias="apply.svg">apply.svg</file>
@@ -38,6 +42,7 @@
     <file alias="e131plugin.svg">e131plugin.svg</file>
     <file alias="edit.svg">edit.svg</file>
     <file alias="editor.svg">editor.svg</file>
+    <file alias="effect.svg">effect.svg</file>
     <file alias="efx.svg">efx.svg</file>
     <file alias="filenew.svg">filenew.svg</file>
     <file alias="fileopen.svg">fileopen.svg</file>
@@ -45,6 +50,7 @@
     <file alias="filesaveas.svg">filesaveas.svg</file>
     <file alias="fixture.svg">fixture.svg</file>
     <file alias="flash.svg">flash.svg</file>
+    <file alias="flower.svg">flower.svg</file>
     <file alias="folder.svg">folder.svg</file>
     <file alias="font.svg">font.svg</file>
     <file alias="forward.svg">forward.svg</file>
@@ -58,6 +64,7 @@
     <file alias="inputoutput.svg">inputoutput.svg</file>
     <file alias="info.svg">info.svg</file>
     <file alias="intensity.svg">intensity.svg</file>
+    <file alias="keybinding.svg">keybinding.svg</file>
     <file alias="knob.svg">knob.svg</file>
     <file alias="label.svg">label.svg</file>
     <file alias="lock.svg">lock.svg</file>
@@ -81,6 +88,7 @@
     <file alias="rgbmatrix.svg">rgbmatrix.svg</file>
     <file alias="rotate-right.svg">rotate-right.svg</file>
     <file alias="search.svg">search.svg</file>
+    <file alias="selectall.svg">selectall.svg</file>
     <file alias="scene.svg">scene.svg</file>
     <file alias="script.svg">script.svg</file>
     <file alias="showmanager.svg">showmanager.svg</file>

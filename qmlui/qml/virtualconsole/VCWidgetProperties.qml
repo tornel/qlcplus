@@ -31,18 +31,64 @@ Rectangle
     anchors.fill: parent
     color: "transparent"
 
-    property VCWidget wObj
+    property VCWidget wObj: virtualConsole.selectedWidget
+    property int selectedWidgetsCount: virtualConsole.selectedWidgetsCount
 
-    Component.onCompleted: wObj = Qt.binding(function() { return virtualConsole.selectedWidget })
+    //Component.onCompleted: wObj = Qt.binding(function() { return virtualConsole.selectedWidget })
     Component.onDestruction: virtualConsole.resetWidgetSelection()
 
     onWObjChanged:
     {
         wPropsLoader.active = false
+        wPropsLoader.source = wObj ? wObj.propertiesResource : ""
         wPropsLoader.active = true
         vcRightPanel.width = vcRightPanel.width - funcMgrLoader.width
         funcMgrLoader.source = ""
         funcMgrLoader.width = 0
+    }
+
+    onSelectedWidgetsCountChanged:
+    {
+        if (selectedWidgetsCount > 1)
+            wPropsLoader.source = ""
+        else
+            wPropsLoader.source = wObj ? wObj.propertiesResource : ""
+    }
+
+    ColorTool
+    {
+        id: bgColTool
+        parent: mainView
+        x: vcRightPanel.x - width
+        y: 100
+        visible: false
+        selectedColor: wObj ? wObj.backgroundColor : "black"
+
+        onColorChanged:
+        {
+            if(wObj && selectedWidgetsCount < 2)
+                wObj.backgroundColor = Qt.rgba(r, g, b, 1.0)
+            else
+                virtualConsole.setWidgetsBackgroundColor(Qt.rgba(r, g, b, 1.0))
+        }
+    }
+
+    ColorTool
+    {
+        id: fgColTool
+        parent: mainView
+        x: vcRightPanel.x - width
+        y: 100
+        visible: false
+        selectedColor: wObj ? wObj.foregroundColor : "black"
+
+        onColorChanged:
+        {
+            if(wObj && selectedWidgetsCount < 2)
+                wObj.foregroundColor = Qt.rgba(r, g, b, 1.0)
+            else
+                virtualConsole.setWidgetsForegroundColor(Qt.rgba(r, g, b, 1.0))
+        }
     }
 
     SplitView
@@ -116,13 +162,15 @@ Rectangle
                         {
                             Layout.fillWidth: true
                             height: UISettings.listItemHeight
-                            color: UISettings.bgStronger
+                            color: UISettings.bgMedium
                             inputText: wObj ? wObj.caption : ""
 
                             onTextChanged:
                             {
-                                if (wObj)
+                                if(wObj && selectedWidgetsCount < 2)
                                     wObj.caption = text
+                                else
+                                    virtualConsole.setWidgetsCaption(text)
                             }
                         }
 
@@ -134,29 +182,18 @@ Rectangle
                         }
                         Rectangle
                         {
-                            width: 80
+                            Layout.fillWidth: true
                             height: UISettings.listItemHeight
                             color: wObj ? wObj.backgroundColor : "black"
-
-                            ColorTool
-                            {
-                                id: bgColTool
-                                parent: mainView
-                                x: vcRightPanel.x - width
-                                y: 100
-                                visible: false
-
-                                onColorChanged:
-                                {
-                                    if(wObj)
-                                        wObj.backgroundColor = Qt.rgba(r, g, b, 1.0)
-                                }
-                            }
 
                             MouseArea
                             {
                                 anchors.fill: parent
-                                onClicked: bgColTool.visible = !bgColTool.visible
+                                onClicked:
+                                {
+                                    fgColTool.visible = false
+                                    bgColTool.visible = !bgColTool.visible
+                                }
                             }
                         }
 
@@ -168,29 +205,18 @@ Rectangle
                         }
                         Rectangle
                         {
-                            width: 80
+                            Layout.fillWidth: true
                             height: UISettings.listItemHeight
                             color: wObj ? wObj.foregroundColor : "black"
-
-                            ColorTool
-                            {
-                                id: fgColTool
-                                parent: mainView
-                                x: vcRightPanel.x - width
-                                y: 100
-                                visible: false
-
-                                onColorChanged:
-                                {
-                                    if(wObj)
-                                        wObj.foregroundColor = Qt.rgba(r, g, b, 1.0)
-                                }
-                            }
 
                             MouseArea
                             {
                                 anchors.fill: parent
-                                onClicked: fgColTool.visible = !fgColTool.visible
+                                onClicked:
+                                {
+                                    bgColTool.visible = false
+                                    fgColTool.visible = !fgColTool.visible
+                                }
                             }
                         }
 
@@ -213,7 +239,7 @@ Rectangle
                                 font.family: wObj ? wObj.font.family : ""
                                 font.bold: wObj ? wObj.font.bold : false
                                 font.italic: wObj ? wObj.font.italic : false
-                                font.pointSize: UISettings.textSizeDefault * 0.8
+                                font.pixelSize: UISettings.textSizeDefault * 0.8
                                 text: wObj ? wObj.font.family : ""
                                 color: "white"
                                 verticalAlignment: Text.AlignVCenter
@@ -221,8 +247,8 @@ Rectangle
 
                             IconButton
                             {
-                                width: UISettings.listItemHeight
-                                height: UISettings.listItemHeight
+                                width: UISettings.iconSizeMedium
+                                height: width
                                 anchors.right: parent.right
                                 imgSource: "qrc:/font.svg"
                                 //bgColor: "#aaa"
@@ -240,7 +266,10 @@ Rectangle
                                     onAccepted:
                                     {
                                         console.log("Selected font: " + fontDialog.font)
-                                        wObj.font = fontDialog.font
+                                        if(wObj && selectedWidgetsCount < 2)
+                                            wObj.font = fontDialog.font
+                                        else
+                                            virtualConsole.setWidgetsFont(fontDialog.font)
                                     }
                                 }
                             }
@@ -270,8 +299,8 @@ Rectangle
                             IconButton
                             {
                                 id: imgButton
-                                width: UISettings.listItemHeight
-                                height: UISettings.listItemHeight
+                                width: UISettings.iconSizeMedium
+                                height: width
                                 anchors.right: parent.right
                                 imgSource: "qrc:/background.svg"
 
@@ -284,8 +313,68 @@ Rectangle
                                     title: qsTr("Select an image")
                                     nameFilters: [ "Image files (*.png *.bmp *.jpg *.jpeg *.gif)", "All files (*)" ]
 
-                                    onAccepted: wObj.backgroundImage = fileDialog.fileUrl
+                                    onAccepted:
+                                    {
+                                        if(wObj && selectedWidgetsCount < 2)
+                                            wObj.backgroundImage = fileDialog.fileUrl
+                                        else
+                                            virtualConsole.setWidgetsBackgroundImage(fileDialog.fileUrl)
+                                    }
                                 }
+                            }
+                        }
+
+                        // row 6
+                        RobotoText
+                        {
+                            visible: selectedWidgetsCount > 1 ? true : false
+                            label: qsTr("Alignment")
+                        }
+
+                        Row
+                        {
+                            Layout.fillWidth: true
+                            visible: selectedWidgetsCount > 1 ? true: false
+
+                            IconButton
+                            {
+                                id: alignLeftBtn
+                                width: UISettings.iconSizeDefault
+                                height: width
+                                bgColor: UISettings.bgLighter
+                                imgSource: "qrc:/align-left.svg"
+                                tooltip: qsTr("Align the selected widgets to the left")
+                                onClicked: virtualConsole.setWidgetsAlignment(wObj, Qt.AlignLeft)
+                            }
+                            IconButton
+                            {
+                                id: alignRightBtn
+                                width: UISettings.iconSizeDefault
+                                height: width
+                                bgColor: UISettings.bgLighter
+                                imgSource: "qrc:/align-right.svg"
+                                tooltip: qsTr("Align the selected widgets to the right")
+                                onClicked: virtualConsole.setWidgetsAlignment(wObj, Qt.AlignRight)
+                            }
+                            IconButton
+                            {
+                                id: alignTopBtn
+                                width: UISettings.iconSizeDefault
+                                height: width
+                                bgColor: UISettings.bgLighter
+                                imgSource: "qrc:/align-top.svg"
+                                tooltip: qsTr("Align the selected widgets to the top")
+                                onClicked: virtualConsole.setWidgetsAlignment(wObj, Qt.AlignTop)
+                            }
+                            IconButton
+                            {
+                                id: alignBottomBtn
+                                width: UISettings.iconSizeDefault
+                                height: width
+                                bgColor: UISettings.bgLighter
+                                imgSource: "qrc:/align-bottom.svg"
+                                tooltip: qsTr("Align the selected widgets to the bottom")
+                                onClicked: virtualConsole.setWidgetsAlignment(wObj, Qt.AlignBottom)
                             }
                         }
                      } // GridLayout
@@ -296,9 +385,25 @@ Rectangle
                     id: wPropsLoader
                     width: parent.width
                     visible: wObj ? true : false
-                    source: wObj ? wObj.propertiesResource : ""
+                    //source: wObj && virtualConsole.selectedWidgetsCount < 2 ? wObj.propertiesResource : ""
 
                     onLoaded: item.widgetRef = wObj
+                }
+
+                SectionBox
+                {
+                    width: parent.width
+                    visible: wObj ? true : false
+                    sectionLabel: qsTr("External Controls")
+                    isExpanded: false
+
+                    sectionContents:
+                        ExternalControls
+                        {
+                            width: parent.width
+
+                            objRef: wObj
+                        }
                 }
               } // end of properties column
             } // end of flickable

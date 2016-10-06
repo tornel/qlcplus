@@ -29,7 +29,7 @@
 #include "monitorproperties.h"
 
 MainView2D::MainView2D(QQuickView *view, Doc *doc, QObject *parent)
-    : PreviewContext(view, doc, parent)
+    : PreviewContext(view, doc, "2D", parent)
 {
     m_gridSize = QSize(5, 5);
     m_gridScale = 1.0;
@@ -40,6 +40,9 @@ MainView2D::MainView2D(QQuickView *view, Doc *doc, QObject *parent)
 
     m_view2D = NULL;
     m_contents2D = NULL;
+
+    setContextResource("qrc:/2DView.qml");
+    setContextTitle(tr("2D View"));
 
     m_monProps = m_doc->monitorProperties();
 
@@ -96,11 +99,16 @@ void MainView2D::resetItems()
 
 void MainView2D::initialize2DProperties()
 {
-    m_view2D = qobject_cast<QQuickItem*>(m_view->rootObject()->findChild<QObject *>("twoDView"));
-    m_contents2D = qobject_cast<QQuickItem*>(m_view->rootObject()->findChild<QObject *>("twoDContents"));
+    //m_view2D = qobject_cast<QQuickItem*>(m_view->rootObject()->findChild<QObject *>("twoDView"));
+    //m_contents2D = qobject_cast<QQuickItem*>(m_view->rootObject()->findChild<QObject *>("twoDContents"));
+    m_view2D = contextItem();
+    m_contents2D = qobject_cast<QQuickItem*>(m_view2D->findChild<QObject *>("twoDContents"));
 
     if (m_view2D == NULL || m_contents2D == NULL)
+    {
+        qDebug() << "ERROR: got invalid view2D" << m_view2D << "or contents2D" << m_contents2D;
         return;
+    }
 
     m_gridScale = m_view2D->property("gridScale").toReal();
     m_cellPixels = m_view2D->property("baseCellSize").toReal();
@@ -121,7 +129,7 @@ void MainView2D::createFixtureItem(quint32 fxID, qreal x, qreal y, bool mmCoords
         return;
 
     //if (m_view2D == NULL || m_contents2D == NULL)
-        initialize2DProperties();
+    //   initialize2DProperties();
 
     qDebug() << "[MainView2D] Creating fixture with ID" << fxID << "x:" << x << "y:" << y;
 
@@ -257,12 +265,12 @@ void MainView2D::slotRefreshView()
     if (isEnabled() == false)
         return;
 
+    resetItems();
+
     initialize2DProperties();
 
     if (m_view2D == NULL || m_contents2D == NULL)
         return;
-
-    resetItems();
 
     foreach(Fixture *fixture, m_doc->fixtures())
     {
@@ -457,6 +465,16 @@ void MainView2D::updateFixtureRotation(quint32 fxID, int degrees)
 
     QQuickItem *fxItem = m_itemsMap[fxID];
     fxItem->setProperty("rotation", degrees);
+}
+
+void MainView2D::updateFixturePosition(quint32 fxID, QPointF pos)
+{
+    if (isEnabled() == false || m_itemsMap.contains(fxID) == false)
+        return;
+
+    QQuickItem *fxItem = m_itemsMap[fxID];
+    fxItem->setProperty("mmXPos", pos.x());
+    fxItem->setProperty("mmYPos", pos.y());
 }
 
 QSize MainView2D::gridSize() const

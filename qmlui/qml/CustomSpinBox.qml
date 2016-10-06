@@ -25,8 +25,8 @@ import "."
 SpinBox
 {
     id: spinbox
-    font.family: "Roboto Condensed"
-    font.pointSize: UISettings.textSizeDefault
+    font.family: UISettings.robotoFontName
+    font.pixelSize: UISettings.textSizeDefault
     width: 70
     implicitHeight: UISettings.listItemHeight
 

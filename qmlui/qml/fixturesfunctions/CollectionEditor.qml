@@ -34,8 +34,6 @@ Rectangle
 
     signal requestView(int ID, string qmlSrc)
 
-    Component.onDestruction: functionManager.setEditorFunction(-1)
-
     ModelSelector
     {
         id: ceSelector
@@ -107,6 +105,7 @@ Rectangle
                                 rightSidePanel.width = rightSidePanel.width / 2
                             }
 
+                            functionManager.setEditorFunction(-1)
                             requestView(-1, "qrc:/FunctionManager.qml")
                         }
                     }
@@ -121,8 +120,8 @@ Rectangle
                     clip: true
                     text: collectionEditor.functionName
                     verticalAlignment: TextInput.AlignVCenter
-                    font.family: "Roboto Condensed"
-                    font.pointSize: UISettings.textSizeDefault
+                    font.family: UISettings.robotoFontName
+                    font.pixelSize: UISettings.textSizeDefault
                     selectByMouse: true
                     Layout.fillWidth: true
                     onTextChanged: collectionEditor.functionName = text

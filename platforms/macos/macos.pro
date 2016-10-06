@@ -1,7 +1,8 @@
-include(../variables.pri)
+include(../../variables.pri)
 
 TEMPLATE = subdirs
 CONFIG  += ordered
+TARGET   = icons
 
 include(libusb-nametool.pri)
 include(libftdi-nametool.pri)
@@ -212,19 +213,53 @@ qtnametool.commands += && $$LIBOGG_INSTALL_NAME_TOOL \
 # INSTALLS += imageformats
 
 greaterThan(QT_MAJOR_VERSION, 4) {
-include(platformplugins-nametool.pri)
-include(audioplugins-nametool.pri)
-include(mediaservice-nametool.pri)
-qmlui:include(imageformats-nametool.pri)
+    include(platformplugins-nametool.pri)
+    include(audioplugins-nametool.pri)
+    include(mediaservice-nametool.pri)
 
-INSTALLS += platformplugins
-INSTALLS += audioplugins
-INSTALLS += mediaservice
-qmlui: INSTALLS += imageformats
+    INSTALLS += platformplugins
+    INSTALLS += audioplugins
+    INSTALLS += mediaservice
 
-qtconf.path   = $$INSTALLROOT/Resources
-qtconf.files += qt.conf
-INSTALLS      += qtconf
+qmlui: {
+    include(imageformats-nametool.pri)
+    INSTALLS += imageformats
+
+# QML components
+    qmlqtdeps.path   = $$INSTALLROOT/qml/Qt/labs
+    qmlqtdeps.files += $$(QTDIR)/qml/Qt/labs/folderlistmodel \
+                       $$(QTDIR)/qml/Qt/labs/settings
+    INSTALLS += qmlqtdeps
+
+    qmldeps.path   = $$INSTALLROOT/qml
+    qmldeps.files += $$(QTDIR)/qml/QtQml \
+                     $$(QTDIR)/qml/QtQuick \
+                     $$(QTDIR)/qml/QtQuick.2
+
+    INSTALLS += qmldeps
+
+    qmlpostinstall.path = $$INSTALLROOT/qml
+    qmlpostinstall.commands = cd $$INSTALLROOT/qml && \
+                              find . -name *_debug.dylib -type f -delete && \
+                              find . -name plugins.qmltypes -type f -delete && \
+                              rm -rf QtQuick/Extras QtQuick/Particles.2 QtQuick/XmlListModel
+    INSTALLS  += qmlpostinstall
 }
+
+    qtconf.path   = $$INSTALLROOT/Resources
+    qtconf.files += qt.conf
+    INSTALLS      += qtconf
+}
+
+icons.path   = $$INSTALLROOT/$$DATADIR
+icons.files += ../../resources/icons/qlcplus.icns
+
+plist.path   = $$INSTALLROOT
+plist.files += Info.plist
+INSTALLS    += icons plist
+
+samples.files += ../Sample.qxw
+samples.path   = $$INSTALLROOT/$$DATADIR
+INSTALLS      += samples
 
 INSTALLS += qtnametool

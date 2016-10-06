@@ -7,6 +7,7 @@
 
     <!-- Common components -->
     <file alias="ActionsMenu.qml">qml/ActionsMenu.qml</file>
+    <file alias="BeatGeneratorsPanel.qml">qml/BeatGeneratorsPanel.qml</file>
     <file alias="ColorTool.qml">qml/ColorTool.qml</file>
     <file alias="ColorToolBasic.qml">qml/ColorToolBasic.qml</file>
     <file alias="ColorToolFull.qml">qml/ColorToolFull.qml</file>
@@ -18,6 +19,8 @@
     <file alias="DayTimeTool.qml">qml/DayTimeTool.qml</file>
     <file alias="DMXPercentageButton.qml">qml/DMXPercentageButton.qml</file>
     <file alias="EditableTextBox.qml">qml/EditableTextBox.qml</file>
+    <file alias="ExternalControls.qml">qml/ExternalControls.qml</file>
+    <file alias="ExternalControlDelegate.qml">qml/ExternalControlDelegate.qml</file>
     <file alias="FixtureConsole.qml">qml/FixtureConsole.qml</file>
     <file alias="FixtureDelegate.qml">qml/FixtureDelegate.qml</file>
     <file alias="FunctionDelegate.qml">qml/FunctionDelegate.qml</file>
@@ -26,9 +29,12 @@
     <file alias="IconButton.qml">qml/IconButton.qml</file>
     <file alias="IconPopupButton.qml">qml/IconPopupButton.qml</file>
     <file alias="IconTextEntry.qml">qml/IconTextEntry.qml</file>
+    <file alias="KeyboardSequenceDelegate.qml">qml/KeyboardSequenceDelegate.qml</file>
     <file alias="KeyPad.qml">qml/KeyPad.qml</file>
     <file alias="MainView.qml">qml/MainView.qml</file>
     <file alias="MenuBarEntry.qml">qml/MenuBarEntry.qml</file>
+    <file alias="PINRequest.qml">qml/PINRequest.qml</file>
+    <file alias="PINSetup.qml">qml/PINSetup.qml</file>
     <file alias="PopupBox.qml">qml/PopupBox.qml</file>
     <file alias="QLCPlusFader.qml">qml/QLCPlusFader.qml</file>
     <file alias="RobotoText.qml">qml/RobotoText.qml</file>
@@ -94,11 +100,13 @@
     <file alias="VirtualConsole.qml">qml/virtualconsole/VirtualConsole.qml</file>
     <file alias="VCRightPanel.qml">qml/virtualconsole/VCRightPanel.qml</file>
     <file alias="VCPageArea.qml">qml/virtualconsole/VCPageArea.qml</file>
+    <file alias="VCPageProperties.qml">qml/virtualconsole/VCPageProperties.qml</file>
     <file alias="WidgetsList.qml">qml/virtualconsole/WidgetsList.qml</file>
     <file alias="WidgetDragItem.qml">qml/virtualconsole/WidgetDragItem.qml</file>
     <file alias="VCWidgetItem.qml">qml/virtualconsole/VCWidgetItem.qml</file>
     <file alias="VCWidgetProperties.qml">qml/virtualconsole/VCWidgetProperties.qml</file>
     <file alias="VCFrameItem.qml">qml/virtualconsole/VCFrameItem.qml</file>
+    <file alias="VCFrameProperties.qml">qml/virtualconsole/VCFrameProperties.qml</file>
     <file alias="VCButtonItem.qml">qml/virtualconsole/VCButtonItem.qml</file>
     <file alias="VCButtonProperties.qml">qml/virtualconsole/VCButtonProperties.qml</file>
     <file alias="VCLabelItem.qml">qml/virtualconsole/VCLabelItem.qml</file>
@@ -114,7 +122,6 @@
 
     <!-- JavaScript helpers -->
     <file alias="CanvasDrawFunctions.js">js/CanvasDrawFunctions.js</file>
-    <file alias="DetachWindow.js">js/DetachWindow.js</file>
     <file alias="FixtureDrag.js">js/FixtureDrag.js</file>
     <file alias="FunctionDrag.js">js/FunctionDrag.js</file>
     <file alias="PluginUtils.js">js/PluginUtils.js</file>

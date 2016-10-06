@@ -24,6 +24,7 @@
 #include <QQuickItem>
 #include <QSettings>
 #include <QKeyEvent>
+#include <QScreen>
 
 #include "app.h"
 #include "mainview2d.h"
@@ -73,11 +74,17 @@ void App::startup()
     qmlRegisterType<ModelSelector>("com.qlcplus.classes", 1, 0, "ModelSelector");
 
     setTitle("Q Light Controller Plus");
-    setIcon(QIcon(":/qlcplus.png"));
+    setIcon(QIcon(":/qlcplus.svg"));
 
-    QFontDatabase::addApplicationFont(":/RobotoCondensed-Regular.ttf");
+    if (QFontDatabase::addApplicationFont(":/RobotoCondensed-Regular.ttf") < 0)
+        qWarning() << "Roboto font cannot be loaded !";
 
     rootContext()->setContextProperty("qlcplus", this);
+
+    m_pixelDensity = screen()->physicalDotsPerInch() *  0.039370;
+    qDebug() << "Pixel density:" << m_pixelDensity;
+
+    rootContext()->setContextProperty("screenPixelDensity", m_pixelDensity);
 
     initDoc();
 
@@ -85,7 +92,7 @@ void App::startup()
     //        this, SIGNAL(docLoadedChanged()));
     //qmlRegisterType<App>("com.qlcplus.app", 1, 0, "App");
 
-    m_ioManager = new InputOutputManager(m_doc);
+    m_ioManager = new InputOutputManager(this, m_doc);
     rootContext()->setContextProperty("ioManager", m_ioManager);
 
     m_fixtureBrowser = new FixtureBrowser(this, m_doc);
@@ -100,7 +107,7 @@ void App::startup()
     m_contextManager = new ContextManager(this, m_doc, m_fixtureManager, m_functionManager);
     rootContext()->setContextProperty("contextManager", m_contextManager);
 
-    m_virtualConsole = new VirtualConsole(this, m_doc);
+    m_virtualConsole = new VirtualConsole(this, m_doc, m_contextManager);
     rootContext()->setContextProperty("virtualConsole", m_virtualConsole);
 
     m_showManager = new ShowManager(this, m_doc);
@@ -115,12 +122,15 @@ void App::startup()
     // register an uncreatable type just to use the enums in QML
     qmlRegisterUncreatableType<ActionManager>("com.qlcplus.classes", 1, 0,  "ActionManager", "Can't create an ActionManager !");
 
+    m_contextManager->registerContext(m_virtualConsole);
+    m_contextManager->registerContext(m_showManager);
+    m_contextManager->registerContext(m_ioManager);
+
     // Start up in non-modified state
     m_doc->resetModified();
 
     // and here we go !
     setSource(QUrl("qrc:/MainView.qml"));
-    //m_contextManager->activateContext("2D");
 }
 
 void App::show()
@@ -131,12 +141,25 @@ void App::show()
     //showFullScreen();
 }
 
+qreal App::pixelDensity() const
+{
+    return m_pixelDensity;
+}
+
 void App::keyPressEvent(QKeyEvent *e)
 {
     if (m_contextManager)
         m_contextManager->handleKeyPress(e);
 
     QQuickView::keyPressEvent(e);
+}
+
+void App::keyReleaseEvent(QKeyEvent *e)
+{
+    if (m_contextManager)
+        m_contextManager->handleKeyRelease(e);
+
+    QQuickView::keyReleaseEvent(e);
 }
 
 void App::clearDocument()
@@ -208,6 +231,7 @@ void App::initDoc()
     m_doc->inputOutputMap()->loadProfiles(InputOutputMap::systemProfileDirectory());
     m_doc->inputOutputMap()->loadDefaults();
 
+    m_doc->inputOutputMap()->setBeatGeneratorType(InputOutputMap::Internal);
     m_doc->masterTimer()->start();
 }
 

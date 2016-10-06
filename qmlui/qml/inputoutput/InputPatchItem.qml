@@ -85,11 +85,12 @@ Rectangle
         {
             x: 8
             spacing: 3
+
             Image
             {
                 id: pluginIcon
-                y: 2
-                height: patchBox.height - 6
+                anchors.verticalCenter: parent.verticalCenter
+                height: patchBox.height * 0.75
                 width: height
                 source: patch ? PluginUtils.iconFromName(patch.pluginName) : ""
                 sourceSize: Qt.size(width, height)
@@ -127,7 +128,7 @@ Rectangle
             width: parent.width - 20
             label: patch ? patch.profileName : ""
             labelColor: "black"
-            fontSize: height ? height * 0.45 : 20
+            fontSize: height ? height * 0.7 : 20
             //wrapText: true
         }
     }

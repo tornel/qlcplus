@@ -24,6 +24,7 @@
 #include "collectioneditor.h"
 #include "functionmanager.h"
 #include "rgbmatrixeditor.h"
+#include "treemodelitem.h"
 #include "chasereditor.h"
 #include "sceneeditor.h"
 #include "audioeditor.h"
@@ -54,6 +55,10 @@ FunctionManager::FunctionManager(QQuickView *view, Doc *doc, QObject *parent)
     m_showCount = m_audioCount = m_videoCount = 0;
 
     m_currentEditor = NULL;
+
+    qmlRegisterUncreatableType<Collection>("com.qlcplus.classes", 1, 0, "Collection", "Can't create a Collection");
+    qmlRegisterUncreatableType<Chaser>("com.qlcplus.classes", 1, 0, "Chaser", "Can't create a Chaser");
+    qmlRegisterUncreatableType<RGBMatrix>("com.qlcplus.classes", 1, 0, "RGBMatrix", "Can't create a RGBMatrix");
 
     m_functionTree = new TreeModel(this);
     QQmlEngine::setObjectOwnership(m_functionTree, QQmlEngine::CppOwnership);
@@ -208,7 +213,11 @@ quint32 FunctionManager::createFunction(int type)
 
         QVariantList params;
         params.append(QVariant::fromValue(f));
-        m_functionTree->addItem(f->name(), params, f->path(true));
+        TreeModelItem *item = m_functionTree->addItem(f->name(), params, f->path(true));
+        if (item != NULL)
+            item->setSelected(true);
+        m_selectedIDList.append(QVariant(f->id()));
+        emit selectionCountChanged(m_selectedIDList.count());
         emit functionsListChanged();
 
         return f->id();
@@ -235,7 +244,7 @@ void FunctionManager::setPreview(bool enable)
 {
     if (m_currentEditor != NULL)
     {
-        m_currentEditor->setPreview(enable);
+        m_currentEditor->setPreviewEnabled(enable);
     }
     else
     {
@@ -341,7 +350,7 @@ void FunctionManager::setEditorFunction(quint32 fID)
     if (m_currentEditor != NULL)
     {
         m_currentEditor->setFunctionID(fID);
-        m_currentEditor->setPreview(m_previewEnabled);
+        m_currentEditor->setPreviewEnabled(m_previewEnabled);
     }
 
     emit functionEditingChanged(true);

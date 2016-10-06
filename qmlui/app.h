@@ -53,11 +53,14 @@ public:
 
     void show();
 
+    /** Return the number of pixels in 1mm */
+    qreal pixelDensity() const;
+
 protected:
     void keyPressEvent(QKeyEvent * e);
+    void keyReleaseEvent(QKeyEvent * e);
 
 private:
-    QQmlEngine m_engine;
     FixtureBrowser *m_fixtureBrowser;
     FixtureManager *m_fixtureManager;
     ContextManager *m_contextManager;
@@ -151,5 +154,7 @@ signals:
 private:
     QString m_fileName;
     QStringList m_recentFiles;
+    /** The number of pixels in one millimiter */
+    qreal m_pixelDensity;
 };
 #endif // APP_H

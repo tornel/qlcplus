@@ -24,6 +24,7 @@
 #include <QString>
 #include <QDebug>
 #include <QList>
+#include <QTime>
 #include <QDir>
 
 #include "qlcfixturemode.h"
@@ -65,8 +66,8 @@ Doc::Doc(QObject* parent, int universes)
     , m_rgbScriptsCache(new RGBScriptsCache(this))
     , m_ioPluginCache(new IOPluginCache(this))
     , m_audioPluginCache(new AudioPluginCache(this))
-    , m_ioMap(new InputOutputMap(this, universes))
     , m_masterTimer(new MasterTimer(this))
+    , m_ioMap(new InputOutputMap(this, universes))
     , m_monitorProps(NULL)
     , m_mode(Design)
     , m_kiosk(false)

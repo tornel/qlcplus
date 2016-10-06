@@ -25,7 +25,7 @@ import "."
 Rectangle
 {
     id: stepDelegate
-    width: 100
+    width: 500
     height: UISettings.listItemHeight
 
     color: "transparent"
@@ -39,21 +39,21 @@ Rectangle
     property string stepDuration
     property string stepNote
 
-    property int labelFontSize: 11
+    property int labelFontSize: UISettings.textSizeDefault * 0.75
 
     property bool isSelected: false
     property int indexInList: -1
     property int highlightIndex: -1
 
     property int col1Width: 25
-    property int col2Width: 120
-    property int col3Width: 60
-    property int col4Width: 60
-    property int col5Width: 60
-    property int col6Width: 60
+    property int col2Width: UISettings.bigItemHeight * 1.5
+    property int col3Width: UISettings.bigItemHeight
+    property int col4Width: UISettings.bigItemHeight
+    property int col5Width: UISettings.bigItemHeight
+    property int col6Width: UISettings.bigItemHeight
 
     signal clicked(int ID, var qItem, int mouseMods)
-    signal doubleClicked(int ID, string type)
+    signal doubleClicked(int ID, int type)
 
     onFunctionIDChanged:
     {
@@ -79,28 +79,47 @@ Rectangle
         visible: isSelected
     }
 
+    Timer
+    {
+        id: clickTimer
+        interval: 200
+        repeat: false
+        running: false
+
+        property int modifiers: 0
+
+        onTriggered:
+        {
+            stepDelegate.clicked(functionID, stepDelegate, modifiers)
+            modifiers = 0
+        }
+    }
+
     MouseArea
     {
         anchors.fill: parent
         onClicked:
         {
-            stepDelegate.clicked(functionID, stepDelegate, mouse.modifiers)
+            clickTimer.modifiers = mouse.modifiers
+            clickTimer.start()
         }
         onDoubleClicked:
         {
+            clickTimer.stop()
+            clickTimer.modifiers = 0
             console.log("Double click happened at " + mouse.x + "," + mouse.y)
 
             var item = fieldsRow.childAt(mouse.x, mouse.y)
             if (item === funcIconName)
                 console.log("Func name clicked")
             else if (item === fadeInText)
-                stepDelegate.doubleClicked(functionID, "FI")
+                stepDelegate.doubleClicked(functionID, Function.FadeIn)
             else if (item === holdText)
-                stepDelegate.doubleClicked(functionID, "H")
+                stepDelegate.doubleClicked(functionID, Function.Hold)
             else if (item === fadeOutText)
-                stepDelegate.doubleClicked(functionID, "FO")
+                stepDelegate.doubleClicked(functionID, Function.FadeOut)
             else if (item === durationText)
-                stepDelegate.doubleClicked(functionID, "D")
+                stepDelegate.doubleClicked(functionID, Function.Duration)
             else if (mouse.x >= noteText.x)
                 console.log("Note clicked")
         }

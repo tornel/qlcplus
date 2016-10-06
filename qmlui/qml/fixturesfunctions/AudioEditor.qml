@@ -35,8 +35,6 @@ Rectangle
 
     signal requestView(int ID, string qmlSrc)
 
-    Component.onDestruction: functionManager.setEditorFunction(-1)
-
     Rectangle
     {
         id: topBar
@@ -66,7 +64,11 @@ Rectangle
                 hoverEnabled: true
                 onEntered: backBox.color = "#666"
                 onExited: backBox.color = "transparent"
-                onClicked: requestView(-1, "qrc:/FunctionManager.qml")
+                onClicked:
+                {
+                    functionManager.setEditorFunction(-1)
+                    requestView(-1, "qrc:/FunctionManager.qml")
+                }
             }
         }
         TextInput
@@ -78,8 +80,8 @@ Rectangle
             color: UISettings.fgMain
             clip: true
             verticalAlignment: TextInput.AlignVCenter
-            font.family: "Roboto Condensed"
-            font.pointSize: UISettings.textSizeDefault
+            font.family: UISettings.robotoFontName
+            font.pixelSize: UISettings.textSizeDefault
             selectByMouse: true
             text: audioEditor.functionName
             Layout.fillWidth: true

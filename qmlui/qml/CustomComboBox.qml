@@ -23,7 +23,7 @@ import "."
 Rectangle
 {
     id: cbRoot
-    height: UISettings.listItemHeight
+    implicitHeight: UISettings.listItemHeight
     width: 150
     color: cbMouseArea.containsMouse ? UISettings.bgLight : UISettings.bgMedium
     border.width: 1
@@ -54,7 +54,7 @@ Rectangle
 
     onVisibleChanged:
     {
-        if (visible == false)
+        if (visible == false && dropDownMenu)
             dropDownMenu.visible = false
     }
 
@@ -89,7 +89,7 @@ Rectangle
             height: cbRoot.height
             width: cbRoot.width - 4 - arrowButton.width - (mainIcon.visible ? mainIcon.width : 0)
             label: currentText
-            fontSize: height ? height * 0.4 : 12
+            fontSize: UISettings.textSizeDefault
             fontBold: true
         }
         Rectangle
@@ -175,6 +175,7 @@ Rectangle
                         color: "transparent"
 
                         property int currentIdx: popupRepeater.currentIndex
+                        property int currentVal: cbRoot.currentValue
                         property string itemText: model.mLabel ? model.mLabel : (modelData.mLabel ? modelData.mLabel : modelData)
                         property string itemIcon: model.mIcon ? model.mIcon : (modelData.mIcon ? modelData.mIcon : "")
                         property int itemValue: (model.mValue !== undefined) ? model.mValue : ((modelData.mValue !== undefined) ? modelData.mValue : index)
@@ -187,6 +188,15 @@ Rectangle
                                 currentIcon = itemIcon
                                 if (itemValue !== undefined)
                                     cbRoot.valueChanged(itemValue)
+                            }
+                        }
+
+                        onCurrentValChanged:
+                        {
+                            if (itemValue == currentVal)
+                            {
+                                currentText = itemText
+                                currentIcon = itemIcon
                             }
                         }
 
@@ -225,7 +235,7 @@ Rectangle
                                 id: textitem
                                 label: itemText
                                 height: delegateRoot.height
-                                fontSize: height ? height * 0.4 : 12
+                                fontSize: UISettings.textSizeDefault
                             }
                         }
 
@@ -240,6 +250,8 @@ Rectangle
                             onClicked:
                             {
                                 popupRepeater.currentIndex = index
+                                currentText = itemText
+                                currentIcon = itemIcon
                                 dropDownMenu.visible = false
 
                                 if (itemValue !== undefined)

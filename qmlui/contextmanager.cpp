@@ -32,7 +32,8 @@
 #include "doc.h"
 
 ContextManager::ContextManager(QQuickView *view, Doc *doc,
-                               FixtureManager *fxMgr, FunctionManager *funcMgr,
+                               FixtureManager *fxMgr,
+                               FunctionManager *funcMgr,
                                QObject *parent)
     : QObject(parent)
     , m_view(view)
@@ -46,10 +47,17 @@ ContextManager::ContextManager(QQuickView *view, Doc *doc,
     m_source = new GenericDMXSource(m_doc);
     m_source->setOutputEnabled(true);
 
+    m_uniGridView = new PreviewContext(m_view, m_doc, "UNIGRID");
+    m_uniGridView->setContextResource("qrc:/UniverseGridView.qml");
+    m_uniGridView->setContextTitle(tr("Universe Grid View"));
+    registerContext(m_uniGridView);
+
     m_2DView = new MainView2D(m_view, m_doc);
+    registerContext(m_2DView);
     m_view->rootContext()->setContextProperty("View2D", m_2DView);
 
     m_DMXView = new MainViewDMX(m_view, m_doc);
+    registerContext(m_DMXView);
 
     connect(m_fixtureManager, SIGNAL(newFixtureCreated(quint32,qreal,qreal)),
             this, SLOT(slotNewFixtureCreated(quint32,qreal,qreal)));
@@ -69,42 +77,96 @@ ContextManager::ContextManager(QQuickView *view, Doc *doc,
             this, SLOT(slotFunctionEditingChanged(bool)));
 }
 
-void ContextManager::enableContext(QString context, bool enable)
+ContextManager::~ContextManager()
 {
-    if (context == "DMX")
-    {
-        m_DMXView->enableContext(enable);
+    m_uniGridView->deleteLater();
+}
+
+void ContextManager::registerContext(PreviewContext *context)
+{
+    if (context == NULL)
+        return;
+
+    m_contextsMap[context->name()] = context;
+    connect(context, SIGNAL(keyPressed(QKeyEvent*)),
+            this, SLOT(handleKeyPress(QKeyEvent*)));
+    connect(context, SIGNAL(keyReleased(QKeyEvent*)),
+            this, SLOT(handleKeyRelease(QKeyEvent*)));
+}
+
+void ContextManager::unregisterContext(QString name)
+{
+    if (m_contextsMap.contains(name) == false)
+        return;
+
+    PreviewContext *context = m_contextsMap.take(name);
+
+    disconnect(context, SIGNAL(keyPressed(QKeyEvent*)),
+               this, SLOT(handleKeyPress(QKeyEvent*)));
+    disconnect(context, SIGNAL(keyReleased(QKeyEvent*)),
+               this, SLOT(handleKeyRelease(QKeyEvent*)));
+}
+
+void ContextManager::enableContext(QString name, bool enable, QQuickItem *item)
+{
+    if (m_contextsMap.contains(name) == false)
+        return;
+
+    PreviewContext *context = m_contextsMap[name];
+
+    if (enable == false && context->detached() == true)
+        reattachContext(name);
+
+    context->setContextItem(item);
+    context->enableContext(enable);
+
+    if (name == "DMX")
         m_DMXView->updateFixtureSelection(m_selectedFixtures);
-    }
-    else if (context == "2D")
-    {
-        m_2DView->enableContext(enable);
+    else if (name == "2D")
         m_2DView->updateFixtureSelection(m_selectedFixtures);
-    }
 }
 
-void ContextManager::detachContext(QString context)
+void ContextManager::detachContext(QString name)
 {
-    qDebug() << "[ContextManager] detaching context:" << context;
+    qDebug() << "[ContextManager] detaching context:" << name;
+    if (m_contextsMap.contains(name) == false)
+        return;
+
+    PreviewContext *context = m_contextsMap[name];
+    context->setDetached(true);
 }
 
-void ContextManager::reattachContext(QString context)
+void ContextManager::reattachContext(QString name)
 {
-    qDebug() << "[ContextManager] reattaching context:" << context;
-    if (context == "DMX" || context == "2D")
+    qDebug() << "[ContextManager] reattaching context:" << name;
+    if (m_contextsMap.contains(name) == false)
+        return;
+
+    PreviewContext *context = m_contextsMap[name];
+    context->setDetached(false);
+
+    if (name == "DMX" || name == "2D" || name == "UNIGRID")
     {
         QQuickItem *viewObj = qobject_cast<QQuickItem*>(m_view->rootObject()->findChild<QObject *>("fixturesAndFunctions"));
         if (viewObj == NULL)
             return;
         QMetaObject::invokeMethod(viewObj, "enableContext",
-                Q_ARG(QVariant, context),
+                Q_ARG(QVariant, name),
+                Q_ARG(QVariant, false));
+    }
+    else if (name.startsWith("PAGE-"))
+    {
+        QQuickItem *viewObj = qobject_cast<QQuickItem*>(m_view->rootObject()->findChild<QObject *>("virtualConsole"));
+        if (viewObj == NULL)
+            return;
+        QMetaObject::invokeMethod(viewObj, "enableContext",
+                Q_ARG(QVariant, name),
                 Q_ARG(QVariant, false));
     }
     else
     {
-
         QMetaObject::invokeMethod(m_view->rootObject(), "enableContext",
-                Q_ARG(QVariant, context),
+                Q_ARG(QVariant, name),
                 Q_ARG(QVariant, false));
     }
 }
@@ -120,6 +182,8 @@ void ContextManager::resetContexts()
     m_editingEnabled = false;
     m_DMXView->enableContext(m_DMXView->isEnabled());
     m_2DView->enableContext(m_2DView->isEnabled());
+
+    /** TODO: nothing to do on the other contexts ? */
 }
 
 void ContextManager::resetValues()
@@ -182,6 +246,19 @@ void ContextManager::setFixtureSelection(quint32 fxID, bool enable)
     emit selectedFixturesChanged();
 }
 
+void ContextManager::toggleFixturesSelection()
+{
+    bool selectAll = true;
+    if (m_selectedFixtures.count() == m_doc->fixtures().count())
+        selectAll = false;
+
+    for(Fixture *fixture : m_doc->fixtures()) // C++11
+    {
+        if (fixture != NULL)
+            setFixtureSelection(fixture->id(), selectAll);
+    }
+}
+
 void ContextManager::setRectangleSelection(qreal x, qreal y, qreal width, qreal height)
 {
     QList<quint32> fxIDList;
@@ -206,6 +283,30 @@ void ContextManager::setFixturePosition(quint32 fxID, qreal x, qreal y)
     mProps->setFixturePosition(fxID, QPointF(x, y));
 }
 
+void ContextManager::setFixturesAlignment(int alignment)
+{
+    if (m_selectedFixtures.count() == 0)
+        return;
+
+    MonitorProperties *mProps = m_doc->monitorProperties();
+
+    QPointF firstPos = mProps->fixturePosition(m_selectedFixtures.first());
+
+    foreach(quint32 fxID, m_selectedFixtures)
+    {
+        QPointF fxPos = mProps->fixturePosition(fxID);
+
+        switch(alignment)
+        {
+            case Qt::AlignTop: fxPos.setY(firstPos.y()); break;
+            case Qt::AlignLeft: fxPos.setX(firstPos.x()); break;
+        }
+        mProps->setFixturePosition(fxID, fxPos);
+        if (m_2DView->isEnabled())
+            m_2DView->updateFixturePosition(fxID, fxPos);
+    }
+}
+
 void ContextManager::dumpDmxChannels()
 {
     m_functionManager->dumpOnNewScene(m_selectedFixtures);
@@ -221,7 +322,13 @@ void ContextManager::createFixtureGroup()
 
 void ContextManager::handleKeyPress(QKeyEvent *e)
 {
-    //qDebug() << "Key event received:" << e->text();
+    int key = e->key();
+
+    /* Do not propagate single modifiers events */
+    if (key == Qt::Key_Control || key == Qt::Key_Alt || key == Qt::Key_Shift || key == Qt::Key_Meta)
+        return;
+
+    qDebug() << "Key press event received:" << e->text();
 
     if (e->modifiers() & Qt::ControlModifier)
     {
@@ -229,15 +336,7 @@ void ContextManager::handleKeyPress(QKeyEvent *e)
         {
             case Qt::Key_A:
             {
-                bool selectAll = true;
-                if (m_selectedFixtures.count() == m_doc->fixtures().count())
-                    selectAll = false;
-
-                foreach(Fixture *fixture, m_doc->fixtures())
-                {
-                    if (fixture != NULL)
-                        setFixtureSelection(fixture->id(), selectAll);
-                }
+                toggleFixturesSelection();
             }
             break;
             case Qt::Key_R:
@@ -251,6 +350,22 @@ void ContextManager::handleKeyPress(QKeyEvent *e)
             break;
         }
     }
+
+    for(PreviewContext *context : m_contextsMap.values()) // C++11
+        context->handleKeyEvent(e, true);
+}
+
+void ContextManager::handleKeyRelease(QKeyEvent *e)
+{
+    int key = e->key();
+    /* Do not propagate single modifiers events */
+    if (key == Qt::Key_Control || key == Qt::Key_Alt || key == Qt::Key_Shift || key == Qt::Key_Meta)
+        return;
+
+    qDebug() << "Key release event received:" << e->text();
+
+    for(PreviewContext *context : m_contextsMap.values()) // C++11
+        context->handleKeyEvent(e, false);
 }
 
 int ContextManager::fixturesRotation() const

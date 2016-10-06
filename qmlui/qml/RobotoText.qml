@@ -43,8 +43,8 @@ Rectangle
         height: wrapText ? parent.height : Text.paintedHeight
         anchors.verticalCenter: parent.verticalCenter
         text: label
-        font.family: "Roboto Condensed"
-        font.pointSize: fontSize ? fontSize : 16
+        font.family: UISettings.robotoFontName
+        font.pixelSize: fontSize ? fontSize : 12
         font.bold: fontBold
         color: labelColor
         wrapMode: wrapText ? Text.Wrap : Text.NoWrap
