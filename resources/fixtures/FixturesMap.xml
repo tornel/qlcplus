@@ -13,6 +13,7 @@
   <fixture path="American-DJ-Asteroid-1200.qxf" mf="American DJ" md="Asteroid 1200"/>
   <fixture path="American-DJ-Chameleon-QBar-Pro.qxf" mf="American DJ" md="Chameleon QBar Pro"/>
   <fixture path="American-DJ-COB-Cannon-Wash-Pearl.qxf" mf="American DJ" md="COB Cannon Wash Pearl"/>
+  <fixture path="American-DJ-Comscan-LED.qxf" mf="American DJ" md="Comscan LED"/>
   <fixture path="American-DJ-Dekker-LED.qxf" mf="American DJ" md="Dekker LED"/>
   <fixture path="American-DJ-DJ-Spot-250.qxf" mf="American DJ" md="DJ Spot 250"/>
   <fixture path="American-DJ-DJ-Spot-300.qxf" mf="American DJ" md="DJ Spot 300"/>
@@ -163,6 +164,7 @@
   <fixture path="Cameo-Multi-PAR-3.qxf" mf="Cameo" md="Multi Par 3"/>
   <fixture path="Cameo-Strobe-3x3.5W.qxf" mf="Cameo" md="Strobe 3x3.5W"/>
   <fixture path="Cameo-Strobe-6x10W.qxf" mf="Cameo" md="Strobe 6x10W"/>
+  <fixture path="Cameo-Wookie-series.qxf" mf="Cameo" md="Wookie series"/>
   <fixture path="Chauvet-200b.qxf" mf="Chauvet" md="200b"/>
   <fixture path="Chauvet-4Bar-Tri.qxf" mf="Chauvet" md="4Bar Tri"/>
   <fixture path="Chauvet-4Bar.qxf" mf="Chauvet" md="4Bar"/>
@@ -308,6 +310,7 @@
   <fixture path="Enterius-EC-133DMX.qxf" mf="Enterius" md="EC-133DMX"/>
   <fixture path="Equinox-Gigabar.qxf" mf="Equinox" md="Gigabar"/>
   <fixture path="Equinox-Party-Par-LED-PAR-56.qxf" mf="Equinox" md="Party Par LED PAR 56"/>
+  <fixture path="Equinox-Ultra-Scan-LED.qxf" mf="Equinox" md="Ultra Scan LED"/>
   <fixture path="ETC-ColorSource-Spot.qxf" mf="ETC" md="ColorSource Spot"/>
   <fixture path="ETC-Desire-D40-Vivid.qxf" mf="ETC" md="Desire D40 Vivid"/>
   <fixture path="Eurolite-DMXSuperstrobe-2700.qxf" mf="Eurolite" md="DMX Superstrobe 2700"/>
@@ -350,6 +353,7 @@
   <fixture path="Eurolite-TC-5.qxf" mf="Eurolite" md="TC-5"/>
   <fixture path="Eurolite-TF-5.qxf" mf="Eurolite" md="TF-5"/>
   <fixture path="Eurolite-TG-5.qxf" mf="Eurolite" md="TG-5"/>
+  <fixture path="Eurolite-TMH-10.qxf" mf="Eurolite" md="TMH-10"/>
   <fixture path="Eurolite-TMH-155.qxf" mf="Eurolite" md="TMH-155"/>
   <fixture path="Eurolite-TMH-250.qxf" mf="Eurolite" md="TMH-250"/>
   <fixture path="Eurolite-TMH-8.qxf" mf="Eurolite" md="TMH-8"/>
@@ -464,6 +468,7 @@
   <fixture path="Kam-Laserscan-1000-3D.qxf" mf="Kam" md="Laserscan 1000 3D"/>
   <fixture path="Kam-LED-PartyBar.qxf" mf="Kam" md="LED PartyBar"/>
   <fixture path="Kam-Powercan-TRI54W-Slim.qxf" mf="Kam" md="Powercan TRI54W Slim"/>
+  <fixture path="Kam-Powercan84W.qxf" mf="Kam" md="Powercan84W"/>
   <fixture path="KOOLlight-3D-RGB-Laser.qxf" mf="KOOLlight" md="3D RGB Laser"/>
   <fixture path="Lanta-Fireball-P64s.qxf" mf="Lanta" md="Fireball P64s Slimline LED Parcan"/>
   <fixture path="Lanta-Orion-Link-V2.qxf" mf="Lanta" md="Orion Link V2"/>
@@ -567,6 +572,7 @@
   <fixture path="PR-Lighting-Pilot-150-PR-2150.qxf" mf="PR Lighting" md="Pilot 150 (PR-2150)"/>
   <fixture path="PR-Lighting-Pilot-575.qxf" mf="PR Lighting" md="Pilot 575"/>
   <fixture path="PR-Lighting-PR-5000-Spot.qxf" mf="PR Lighting" md="PR 5000 Spot"/>
+  <fixture path="PR-Lighting-XL-250-PR-2225M.qxf" mf="PR Lighting" md="XL 250 PR-2225M"/>
   <fixture path="PR-Lighting-XLED-1037.qxf" mf="PR Lighting" md="XLED 1037"/>
   <fixture path="PR-Lighting-XR-230-Spot.qxf" mf="PR Lighting" md="XR 230 Spot"/>
   <fixture path="Pro-Lights-ARCLED7314HD.qxf" mf="Pro-Lights" md="ArcLed-7314HD"/>
@@ -596,6 +602,7 @@
   <fixture path="PSL-Strip-Led-RGB-code-K2014.qxf" mf="PSL" md="Strip Led RGB code K2014"/>
   <fixture path="Pulse-ECO-LED-PAR56.qxf" mf="Pulse" md="ECO LED PAR56"/>
   <fixture path="Pulse-SlimLite-56.qxf" mf="Pulse" md="SlimLite 56"/>
+  <fixture path="QTX-HZ-3.qxf" mf="QTX" md="HZ-3"/>
   <fixture path="QTX-SL-Series.qxf" mf="QTX" md="SL Series"/>
   <fixture path="ReelEfx-DF-50.qxf" mf="ReelEfx" md="DF-50"/>
   <fixture path="Robe-ClubScan-150CT.qxf" mf="Robe" md="ClubScan 150 CT"/>
@@ -743,8 +750,8 @@
   <fixture path="TSSS-XL35.qxf" mf="TSSS" md="XL35"/>
   <fixture path="Vari-Lite-VL2500-Wash.qxf" mf="Vari-Lite" md="VL2500 Wash"/>
   <fixture path="Vari-Lite-VL3000-Spot.qxf" mf="Vari-Lite" md="VL3000 Spot"/>
-  <fixture path="Vari-Lite-VL3000-Wash.qxf" mf="Varilite" md="VL3000 Wash"/>
-  <fixture path="Vari-Lite-VL3500-Spot.qxf" mf="Varilite" md="VL3500 Spot"/>
+  <fixture path="Vari-Lite-VL3000-Wash.qxf" mf="Vari-Lite" md="VL3000 Wash"/>
+  <fixture path="Vari-Lite-VL3500-Spot.qxf" mf="Vari-Lite" md="VL3500 Spot"/>
   <fixture path="Varytec-Easy-Move-LED-XS-Spot.qxf" mf="Varytec" md="Easy Move LED XS Spot"/>
   <fixture path="Varytec-Easy-Move-LED-XS-Wash.qxf" mf="Varytec" md="Easy Move LED XS Wash"/>
   <fixture path="Varytec-Gigabar-II.qxf" mf="Varytec" md="Gigabar II"/>

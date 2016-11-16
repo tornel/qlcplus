@@ -77,7 +77,12 @@ void VCClock::setID(quint32 id)
     VCWidget::setID(id);
 
     if (caption().isEmpty())
-        setCaption(tr("Clock %1").arg(id));
+        setCaption(defaultCaption());
+}
+
+QString VCClock::defaultCaption()
+{
+    return tr("Clock %1").arg(id());
 }
 
 void VCClock::render(QQuickView *view, QQuickItem *parent)
@@ -183,14 +188,17 @@ void VCClock::setTargetTime(int ms)
 
 void VCClock::slotTimerTimeout()
 {
-    // if we're editing the widget, then do nothing
-    if (isEditing() || enableSchedule() == false)
-        return;
-
     QDateTime currDate = QDateTime::currentDateTime();
     QTime currTime = currDate.time();
     int currDay = 1 << (currDate.date().dayOfWeek() - 1);
     int dayTimeSecs = (currTime.hour() * 60 * 60) + (currTime.minute() * 60) + currTime.second();
+
+    // if we're editing or the widget is disabled, just emit the current time
+    if (isEditing() || enableSchedule() == false)
+    {
+        emit currentTimeChanged(dayTimeSecs);
+        return;
+    }
 
     for(VCClockSchedule *sch : m_scheduleList) // C++11
     {
@@ -234,7 +242,8 @@ void VCClock::slotTimerTimeout()
             // case #2: check for 'one shot' Functions with duration
             if (sch->stopTime() == -1 && sch->m_cachedDuration > 0)
             {
-                if (dayTimeSecs >= sch->startTime() + sch->m_cachedDuration)
+                if (dayTimeSecs >= sch->startTime() + sch->m_cachedDuration &&
+                    (sch->weekFlags() & 0x80) == 0)
                     continue;
             }
 
@@ -285,6 +294,7 @@ void VCClock::setEnableSchedule(bool enableSchedule)
             Function *f = m_doc->function(sch->functionID());
             if (f != NULL && f->isRunning())
                 f->stop(functionParent());
+            sch->m_canPlay = true;
         }
     }
 
@@ -309,15 +319,20 @@ void VCClock::addSchedule(VCClockSchedule *schedule)
     emit scheduleListChanged();
 }
 
-void VCClock::addSchedule(quint32 funcID)
+void VCClock::addSchedules(QVariantList idsList)
 {
-    if (m_doc->function(funcID) == NULL)
-        return;
+    for (QVariant vID : idsList) // C++11
+    {
+        quint32 funcID = vID.toUInt();
+        if (m_doc->function(funcID) == NULL)
+            continue;
 
-    VCClockSchedule *sch = new VCClockSchedule();
-    QQmlEngine::setObjectOwnership(sch, QQmlEngine::CppOwnership);
-    sch->setFunctionID(funcID);
-    m_scheduleList.append(sch);
+        VCClockSchedule *sch = new VCClockSchedule();
+        QQmlEngine::setObjectOwnership(sch, QQmlEngine::CppOwnership);
+        sch->setFunctionID(funcID);
+        m_scheduleList.append(sch);
+    }
+
     qSort(m_scheduleList);
     emit scheduleListChanged();
 }

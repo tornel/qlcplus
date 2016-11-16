@@ -34,11 +34,14 @@ Rectangle
     {
         id: fileDialog
         visible: false
+        folder: "file://" + qlcplus.workingPath
 
         onAccepted:
         {
             console.log("You chose: " + fileDialog.fileUrl)
             qlcplus.loadWorkspace(fileDialog.fileUrl)
+            console.log("Folder: " + folder.toString())
+            qlcplus.workingPath = folder.toString()
         }
         onRejected:
         {
@@ -52,7 +55,7 @@ Rectangle
         ContextMenuEntry
         {
             id: fileNew
-            imgSource: "qrc:///filenew.svg"
+            imgSource: "qrc:/filenew.svg"
             entryText: qsTr("New project")
             onClicked:
             {
@@ -64,7 +67,7 @@ Rectangle
         ContextMenuEntry
         {
             id: fileOpen
-            imgSource: "qrc:///fileopen.svg"
+            imgSource: "qrc:/fileopen.svg"
             entryText: qsTr("Open project")
             onClicked:
             {
@@ -72,7 +75,7 @@ Rectangle
                 fileDialog.nameFilters = [ qsTr("Workspace files") + " (*.qxw)", qsTr("All files") + " (*)" ]
                 fileDialog.visible = true
                 menuRoot.visible = false
-                fileDialog.open();
+                fileDialog.open()
             }
             onEntered: recentMenu.visible = true
             //onExited: recentMenu.visible = false
@@ -111,7 +114,7 @@ Rectangle
         ContextMenuEntry
         {
             id: fileSave
-            imgSource: "qrc:///filesave.svg"
+            imgSource: "qrc:/filesave.svg"
             entryText: qsTr("Save project")
             onClicked: { }
             onEntered: recentMenu.visible = false
@@ -119,7 +122,7 @@ Rectangle
         ContextMenuEntry
         {
             id: fileSaveAs
-            imgSource: "qrc:///filesaveas.svg"
+            imgSource: "qrc:/filesaveas.svg"
             entryText: qsTr("Save project as...")
             onClicked: { }
             onEntered: recentMenu.visible = false

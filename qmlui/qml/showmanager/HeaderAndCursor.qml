@@ -55,7 +55,7 @@ Rectangle
           * is the visible one, the 1st chunk is for scrolling left and the 3rd chunk
           * for scrolling right.
           * Here, it is necessary to monitor the Flickable scroll position to properly
-          * shift and render the Canvas, so 2 actions have to be taken.
+          * shift and render the Canvas.
           */
 
         if (visibleX < timeHeader.x + visibleWidth || visibleX > timeHeader.x + (visibleWidth * 2))
@@ -116,6 +116,7 @@ Rectangle
     Canvas
     {
         id: timeHeader
+        x: -visibleWidth
         width: visibleWidth * 3
         height: headerHeight
         antialiasing: true
@@ -123,8 +124,6 @@ Rectangle
         // tick size is the main time divider
         // on a timeScale equal to 1.0 it is 100 pixels
         property real tickSize: 100
-
-        Component.onCompleted: x = -visibleWidth
 
         function calculateTickSize()
         {

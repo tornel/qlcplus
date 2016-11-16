@@ -232,6 +232,11 @@ bool VCWidget::isVisible() const
     return m_isVisible;
 }
 
+QString VCWidget::defaultCaption()
+{
+    return QString();
+}
+
 /*****************************************************************************
  * Caption
  *****************************************************************************/
@@ -289,15 +294,17 @@ void VCWidget::resetBackgroundColor()
 /*********************************************************************
  * Background image
  *********************************************************************/
-void VCWidget::setBackgroundImage(const QString& path)
+void VCWidget::setBackgroundImage(QString path)
 {
-    if (m_backgroundImage == path)
+    QString strippedPath = path.replace("file://", "");
+
+    if (m_backgroundImage == strippedPath)
         return;
 
     m_hasCustomBackgroundColor = false;
-    m_backgroundImage = path;
+    m_backgroundImage = strippedPath;
     setDocModified();
-    emit backgroundImageChanged(path);
+    emit backgroundImageChanged(strippedPath);
 }
 
 QString VCWidget::backgroundImage() const
@@ -647,6 +654,13 @@ void VCWidget::updateKeySequence(QKeySequence oldSequence, QKeySequence newSeque
 
     m_keySequenceMap.remove(oldSequence);
     m_keySequenceMap[newSequence] = id;
+
+    emit inputSourcesListChanged();
+}
+
+void VCWidget::updateKeySequenceControlID(QKeySequence sequence, quint32 id)
+{
+    m_keySequenceMap[sequence] = id;
 
     emit inputSourcesListChanged();
 }

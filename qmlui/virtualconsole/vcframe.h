@@ -61,6 +61,9 @@ public:
     virtual ~VCFrame();
 
     /** @reimp */
+    virtual QString defaultCaption();
+
+    /** @reimp */
     virtual void render(QQuickView *view, QQuickItem *parent);
 
     /** @reimp */
@@ -101,7 +104,7 @@ public:
      *  If $modifierPressed is false, a VC Button is created to represent the Function
      *  otherwise a VC Slider is created.
      *  $parent is used only to render the new widget */
-    Q_INVOKABLE void addFunction(QQuickItem *parent, quint32 funcID, QPoint pos, bool modifierPressed);
+    Q_INVOKABLE void addFunctions(QQuickItem *parent, QVariantList idsList, QPoint pos, int keyModifiers);
 
     /** Delete all the frame children */
     void deleteChildren();

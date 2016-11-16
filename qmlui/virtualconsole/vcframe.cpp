@@ -33,6 +33,7 @@
 #define INPUT_NEXT_PAGE_ID      0
 #define INPUT_PREVIOUS_PAGE_ID  1
 #define INPUT_ENABLE_ID         2
+#define INPUT_COLLAPSE_ID       3
 
 VCFrame::VCFrame(Doc *doc, VirtualConsole *vc, QObject *parent)
     : VCWidget(doc, parent)
@@ -51,11 +52,17 @@ VCFrame::VCFrame(Doc *doc, VirtualConsole *vc, QObject *parent)
     registerExternalControl(INPUT_NEXT_PAGE_ID, tr("Next Page"), true);
     registerExternalControl(INPUT_PREVIOUS_PAGE_ID, tr("Previous Page"), true);
     registerExternalControl(INPUT_ENABLE_ID, tr("Enable"), true);
+    registerExternalControl(INPUT_COLLAPSE_ID, tr("Collapse"), true);
 }
 
 VCFrame::~VCFrame()
 {
     deleteChildren();
+}
+
+QString VCFrame::defaultCaption()
+{
+    return tr("Frame %1").arg(id());
 }
 
 void VCFrame::render(QQuickView *view, QQuickItem *parent)
@@ -191,7 +198,7 @@ void VCFrame::addWidget(QQuickItem *parent, QString wType, QPoint pos)
             QQmlEngine::setObjectOwnership(slider, QQmlEngine::CppOwnership);
             slider->setGeometry(QRect(pos.x(), pos.y(), m_vc->pixelDensity() * 10, m_vc->pixelDensity() * 35));
             setupWidget(slider);
-            slider->setDefaultFontSize(m_vc->pixelDensity() * 3.5);
+            //slider->setDefaultFontSize(m_vc->pixelDensity() * 3.5);
             m_vc->addWidgetToMap(slider);
             slider->render(m_vc->view(), parent);
         }
@@ -212,31 +219,60 @@ void VCFrame::addWidget(QQuickItem *parent, QString wType, QPoint pos)
     }
 }
 
-void VCFrame::addFunction(QQuickItem *parent, quint32 funcID, QPoint pos, bool modifierPressed)
+void VCFrame::addFunctions(QQuickItem *parent, QVariantList idsList, QPoint pos, int keyModifiers)
 {
     // reset all the drop targets, otherwise two overlapping
     // frames can get the same drop event
     m_vc->resetDropTargets(true);
 
-    if (modifierPressed == false)
+    //qDebug() << "modifiers:" << QString::number(keyModifiers, 16);
+
+    QPoint currPos = pos;
+
+    for (QVariant vID : idsList) // C++11
     {
-        VCButton *button = new VCButton(m_doc, this);
-        QQmlEngine::setObjectOwnership(button, QQmlEngine::CppOwnership);
-        button->setGeometry(QRect(pos.x(), pos.y(), m_vc->pixelDensity() * 17, m_vc->pixelDensity() * 17));
-        button->setFunctionID(funcID);
-        setupWidget(button);
-        m_vc->addWidgetToMap(button);
-        button->render(m_vc->view(), parent);
-    }
-    else
-    {
-        VCSlider *slider = new VCSlider(m_doc, this);
-        QQmlEngine::setObjectOwnership(slider, QQmlEngine::CppOwnership);
-        slider->setGeometry(QRect(pos.x(), pos.y(), m_vc->pixelDensity() * 10, m_vc->pixelDensity() * 35));
-        //slider->setFunctionID(funcID); //TODO
-        setupWidget(slider);
-        m_vc->addWidgetToMap(slider);
-        slider->render(m_vc->view(), parent);
+        quint32 funcID = vID.toUInt();
+        Function *func = m_doc->function(funcID);
+
+        if (func == NULL)
+            continue;
+
+        if (keyModifiers & Qt::ShiftModifier)
+        {
+            VCSlider *slider = new VCSlider(m_doc, this);
+            QQmlEngine::setObjectOwnership(slider, QQmlEngine::CppOwnership);
+            slider->setGeometry(QRect(currPos.x(), currPos.y(), m_vc->pixelDensity() * 10, m_vc->pixelDensity() * 35));
+            slider->setCaption(func->name());
+            slider->setPlaybackFunction(funcID);
+            setupWidget(slider);
+            m_vc->addWidgetToMap(slider);
+            slider->render(m_vc->view(), parent);
+
+            currPos.setX(currPos.x() + slider->geometry().width());
+            if (currPos.x() >= geometry().width())
+            {
+                currPos.setX(pos.x());
+                currPos.setY(currPos.y() + slider->geometry().height());
+            }
+        }
+        else
+        {
+            VCButton *button = new VCButton(m_doc, this);
+            QQmlEngine::setObjectOwnership(button, QQmlEngine::CppOwnership);
+            button->setGeometry(QRect(currPos.x(), currPos.y(), m_vc->pixelDensity() * 17, m_vc->pixelDensity() * 17));
+            button->setCaption(func->name());
+            button->setFunctionID(funcID);
+            setupWidget(button);
+            m_vc->addWidgetToMap(button);
+            button->render(m_vc->view(), parent);
+
+            currPos.setX(currPos.x() + button->geometry().width());
+            if (currPos.x() >= geometry().width())
+            {
+                currPos.setX(pos.x());
+                currPos.setY(currPos.y() + button->geometry().height());
+            }
+        }
     }
 }
 
@@ -265,7 +301,7 @@ void VCFrame::deleteChildren()
 
 void VCFrame::setupWidget(VCWidget *widget)
 {
-    widget->setDefaultFontSize(m_vc->pixelDensity() * 4.5);
+    widget->setDefaultFontSize(m_vc->pixelDensity() * 2.7);
 
     addWidgetToPageMap(widget);
 
@@ -475,19 +511,23 @@ void VCFrame::slotFunctionStarting(VCWidget *widget, quint32 fid, qreal fIntensi
 
 void VCFrame::slotInputValueChanged(quint8 id, uchar value)
 {
-    Q_UNUSED(value) // TODO
+    if (value != 255)
+        return;
 
-    if (id == INPUT_NEXT_PAGE_ID)
+    switch(id)
     {
-
-    }
-    else if (id == INPUT_PREVIOUS_PAGE_ID)
-    {
-
-    }
-    else if (id == INPUT_ENABLE_ID)
-    {
-
+        case INPUT_NEXT_PAGE_ID:
+            gotoNextPage();
+        break;
+        case INPUT_PREVIOUS_PAGE_ID:
+            gotoPreviousPage();
+        break;
+        case INPUT_ENABLE_ID:
+            // TODO
+        break;
+        case INPUT_COLLAPSE_ID:
+            setCollapsed(!isCollapsed());
+        break;
     }
 }
 

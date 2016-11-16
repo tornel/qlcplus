@@ -240,6 +240,9 @@ protected:
      * Caption
      *********************************************************************/
 public:
+    /** Virtual method to retrieve the widget default name which is "Widget ID" */
+    virtual QString defaultCaption();
+
     /** Get this widget's caption text */
     QString caption() const;
 
@@ -282,7 +285,7 @@ protected:
      *********************************************************************/
 public:
     /** Set the widget's background image */
-    void setBackgroundImage(const QString& path);
+    void setBackgroundImage(QString path);
 
     /** Get the widget's background image */
     QString backgroundImage() const;
@@ -471,6 +474,9 @@ public:
 
     /** Update an existing key sequence with the specified $id */
     void updateKeySequence(QKeySequence oldSequence, QKeySequence newSequence, const quint32 id = 0);
+
+    /** Update the control ID of an existing key sequence */
+    void updateKeySequenceControlID(QKeySequence sequence, quint32 id);
 
 public slots:
     /** Virtual slot called when an input value changed */

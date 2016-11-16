@@ -734,6 +734,22 @@ bool VirtualConsole::enableKeyAutoDetection(VCWidget *widget, quint32 id, QStrin
     return true;
 }
 
+void VirtualConsole::updateKeySequenceControlID(VCWidget *widget, quint32 id, QString keyText)
+{
+    if (widget == NULL)
+        return;
+
+    qDebug() << "Setting control ID" << id << "to widget" << widget->caption();
+
+    QKeySequence seq(keyText);
+
+    widget->updateKeySequenceControlID(seq, id);
+
+    /** Update also the key sequence maps in VC pages */
+    for(VCPage *page : m_pages) // C++11
+        page->updateKeySequenceIDInMap(seq, id, widget, true);
+}
+
 void VirtualConsole::disableAutoDetection()
 {
     m_inputDetectionEnabled = false;
@@ -748,6 +764,9 @@ void VirtualConsole::deleteInputSource(VCWidget *widget, quint32 id, quint32 uni
     if (widget == NULL)
         return;
 
+    /** In case an autodetection process is running, stop it */
+    disableAutoDetection();
+
     for(VCPage *page : m_pages) // C++11
         page->unMapInputSource(id, universe, channel, widget, true);
 
@@ -758,6 +777,9 @@ void VirtualConsole::deleteKeySequence(VCWidget *widget, quint32 id, QString key
 {
     if (widget == NULL)
         return;
+
+    /** In case an autodetection process is running, stop it */
+    disableAutoDetection();
 
     QKeySequence seq(keyText);
 

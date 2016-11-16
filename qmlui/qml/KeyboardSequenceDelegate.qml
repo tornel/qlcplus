@@ -42,7 +42,7 @@ Column
         RobotoText
         {
             height: UISettings.listItemHeight
-            label: qsTr("Type")
+            label: qsTr("Control")
         }
         CustomComboBox
         {
@@ -51,6 +51,11 @@ Column
             height: UISettings.listItemHeight
             model: dObjRef ? dObjRef.externalControlsList : null
             currentValue: controlID
+            onValueChanged:
+            {
+                controlID = value
+                virtualConsole.updateKeySequenceControlID(dObjRef, controlID, sequence)
+            }
         }
 
         // row 2
