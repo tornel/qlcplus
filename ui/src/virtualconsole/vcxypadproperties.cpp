@@ -193,7 +193,7 @@ VCXYPadProperties::VCXYPadProperties(VCXYPad* xypad, Doc* doc)
         restoreGeometry(var.toByteArray());
     AppUtil::ensureWidgetIsVisible(this);
 
-    m_doc->masterTimer()->registerDMXSource(this, "XYPadCfg");
+    m_doc->masterTimer()->registerDMXSource(this);
 }
 
 VCXYPadProperties::~VCXYPadProperties()
@@ -201,6 +201,8 @@ VCXYPadProperties::~VCXYPadProperties()
     QSettings settings;
     settings.setValue(SETTINGS_GEOMETRY, saveGeometry());
     m_doc->masterTimer()->unregisterDMXSource(this);
+
+    delete m_presetInputWidget;
 }
 
 /****************************************************************************
@@ -319,10 +321,10 @@ void VCXYPadProperties::slotAddClicked()
             QVector <QLCFixtureHead> const& heads = fixture->fixtureMode()->heads();
             for (int i = 0; i < heads.size(); ++i)
             {
-                if (heads[i].panMsbChannel() == QLCChannel::invalid() &&
-                    heads[i].tiltMsbChannel() == QLCChannel::invalid() &&
-                    heads[i].panLsbChannel() == QLCChannel::invalid() &&
-                    heads[i].tiltLsbChannel() == QLCChannel::invalid())
+                if (heads[i].channelNumber(QLCChannel::Pan, QLCChannel::MSB) == QLCChannel::invalid() &&
+                    heads[i].channelNumber(QLCChannel::Tilt, QLCChannel::MSB) == QLCChannel::invalid() &&
+                    heads[i].channelNumber(QLCChannel::Pan, QLCChannel::LSB) == QLCChannel::invalid() &&
+                    heads[i].channelNumber(QLCChannel::Tilt, QLCChannel::LSB) == QLCChannel::invalid())
                 {
                     // Disable heads without pan or tilt channels
                     disabled << GroupHead(fixture->id(), i);
@@ -894,9 +896,8 @@ void VCXYPadProperties::slotInputValueChanged(quint32 universe, quint32 channel)
 
     VCXYPadPreset *preset = getSelectedPreset();
 
-    if (preset != NULL) {
+    if (preset != NULL)
         preset->m_inputSource = m_presetInputWidget->inputSource();
-    }
 }
 
 void VCXYPadProperties::slotKeySequenceChanged(QKeySequence key)

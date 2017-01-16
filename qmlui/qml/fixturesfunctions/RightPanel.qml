@@ -26,15 +26,17 @@ import "."
 SidePanel
 {
     id: rightSidePanel
+    objectName: "funcRightPanel"
 
-    property int editorFuncID: -1
-
-    function createFunctionAndEditor(fType, fEditor)
+    function createFunctionAndEditor(fType)
     {
-        // reset the current editor first
+        // reset the currently loaded item first
         loaderSource = ""
+
+        var fEditor = functionManager.getEditorResource(fType)
         var newFuncID = functionManager.createFunction(fType)
-        functionManager.setEditorFunction(newFuncID)
+        functionManager.setEditorFunction(newFuncID, false)
+
         if (fType === Function.Show)
         {
             showManager.currentShowID = newFuncID
@@ -51,7 +53,20 @@ SidePanel
         }
     }
 
-    onContentLoaded: item.functionID = itemID
+    function requestEditor(funcID, funcType)
+    {
+        // reset the currently loaded item first
+        loaderSource = ""
+        itemID = funcID
+        loaderSource = functionManager.getEditorResource(funcType)
+        animatePanel(true)
+    }
+
+    onContentLoaded:
+    {
+        if (item.hasOwnProperty("functionID"))
+            item.functionID = itemID
+    }
 
     Rectangle
     {
@@ -79,6 +94,11 @@ SidePanel
                 {
                     if (checked)
                         loaderSource = "qrc:/FunctionManager.qml"
+                    else
+                    {
+                        functionManager.selectFunctionID(-1, false)
+                        functionManager.setEditorFunction(-1, false)
+                    }
                     animatePanel(checked)
                 }
             }
@@ -99,7 +119,7 @@ SidePanel
                     visible: false
                     x: -width
 
-                    onEntryClicked: createFunctionAndEditor(fType, fEditor)
+                    onEntryClicked: createFunctionAndEditor(fType)
                 }
             }
             IconButton
@@ -110,16 +130,37 @@ SidePanel
                 height: iconSize
                 imgSource: "qrc:/remove.svg"
                 tooltip: qsTr("Remove the selected functions")
-                counter: functionManager.selectionCount
+                counter: functionManager.selectionCount && !functionManager.isEditing
                 onClicked:
                 {
                     var selNames = functionManager.selectedFunctionsName()
                     console.log(selNames)
 
                     actionManager.requestActionPopup(ActionManager.DeleteFunctions,
-                                                     qsTr("Are you sure you want to remove the following functions ?\n" + selNames),
+                                                     qsTr("Are you sure you want to remove the following functions ?\n") + selNames,
                                                      ActionManager.OK | ActionManager.Cancel,
                                                      functionManager.selectedFunctionsID())
+                }
+            }
+            IconButton
+            {
+                id: renameFunction
+                z: 2
+                width: iconSize
+                height: iconSize
+                imgSource: "qrc:/rename.svg"
+                tooltip: qsTr("Rename the selected functions")
+                counter: functionManager.selectionCount && !functionManager.isEditing
+                onClicked:
+                {
+                    var selNames = functionManager.selectedFunctionsName()
+                    var dataArray = functionManager.selectedFunctionsID()
+                    // push the first selected name at the beginning of the array
+                    dataArray.unshift(selNames[0])
+
+                    actionManager.requestActionPopup(ActionManager.RenameFunctions,
+                                                     "qrc:/PopupTextRequest.qml",
+                                                     ActionManager.OK | ActionManager.Cancel, dataArray)
                 }
             }
             IconButton

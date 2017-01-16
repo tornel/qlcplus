@@ -32,7 +32,9 @@ FixtureBrowser::FixtureBrowser(QQuickView *view, Doc *doc, QObject *parent)
     : QObject(parent)
     , m_doc(doc)
     , m_view(view)
+    , m_manufacturerIndex(0)
     , m_definition(NULL)
+    , m_mode(NULL)
     , m_searchString(QString())
 {
     Q_ASSERT(m_doc != NULL);
@@ -47,14 +49,9 @@ QStringList FixtureBrowser::manufacturers()
 {
     QStringList mfList = m_doc->fixtureDefCache()->manufacturers();
     mfList.sort();
+    m_manufacturerIndex = mfList.indexOf("Generic");
+    emit selectedManufacturerIndexChanged(m_manufacturerIndex);
     return mfList;
-}
-
-int FixtureBrowser::genericIndex()
-{
-    QStringList mfList = m_doc->fixtureDefCache()->manufacturers();
-    mfList.sort();
-    return mfList.indexOf("Generic");
 }
 
 QStringList FixtureBrowser::models(QString manufacturer)
@@ -84,11 +81,45 @@ int FixtureBrowser::modeChannels(QString modeName)
 {
     if (m_definition != NULL)
     {
-        QLCFixtureMode *mode = m_definition->mode(modeName);
-        if (mode != NULL)
-            return mode->channels().count();
+        m_mode = m_definition->mode(modeName);
+        emit modeChannelListChanged();
+        if (m_mode != NULL)
+            return m_mode->channels().count();
     }
     return 0;
+}
+
+QVariant FixtureBrowser::modeChannelList() const
+{
+    QVariantList channelList;
+
+    if (m_mode != NULL)
+    {
+        int i = 1;
+        for (QLCChannel *channel : m_mode->channels()) // C++11
+        {
+            QVariantMap chMap;
+            chMap.insert("mIcon", channel->getIconNameFromGroup(channel->group(), true));
+            chMap.insert("mLabel", QString("%1: %2").arg(i++).arg(channel->name()));
+            channelList.append(chMap);
+        }
+    }
+
+    return QVariant::fromValue(channelList);
+}
+
+int FixtureBrowser::manufacturerIndex() const
+{
+    return m_manufacturerIndex;
+}
+
+void FixtureBrowser::setManufacturerIndex(int index)
+{
+    if (m_manufacturerIndex == index)
+        return;
+
+    m_manufacturerIndex = index;
+    emit selectedManufacturerIndexChanged(index);
 }
 
 int FixtureBrowser::availableChannel(quint32 uniIdx, int channels, int quantity, int gap, int requested)

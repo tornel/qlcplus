@@ -29,8 +29,6 @@ Rectangle
     width: 400
     height: columnContainer.height + 8
     color: UISettings.bgLight
-    radius: 4
-    border.color: "#444"
 
     property string fxManufacturer
     property string fxModel
@@ -72,7 +70,6 @@ Rectangle
             height: UISettings.listItemHeight * 0.8
             width: parent.width
             color: UISettings.highlightPressed
-            radius: 3
 
             RobotoText
             {
@@ -238,13 +235,36 @@ Rectangle
                         height: width
                         imgSource: "qrc:/info.svg"
                         checkable: true
-                        onToggled:
-                        {
-
-                        }
                     }
                 }
             }
+        } // end of GridLayout
+
+        Rectangle
+        {
+            visible: fxModeInfo.checked
+            height: UISettings.bigItemHeight * 1.5
+            width: parent.width - 8
+
+            clip: true
+            color: UISettings.bgMedium
+
+            ListView
+            {
+                id: channelList
+                anchors.fill: parent
+                boundsBehavior: Flickable.StopAtBounds
+                model: fixtureBrowser.modeChannelList
+                delegate:
+                    IconTextEntry
+                    {
+                        width: channelList.width
+                        height: UISettings.listItemHeight
+                        tLabel: modelData.mLabel
+                        iSrc: modelData.mIcon
+                    }
+                ScrollBar { flickable: channelList }
+            }
         }
-    }
+    } // end of Column
 }

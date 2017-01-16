@@ -52,6 +52,9 @@ class Doc;
 #define KXMLQLCVCCueListChaser "Chaser"
 #define KXMLQLCVCCueListPlaybackLayout "PlaybackLayout"
 #define KXMLQLCVCCueListNextPrevBehavior "NextPrevBehavior"
+#define KXMLQLCVCCueListCrossfade "Crossfade"
+#define KXMLQLCVCCueListBlend "Blend"
+#define KXMLQLCVCCueListLinked "Linked"
 #define KXMLQLCVCCueListNext "Next"
 #define KXMLQLCVCCueListPrevious "Previous"
 #define KXMLQLCVCCueListPlayback "Playback"
@@ -271,6 +274,7 @@ protected:
 
 protected slots:
     void slotShowCrossfadePanel(bool enable);
+    void slotBlendedCrossfadeChecked(bool checked);
     void slotSlider1ValueChanged(int value);
     void slotSlider2ValueChanged(int value);
 
@@ -278,6 +282,7 @@ protected:
     void stopStepIfNeeded(Chaser* ch);
 
 private:
+    QCheckBox *m_blendCheck;
     QCheckBox *m_linkCheck;
     QLabel *m_sl1TopLabel;
     ClickAndGoSlider* m_slider1;

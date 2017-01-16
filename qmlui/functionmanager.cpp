@@ -67,14 +67,6 @@ FunctionManager::FunctionManager(QQuickView *view, Doc *doc, QObject *parent)
     treeColumns << "classRef";
     m_functionTree->setColumnNames(treeColumns);
     m_functionTree->enableSorting(true);
-/*
-    for (int i = 0; i < 10; i++)
-    {
-        QStringList vars;
-        vars << QString::number(i) << 0;
-        m_functionTree->addItem(QString("Entry %1").arg(i), vars);
-    }
-*/
 
     connect(m_doc, SIGNAL(loaded()),
             this, SLOT(slotDocLoaded()));
@@ -337,12 +329,30 @@ void FunctionManager::selectFunctionID(quint32 fID, bool multiSelection)
         if (f != NULL)
             f->start(m_doc->masterTimer(), FunctionParent::master());
     }
-    m_selectedIDList.append(QVariant(fID));
+    if (fID != Function::invalidId())
+        m_selectedIDList.append(QVariant(fID));
 
     emit selectionCountChanged(m_selectedIDList.count());
 }
 
-void FunctionManager::setEditorFunction(quint32 fID)
+QString FunctionManager::getEditorResource(int type)
+{
+    switch(type)
+    {
+        case Function::Scene: return "qrc:/SceneEditor.qml";
+        case Function::Chaser: return "qrc:/ChaserEditor.qml";
+        case Function::EFX: return "qrc:/EFXEditor.qml";
+        case Function::Collection: return "qrc:/CollectionEditor.qml";
+        case Function::RGBMatrix: return "qrc:/RGBMatrixEditor.qml";
+        case Function::Show: return "qrc:/ShowManager.qml";
+        case Function::Script: return "qrc:/ScriptEditor.qml";
+        case Function::Audio: return "qrc:/AudioEditor.qml";
+        case Function::Video: return "qrc:/VideoEditor.qml";
+        default: return ""; break;
+    }
+}
+
+void FunctionManager::setEditorFunction(quint32 fID, bool requestUI)
 {
     // reset all the editor functions
     if (m_currentEditor != NULL)
@@ -353,7 +363,7 @@ void FunctionManager::setEditorFunction(quint32 fID)
 
     if ((int)fID == -1)
     {
-        emit functionEditingChanged(false);
+        emit isEditingChanged(false);
         return;
     }
 
@@ -402,7 +412,25 @@ void FunctionManager::setEditorFunction(quint32 fID)
         m_currentEditor->setPreviewEnabled(m_previewEnabled);
     }
 
-    emit functionEditingChanged(true);
+    if (requestUI == true)
+    {
+        QQuickItem *rightPanel = qobject_cast<QQuickItem*>(m_view->rootObject()->findChild<QObject *>("funcRightPanel"));
+        if (rightPanel != NULL)
+        {
+            QMetaObject::invokeMethod(rightPanel, "requestEditor",
+                Q_ARG(QVariant, f->id()), Q_ARG(QVariant, f->type()));
+        }
+    }
+
+    emit isEditingChanged(true);
+}
+
+bool FunctionManager::isEditing() const
+{
+    if (m_currentEditor != NULL)
+        return true;
+
+    return false;
 }
 
 void FunctionManager::deleteFunctions(QVariantList IDList)
@@ -422,14 +450,46 @@ void FunctionManager::deleteFunctions(QVariantList IDList)
         m_doc->deleteFunction(f->id());
     }
 
+    m_selectedIDList.clear();
+    emit selectionCountChanged(0);
     updateFunctionsTree();
-    emit selectionCountChanged(m_selectedIDList.count());
 }
 
 void FunctionManager::deleteEditorItems(QVariantList list)
 {
     if (m_currentEditor != NULL)
         m_currentEditor->deleteItems(list);
+}
+
+void FunctionManager::renameFunctions(QVariantList IDList, QString newName, int startNumber, int digits)
+{
+    if (IDList.isEmpty())
+        return;
+
+    if (IDList.count() == 1)
+    {
+        // single Function rename
+        Function *f = m_doc->function(IDList.first().toUInt());
+        if (f != NULL)
+            f->setName(newName.simplified());
+    }
+    else
+    {
+        int currNumber = startNumber;
+
+        for(QVariant id : IDList) // C++11
+        {
+            Function *f = m_doc->function(id.toUInt());
+            if (f == NULL)
+                continue;
+
+            QString fName = QString("%1 %2").arg(newName.simplified()).arg(currNumber, digits, 10, QChar('0'));
+            f->setName(fName);
+            currNumber++;
+        }
+    }
+
+    updateFunctionsTree();
 }
 
 int FunctionManager::selectionCount() const
@@ -523,7 +583,7 @@ void FunctionManager::updateFunctionsTree()
     m_collectionCount = m_rgbMatrixCount = m_scriptCount = 0;
     m_showCount = m_audioCount = m_videoCount = 0;
 
-    m_selectedIDList.clear();
+    //m_selectedIDList.clear();
     m_functionTree->clear();
 
     for(Function *func : m_doc->functions()) // C++11
@@ -535,7 +595,9 @@ void FunctionManager::updateFunctionsTree()
         {
             QVariantList params;
             params.append(QVariant::fromValue(func));
-            m_functionTree->addItem(func->name(), params, func->path(true), expandAll ? TreeModel::Expanded : 0);
+            TreeModelItem *item = m_functionTree->addItem(func->name(), params, func->path(true), expandAll ? TreeModel::Expanded : 0);
+            if (m_selectedIDList.contains(QVariant(func->id())))
+                item->setSelected(true);
         }
 
         switch (func->type())

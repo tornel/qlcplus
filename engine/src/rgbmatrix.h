@@ -101,14 +101,17 @@ public:
     RGBMatrix(Doc* parent);
     ~RGBMatrix();
 
+    /** @reimp */
+    QIcon getIcon() const;
+
     /*********************************************************************
      * Contents
      *********************************************************************/
 public:
-    /** @reimpl */
+    /** @reimp */
     void setTotalDuration(quint32 msec);
 
-    /** @reimpl */
+    /** @reimp */
     quint32 totalDuration();
 
     /** Set the matrix to control or not the dimmer channel */
@@ -124,10 +127,10 @@ private:
      * Copying
      *********************************************************************/
 public:
-    /** @reimpl */
+    /** @reimp */
     virtual Function* createCopy(Doc* doc, bool addToDoc = true);
 
-    /** @reimpl */
+    /** @reimp */
     virtual bool copyFrom(const Function* function);
 
     /************************************************************************
@@ -199,26 +202,26 @@ private:
      * Load & Save
      ************************************************************************/
 public:
-    /** @reimpl */
+    /** @reimp */
     bool loadXML(QXmlStreamReader &root);
 
-    /** @reimpl */
+    /** @reimp */
     bool saveXML(QXmlStreamWriter *doc);
 
     /************************************************************************
      * Running
      ************************************************************************/
 public:
-    /** @reimpl */
+    /** @reimp */
     void tap();
 
-    /** @reimpl */
+    /** @reimp */
     void preRun(MasterTimer* timer);
 
-    /** @reimpl */
+    /** @reimp */
     void write(MasterTimer* timer, QList<Universe*> universes);
 
-    /** @reimpl */
+    /** @reimp */
     void postRun(MasterTimer* timer, QList<Universe*> universes);
 
 private:
@@ -249,14 +252,14 @@ private:
      * Attributes
      *********************************************************************/
 public:
-    /** @reimpl */
+    /** @reimp */
     void adjustAttribute(qreal fraction, int attributeIndex);
 
     /*************************************************************************
      * Blend mode
      *************************************************************************/
 public:
-    /** @reimpl */
+    /** @reimp */
     void setBlendMode(Universe::BlendMode mode);
 };
 

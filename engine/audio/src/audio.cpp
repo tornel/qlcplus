@@ -83,6 +83,11 @@ Audio::~Audio()
         delete m_decoder;
 }
 
+QIcon Audio::getIcon() const
+{
+    return QIcon(":/audio.png");
+}
+
 /*****************************************************************************
  * Copying
  *****************************************************************************/
@@ -374,10 +379,13 @@ void Audio::setPause(bool enable)
 {
     if (isRunning())
     {
-        if (enable)
-            m_audio_out->suspend();
-        else
-            m_audio_out->resume();
+        if (m_audio_out != NULL)
+        {
+            if (enable)
+                m_audio_out->suspend();
+            else
+                m_audio_out->resume();
+        }
 
         Function::setPause(enable);
     }

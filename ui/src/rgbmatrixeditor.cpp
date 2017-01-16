@@ -995,7 +995,7 @@ void RGBMatrixEditor::slotSaveToSequenceClicked()
                 grpScene->setValue(head.fxi, rgbCh.at(2), 0);
             }
 
-            quint32 master = fxi->intensityChannel(head.head);
+            quint32 master = fxi->channelNumber(QLCChannel::Intensity, QLCChannel::MSB, head.head);
             if (master != QLCChannel::invalid())
                 grpScene->setValue(head.fxi, master, 0);
         }
@@ -1063,7 +1063,7 @@ void RGBMatrixEditor::slotSaveToSequenceClicked()
                         step.values.append(SceneValue(head.fxi, rgbCh.at(2), rgb.blue()));
                     }
 
-                    quint32 master = fxi->intensityChannel(head.head);
+                    quint32 master = fxi->channelNumber(QLCChannel::Intensity, QLCChannel::MSB, head.head);
                     if (master != QLCChannel::invalid())
                         step.values.append(SceneValue(head.fxi, master, 255));
                 }
@@ -1102,10 +1102,8 @@ void RGBMatrixEditor::slotPropertyComboChanged(QString value)
     if (m_matrix->algorithm() == NULL ||
         m_matrix->algorithm()->type() == RGBAlgorithm::Script)
     {
-        RGBScript *script = static_cast<RGBScript*> (m_matrix->algorithm());
         QComboBox *combo = (QComboBox *)sender();
         QString pName = combo->property("pName").toString();
-        script->setProperty(pName, value);
         m_matrix->setProperty(pName, value);
     }
 }
@@ -1116,10 +1114,8 @@ void RGBMatrixEditor::slotPropertySpinChanged(int value)
     if (m_matrix->algorithm() == NULL ||
         m_matrix->algorithm()->type() == RGBAlgorithm::Script)
     {
-        RGBScript *script = static_cast<RGBScript*> (m_matrix->algorithm());
         QSpinBox *spin = (QSpinBox *)sender();
         QString pName = spin->property("pName").toString();
-        script->setProperty(pName, QString::number(value));
         m_matrix->setProperty(pName, QString::number(value));
     }
 }

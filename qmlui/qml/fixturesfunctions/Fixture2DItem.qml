@@ -93,9 +93,24 @@ Rectangle
         headsRepeater.itemAt(headIndex).headLevel = intensity
     }
 
-    function setHeadColor(headIndex, color)
+    function setHeadRGBColor(headIndex, color)
     {
         headsRepeater.itemAt(headIndex).headColor = color
+    }
+
+    function setHeadWhite(headIndex, level)
+    {
+        headsRepeater.itemAt(headIndex).whiteLevel = level / 255
+    }
+
+    function setHeadAmber(headIndex, level)
+    {
+        headsRepeater.itemAt(headIndex).amberLevel = level / 255
+    }
+
+    function setHeadUV(headIndex, level)
+    {
+        headsRepeater.itemAt(headIndex).uvLevel = level / 255
     }
 
     function setPosition(pan, tilt)
@@ -277,7 +292,7 @@ Rectangle
         hoverEnabled: true
         preventStealing: false
 
-        drag.threshold: UISettings.iconSizeDefault
+        drag.threshold: 10 //UISettings.iconSizeDefault
 
         onEntered: fixtureLabel.visible = true
         onExited: showLabel ? fixtureLabel.visible = true : fixtureLabel.visible = false
@@ -292,8 +307,12 @@ Rectangle
         {
             if (!fxMouseArea.pressed)
                 return
-            drag.target = fixtureItem
-            isSelected = true
+
+            if (drag.target == null)
+            {
+                drag.target = fixtureItem
+                isSelected = true
+            }
         }
 
         onReleased:

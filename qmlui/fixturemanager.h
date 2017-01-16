@@ -39,12 +39,14 @@ class FixtureManager : public QObject
     Q_PROPERTY(int fixturesCount READ fixturesCount NOTIFY fixturesCountChanged)
     Q_PROPERTY(QQmlListProperty<Fixture> fixtures READ fixtures)
     Q_PROPERTY(QVariantList fixturesMap READ fixturesMap NOTIFY fixturesMapChanged)
+    Q_PROPERTY(QVariantList fixtureNamesMap READ fixtureNamesMap NOTIFY fixtureNamesMapChanged)
     Q_PROPERTY(QVariant groupsTreeModel READ groupsTreeModel NOTIFY groupsTreeModelChanged)
     Q_PROPERTY(QVariant groupsListModel READ groupsListModel NOTIFY groupsListModelChanged)
     Q_PROPERTY(quint32 universeFilter READ universeFilter WRITE setUniverseFilter NOTIFY universeFilterChanged)
 
     Q_PROPERTY(QVariantList goboChannels READ goboChannels NOTIFY goboChannelsChanged)
     Q_PROPERTY(QVariantList colorWheelChannels READ colorWheelChannels NOTIFY colorWheelChannelsChanged)
+    Q_PROPERTY(int colorsMask READ colorsMask NOTIFY colorsMaskChanged)
 
 public:
     FixtureManager(QQuickView *view, Doc *doc, QObject *parent = 0);
@@ -76,7 +78,7 @@ public:
      * @param enable used to increment/decrement the UI tools counters
      * @return A multihash containg the fixture capabilities by channel type
      */
-    QMultiHash<int, SceneValue> setFixtureCapabilities(quint32 fxID, bool enable);
+    QMultiHash<int, SceneValue> getFixtureCapabilities(quint32 fxID, bool enable);
 
     /** Returns the number of fixtures currently loaded in the project */
     int fixturesCount();
@@ -112,11 +114,17 @@ public:
      *  the channel cached at the given index */
     Q_INVOKABLE QVariantList presetCapabilities(int index);
 
+    /** Returns a list of fixture names for representation in a GridEditor QML component */
+    QVariantList fixtureNamesMap();
+
     /** Returns data for representation in a GridEditor QML component */
     QVariantList fixturesMap();
 
     quint32 universeFilter() const;
     void setUniverseFilter(quint32 universeFilter);
+
+    /** Returns the currently available colors as a bitmask */
+    int colorsMask() const;
 
 public slots:
     /** Slot called whenever a new workspace has been loaded */
@@ -159,11 +167,17 @@ signals:
     /** Notify the listeners that the list of fixtures with color wheel channels has changed */
     void colorWheelChannelsChanged();
 
-    /** Notify the listeners that the fixture map has changed */
+    /** Notify the listeners that the fixture names map has changed */
+    void fixtureNamesMapChanged();
+
+    /** Notify the listeners that the fixtures map has changed */
     void fixturesMapChanged();
 
     /** Notify the listeners that the universe filter has changed */
     void universeFilterChanged(quint32 universeFilter);
+
+    /** Notify the listeners that the available colors changed */
+    void colorsMaskChanged(int colorsMask);
 
 private:
     /** Generic method that returns the names of the cached channels for
@@ -174,17 +188,21 @@ private:
      *  to update the QML UI */
     void updateFixtureTree();
 
+    void updateColorsMap(int type, int delta);
+
 private:
     /** Reference to the QML view root */
     QQuickView *m_view;
     /** Reference to the project workspace */
     Doc *m_doc;
-    /** List of the current Fixtures in Doc */
+    /** List of the current Fixture references in Doc */
     QList<Fixture *> m_fixtureList;
     /** Keep a map of references to the available preset channels and a related Fixture ID */
     QMap<const QLCChannel *, quint32>m_presetsCache;
     /** Data model used by the QML UI to represent groups and fixtures */
     TreeModel *m_fixtureTree;
+    /** An array-like map of the current fixture names, filtered by m_universeFilter */
+    QVariantList m_fixtureNamesMap;
     /** An array-like map of the current fixtures, filtered by m_universeFilter */
     QVariantList m_fixturesMap;
     /** A filter for m_fixturesMap to restrict data to a specific universe */
@@ -194,6 +212,11 @@ private:
      *  when enabling the position capability for the selected Fixtures */
     int m_maxPanDegrees;
     int m_maxTiltDegrees;
+
+    /** Bitmask holding the colors supported by the currently selected fixtures */
+    int m_colorsMask;
+    /** A map of the currently available colors and their counters */
+    QMap<int, int> m_colorCounters;
 };
 
 #endif // FIXTUREMANAGER_H

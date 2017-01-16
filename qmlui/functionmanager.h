@@ -47,6 +47,7 @@ class FunctionManager : public QObject
     Q_PROPERTY(int functionsFilter READ functionsFilter CONSTANT)
     Q_PROPERTY(QString searchFilter READ searchFilter WRITE setSearchFilter NOTIFY searchFilterChanged)
     Q_PROPERTY(int selectionCount READ selectionCount NOTIFY selectionCountChanged)
+    Q_PROPERTY(bool isEditing READ isEditing NOTIFY isEditingChanged)
     Q_PROPERTY(int viewPosition READ viewPosition WRITE setViewPosition NOTIFY viewPositionChanged)
 
     Q_PROPERTY(int sceneCount READ sceneCount NOTIFY sceneCountChanged)
@@ -67,9 +68,13 @@ public:
     /*********************************************************************
      * Functions
      *********************************************************************/
+    /** Read only property to expose the function tree to the QML UI */
     QVariant functionsList();
 
+    /** Get a list of the currently selected Function IDs, suitable to be used in QML */
     Q_INVOKABLE QVariantList selectedFunctionsID();
+
+    /** Get a list of the currently selected Function names, suitable to be used in QML */
     Q_INVOKABLE QStringList selectedFunctionsName();
 
     /** Enable/disable the display of a Function type in the functions tree */
@@ -80,15 +85,41 @@ public:
     QString searchFilter() const;
     void setSearchFilter(QString searchFilter);
 
+    /** Create a new Function with the specified $type */
     Q_INVOKABLE quint32 createFunction(int type);
+
+    /** Return a reference to a Function with the specified $id */
     Q_INVOKABLE Function *getFunction(quint32 id);
+
+    /** Return the associated qrc icon resource for the specified Function $type */
     Q_INVOKABLE QString functionIcon(int type);
-    Q_INVOKABLE void clearTree();
+
+    /** Enable/disable the Function preview feature */
     Q_INVOKABLE void setPreview(bool enable);
+
+    /** Add $fID to the list of the currently selected Function IDs,
+     *  considering $multiSelection as an append/replace action */
     Q_INVOKABLE void selectFunctionID(quint32 fID, bool multiSelection);
-    Q_INVOKABLE void setEditorFunction(quint32 fID);
+
+    /** Get the QML resource for a Function editor that can handle $type */
+    Q_INVOKABLE QString getEditorResource(int type);
+
+    /** Set $fID as the current Function ID being edited */
+    Q_INVOKABLE void setEditorFunction(quint32 fID, bool requestUI);
+
+    /** Returns if the UI is editing a Function */
+    bool isEditing() const;
+
+    /** Delete the list of Function IDs in $IDList. This happens AFTER a popup confirmation */
     void deleteFunctions(QVariantList IDList);
+
+    /** Generic method to delete a list of item IDs specified in $list.
+     *  This is used from within a Function editor and items can be of any type
+     *  such as Functions, Fixtures, etc. as long as they have an ID.
+     *  This happens AFTER a popup confirmation */
     void deleteEditorItems(QVariantList list);
+
+    Q_INVOKABLE void renameFunctions(QVariantList IDList, QString newName, int startNumber, int digits);
 
     /** Returns the number of the currently selected Functions */
     int selectionCount() const;
@@ -108,6 +139,7 @@ public:
 
 protected:
     void updateFunctionsTree();
+    void clearTree();
 
 signals:
     void functionsListChanged();
@@ -121,8 +153,8 @@ signals:
     void showCountChanged();
     void audioCountChanged();
     void videoCountChanged();
-    void functionEditingChanged(bool enable);
     void selectionCountChanged(int count);
+    void isEditingChanged(bool editing);
     void viewPositionChanged(int viewPosition);
 
 public slots:

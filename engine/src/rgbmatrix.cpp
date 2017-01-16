@@ -78,6 +78,11 @@ RGBMatrix::~RGBMatrix()
     delete m_stepHandler;
 }
 
+QIcon RGBMatrix::getIcon() const
+{
+    return QIcon(":/rgbmatrix.png");
+}
+
 void RGBMatrix::setTotalDuration(quint32 msec)
 {
     QMutexLocker algorithmLocker(&m_algorithmMutex);
@@ -188,6 +193,25 @@ void RGBMatrix::setAlgorithm(RGBAlgorithm* algo)
         QMutexLocker algorithmLocker(&m_algorithmMutex);
         delete m_algorithm;
         m_algorithm = algo;
+
+        /** If there's been a change of Script algorithm "on the fly",
+         *  then re-apply the properties currently set in this RGBMatrix */
+        if (m_algorithm != NULL && m_algorithm->type() == RGBAlgorithm::Script)
+        {
+            RGBScript *script = static_cast<RGBScript*> (m_algorithm);
+            QHashIterator<QString, QString> it(m_properties);
+            while(it.hasNext())
+            {
+                it.next();
+                if (script->setProperty(it.key(), it.value()) == false)
+                {
+                    /** If the new algorithm doesn't expose a property,
+                     *  then remove it from the cached list, otherwise
+                     *  it would be carried around forever (and saved on XML) */
+                    m_properties.take(it.key());
+                }
+            }
+        }
     }
     m_stepsCount = stepsCount();
 
@@ -244,7 +268,10 @@ void RGBMatrix::setStartColor(const QColor& c)
     {
         QMutexLocker algorithmLocker(&m_algorithmMutex);
         if (m_algorithm != NULL)
+        {
             m_algorithm->setColors(m_startColor, m_endColor);
+            updateColorDelta();
+        }
     }
     emit changed(id());
 }
@@ -260,7 +287,10 @@ void RGBMatrix::setEndColor(const QColor &c)
     {
         QMutexLocker algorithmLocker(&m_algorithmMutex);
         if (m_algorithm != NULL)
+        {
             m_algorithm->setColors(m_startColor, m_endColor);
+            updateColorDelta();
+        }
     }
     emit changed(id());
 }
@@ -294,7 +324,19 @@ void RGBMatrix::setProperty(QString propName, QString value)
 QString RGBMatrix::property(QString propName)
 {
     QMutexLocker algoLocker(&m_algorithmMutex);
-    return m_properties[propName];
+
+    /** If the property is cached, then return it right away */
+    if (m_properties.contains(propName))
+        return m_properties[propName];
+
+    /** Otherwise, let's retrieve it from the Script */
+    if (m_algorithm != NULL && m_algorithm->type() == RGBAlgorithm::Script)
+    {
+        RGBScript *script = static_cast<RGBScript*> (m_algorithm);
+        return script->property(propName);
+    }
+
+    return QString();
 }
 
 /****************************************************************************
@@ -650,7 +692,7 @@ void RGBMatrix::updateMapChannels(const RGBMap& map, const FixtureGroup* grp)
             QVector <quint32> cmy = head.cmyChannels();
 
             quint32 masterDim = fxi->masterIntensityChannel();
-            quint32 headDim = head.intensityChannel();
+            quint32 headDim = head.channelNumber(QLCChannel::Intensity, QLCChannel::MSB);
 
             // Collect all dimmers that affect current head:
             // They are the master dimmer (affects whole fixture)
@@ -806,6 +848,9 @@ void RGBMatrix::adjustAttribute(qreal fraction, int attributeIndex)
 
 void RGBMatrix::setBlendMode(Universe::BlendMode mode)
 {
+    if (mode == blendMode())
+        return;
+
     if (m_fader != NULL)
         m_fader->setBlendMode(mode);
     Function::setBlendMode(mode);
@@ -851,6 +896,8 @@ void RGBMatrixStep::calculateColorDelta(QColor startColor, QColor endColor)
         m_crDelta = endColor.red() - startColor.red();
         m_cgDelta = endColor.green() - startColor.green();
         m_cbDelta = endColor.blue() - startColor.blue();
+
+        //qDebug() << "Color deltas:" << m_crDelta << m_cgDelta << m_cbDelta;
     }
 }
 
@@ -869,9 +916,11 @@ void RGBMatrixStep::updateStepColor(int stepIndex, QColor startColor, int stepsC
     if (stepsCount <= 0)
         return;
 
-    m_stepColor.setRed(startColor.red() + (m_crDelta * stepIndex / stepsCount));
-    m_stepColor.setGreen(startColor.green() + (m_cgDelta * stepIndex / stepsCount));
-    m_stepColor.setBlue(startColor.blue() + (m_cbDelta * stepIndex / stepsCount));
+    m_stepColor.setRed(startColor.red() + (m_crDelta * stepIndex / (stepsCount - 1)));
+    m_stepColor.setGreen(startColor.green() + (m_cgDelta * stepIndex / (stepsCount - 1)));
+    m_stepColor.setBlue(startColor.blue() + (m_cbDelta * stepIndex / (stepsCount - 1)));
+
+    //qDebug() << "RGBMatrix step" << stepIndex << ", color:" << QString::number(m_stepColor.rgb(), 16);
 }
 
 void RGBMatrixStep::initializeDirection(Function::Direction direction, QColor startColor, QColor endColor, int stepsCount)

@@ -54,6 +54,11 @@ Scene::~Scene()
 {
 }
 
+QIcon Scene::getIcon() const
+{
+    return QIcon(":/scene.png");
+}
+
 void Scene::setChildrenFlag(bool flag)
 {
     m_hasChildren = flag;
@@ -532,7 +537,7 @@ void Scene::flash(MasterTimer* timer)
 
     Q_ASSERT(timer != NULL);
     Function::flash(timer);
-    timer->registerDMXSource(this, "Scene");
+    timer->registerDMXSource(this);
 }
 
 void Scene::unFlash(MasterTimer* timer)
@@ -596,6 +601,7 @@ void Scene::write(MasterTimer* timer, QList<Universe*> ua)
         m_valueListMutex.lock();
         m_fader = new GenericFader(doc());
         m_fader->adjustIntensity(getAttributeValue(Intensity));
+        m_fader->setBlendMode(blendMode());
 
         QMapIterator <SceneValue, uchar> it(m_values);
         while (it.hasNext() == true)
@@ -736,4 +742,21 @@ void Scene::adjustAttribute(qreal fraction, int attributeIndex)
     if (m_fader != NULL && attributeIndex == Intensity)
         m_fader->adjustIntensity(fraction);
     Function::adjustAttribute(fraction, attributeIndex);
+}
+
+/*************************************************************************
+ * Blend mode
+ *************************************************************************/
+
+void Scene::setBlendMode(Universe::BlendMode mode)
+{
+    if (mode == blendMode())
+        return;
+
+    qDebug() << "Scene" << name() << "blend mode set to" << Universe::blendModeToString(mode);
+
+    if (m_fader != NULL)
+        m_fader->setBlendMode(mode);
+
+    Function::setBlendMode(mode);
 }
