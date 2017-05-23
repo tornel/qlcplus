@@ -34,7 +34,9 @@ class ContextManager;
 class VirtualConsole;
 class FunctionManager;
 class QXmlStreamReader;
+class FixtureGroupEditor;
 class InputOutputManager;
+class VideoProvider;
 
 #define KXMLQLCWorkspace "Workspace"
 
@@ -57,9 +59,23 @@ public:
         Clicked,
         DoubleClicked,
         DragStarted,
-        DragFinished
+        DragFinished,
+        Checked
     };
     Q_ENUM(MouseEvents)
+
+    enum DragItemTypes
+    {
+        GenericDragItem,
+        FolderDragItem,
+        FunctionDragItem,
+        UniverseDragItem,
+        FixtureGroupDragItem,
+        FixtureDragItem,
+        ChannelDragItem,
+        HeadDragItem
+    };
+    Q_ENUM(DragItemTypes)
 
     enum ChannelColors
     {
@@ -77,8 +93,11 @@ public:
     };
     Q_ENUM(ChannelColors)
 
-    /** Method to turn the key a start the engine */
+    /** Method to turn the key and start the engine */
     void startup();
+
+    /** Toggle between windowed and fullscreeen mode */
+    Q_INVOKABLE void toggleFullscreen();
 
     void enableKioskMode();
     void createKioskCloseButton(const QRect& rect);
@@ -98,12 +117,14 @@ private:
 
     FixtureBrowser *m_fixtureBrowser;
     FixtureManager *m_fixtureManager;
+    FixtureGroupEditor *m_fixtureGroupEditor;
     ContextManager *m_contextManager;
     FunctionManager *m_functionManager;
     InputOutputManager *m_ioManager;
     VirtualConsole *m_virtualConsole;
     ShowManager *m_showManager;
     ActionManager *m_actionManager;
+    VideoProvider *m_videoProvider;
 
     /*********************************************************************
      * Doc

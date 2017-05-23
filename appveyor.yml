@@ -1,4 +1,4 @@
-version: 4.10.6.{build}
+version: 4.11.0.{build}
 
 environment:
     MSYSTEM: MSYS
@@ -42,6 +42,7 @@ build_script:
           sed -i -e 's/ SUBDIRS              += velleman/#SUBDIRS += velleman/g' plugins/plugins.pro
           sed -i -e 's/  SUBDIRS += test/#SUBDIRS += test/g' plugins/artnet/artnet.pro
           sed -i -e 's/SUBDIRS += test/#SUBDIRS += test/g' plugins/enttecwing/enttecwing.pro
+          sed -i -e 's/SUBDIRS += test/#SUBDIRS += test/g' plugins/midi/midi.pro
           qmake FORCECONFIG=release
           make
           echo 'Silently installing QLC+...'
@@ -58,4 +59,4 @@ build_script:
 
 artifacts:
   - path: QLC+_$(APPVEYOR_BUILD_VERSION).exe
-    name: qlcplus_4_10_6
+    name: qlcplus_4_11_0

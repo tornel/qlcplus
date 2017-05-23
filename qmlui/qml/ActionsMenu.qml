@@ -20,13 +20,15 @@
 import QtQuick 2.0
 import QtQuick.Dialogs 1.2
 
+import "."
+
 Rectangle
 {
     id: menuRoot
     radius: 2
     border.width: 1
-    border.color: "#1D1D1D"
-    color: "#202020"
+    border.color: UISettings.bgStronger
+    color: UISettings.bgStrong
     width: actionsMenuEntries.width
     height: actionsMenuEntries.height
 
@@ -86,7 +88,7 @@ Rectangle
                 x: menuRoot.width
                 width: recentColumn.width
                 height: recentColumn.height
-                color: "#202020"
+                color: UISettings.bgStrong
                 visible: false
 
                 Column
@@ -125,6 +127,18 @@ Rectangle
             entryText: qsTr("Save project as...")
             onClicked: { }
             onEntered: recentMenu.visible = false
+        }
+        ContextMenuEntry
+        {
+            id: fullScreen
+            imgSource: "qrc:/fullscreen.svg"
+            entryText: qsTr("Toggle fullscreen")
+            onEntered: recentMenu.visible = false
+            onClicked:
+            {
+                menuRoot.visible = false
+                qlcplus.toggleFullscreen()
+            }
         }
     }
 }

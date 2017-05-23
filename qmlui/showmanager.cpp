@@ -21,6 +21,7 @@
 #include "track.h"
 #include "show.h"
 #include "doc.h"
+#include "chaser.h"
 
 ShowManager::ShowManager(QQuickView *view, Doc *doc, QObject *parent)
     : PreviewContext(view, doc, "SHOWMGR", parent)
@@ -555,7 +556,8 @@ QVariantList ShowManager::previewData(Function *f) const
 
     switch (f->type())
     {
-        case Function::Chaser:
+        case Function::ChaserType:
+        case Function::SequenceType:
         {
             Chaser *chaser = qobject_cast<Chaser *>(f);
             quint32 stepsTimeCounter = 0;

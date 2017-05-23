@@ -31,11 +31,13 @@
 #include "showmanager.h"
 #include "actionmanager.h"
 #include "modelselector.h"
+#include "videoprovider.h"
 #include "contextmanager.h"
 #include "virtualconsole.h"
 #include "fixturebrowser.h"
 #include "fixturemanager.h"
 #include "functionmanager.h"
+#include "fixturegroupeditor.h"
 #include "inputoutputmanager.h"
 
 #include "qlcfixturedefcache.h"
@@ -56,6 +58,7 @@ App::App()
     , m_fixtureManager(NULL)
     , m_contextManager(NULL)
     , m_ioManager(NULL)
+    , m_videoProvider(NULL)
     , m_doc(NULL)
     , m_docLoaded(false)
 {
@@ -80,7 +83,7 @@ void App::startup()
     qmlRegisterType<ModelSelector>("com.qlcplus.classes", 1, 0, "ModelSelector");
     qmlRegisterType<App>("com.qlcplus.classes", 1, 0, "App");
 
-    setTitle("Q Light Controller Plus");
+    setTitle(APPNAME);
     setIcon(QIcon(":/qlcplus.svg"));
 
     if (QFontDatabase::addApplicationFont(":/RobotoCondensed-Regular.ttf") < 0)
@@ -103,6 +106,9 @@ void App::startup()
 
     m_fixtureManager = new FixtureManager(this, m_doc);
     rootContext()->setContextProperty("fixtureManager", m_fixtureManager);
+
+    m_fixtureGroupEditor = new FixtureGroupEditor(this, m_doc);
+    rootContext()->setContextProperty("fixtureGroupEditor", m_fixtureGroupEditor);
 
     m_functionManager = new FunctionManager(this, m_doc);
     rootContext()->setContextProperty("functionManager", m_functionManager);
@@ -136,12 +142,30 @@ void App::startup()
     setSource(QUrl("qrc:/MainView.qml"));
 }
 
+void App::toggleFullscreen()
+{
+    static int wstate = windowState();
+
+    if (windowState() & Qt::WindowFullScreen)
+    {
+        if (wstate & Qt::WindowMaximized)
+            showMaximized();
+        else
+            showNormal();
+        wstate = windowState();
+    }
+    else
+    {
+        wstate = windowState();
+        showFullScreen();
+    }
+}
+
 void App::show()
 {
     setGeometry(0, 0, 800, 600);
     //setGeometry(0, 0, 1272, 689); // youtube recording
     showMaximized();
-    //showFullScreen();
 }
 
 qreal App::pixelDensity() const
@@ -167,6 +191,12 @@ void App::keyReleaseEvent(QKeyEvent *e)
 
 void App::clearDocument()
 {
+    if (m_videoProvider)
+    {
+        delete m_videoProvider;
+        m_videoProvider = NULL;
+    }
+
     m_doc->masterTimer()->stop();
     m_doc->clearContents();
     m_virtualConsole->resetContents();
@@ -176,6 +206,7 @@ void App::clearDocument()
     setFileName(QString());
     m_doc->resetModified();
     m_doc->masterTimer()->start();
+
 }
 
 Doc *App::doc()
@@ -224,8 +255,8 @@ void App::initDoc()
      * otherwise the qlcconfig.h creation should have been moved into the
      * audio folder, which doesn't make much sense */
     m_doc->audioPluginCache()->load(QLCFile::systemDirectory(AUDIOPLUGINDIR, KExtPlugin));
+    m_videoProvider = new VideoProvider(this, m_doc);
 
-    /* Restore outputmap settings */
     Q_ASSERT(m_doc->inputOutputMap() != NULL);
 
     /* Load input plugins & profiles */
@@ -341,13 +372,14 @@ bool App::loadWorkspace(const QString &fileName)
 
     if (loadXML(localFilename) == QFile::NoError)
     {
-        setTitle(QString("Q Light Controller Plus - %1").arg(localFilename));
+        setTitle(QString("%1 - %2").arg(APPNAME).arg(localFilename));
         setFileName(localFilename);
         m_docLoaded = true;
         updateRecentFilesList(localFilename);
         emit docLoadedChanged();
         m_contextManager->resetContexts();
         m_doc->resetModified();
+        m_videoProvider = new VideoProvider(this, m_doc);
         return true;
     }
     return false;

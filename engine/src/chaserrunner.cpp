@@ -49,21 +49,24 @@ ChaserRunner::ChaserRunner(const Doc* doc, const Chaser* chaser, quint32 startTi
 {
     Q_ASSERT(chaser != NULL);
 
-    if (m_chaser->isSequence() == true)
+    if (m_chaser->type() == Function::SequenceType)
     {
         qDebug() << "[ChaserRunner] startTime:" << startTime;
         int idx = 0;
         quint32 stepsTime = 0;
         foreach(ChaserStep step, chaser->steps())
         {
-            if (startTime < stepsTime + step.duration)
+            uint duration = m_chaser->durationMode() == Chaser::Common ? m_chaser->duration() : step.duration;
+
+            if (startTime < stepsTime + duration)
             {
                 m_newStartStepIdx = idx;
                 m_startOffset = startTime - stepsTime;
+                qDebug() << "New start index:" << m_newStartStepIdx;
                 break;
             }
             idx++;
-            stepsTime += step.duration;
+            stepsTime += duration;
         }
     }
 
@@ -512,7 +515,7 @@ void ChaserRunner::startNewStep(int index, MasterTimer* timer, qreal intensity,
 
     newStep->m_function = func;
 
-    if (m_chaser->isSequence())
+    if (m_chaser->type() == Function::SequenceType)
     {
         Scene *s = qobject_cast<Scene*>(func);
         // blind == true is a workaround to reuse the same scene
