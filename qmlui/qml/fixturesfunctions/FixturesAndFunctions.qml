@@ -18,7 +18,7 @@
 */
 
 import QtQuick 2.3
-import QtQuick.Controls 1.2
+import QtQuick.Controls 2.1
 import QtQuick.Layouts 1.1
 
 import "."
@@ -108,17 +108,16 @@ Rectangle
                 id: rowLayout1
                 anchors.fill: parent
                 spacing: 5
-                ExclusiveGroup { id: menuBarGroup2 }
+                ButtonGroup { id: ffMenuBarGroup }
 
                 MenuBarEntry
                 {
                     id: uniView
                     imgSource: "uniview.svg"
                     entryText: qsTr("Universe View")
-                    checkable: true
                     checkedColor: UISettings.toolbarSelectionSub
                     bgGradient: ffMenuGradient
-                    exclusiveGroup: menuBarGroup2
+                    ButtonGroup.group: ffMenuBarGroup
                     onCheckedChanged:
                     {
                         if (checked == true)
@@ -138,10 +137,9 @@ Rectangle
                     id: dmxView
                     imgSource: "dmxview.svg"
                     entryText: qsTr("DMX View")
-                    checkable: true
                     checkedColor: UISettings.toolbarSelectionSub
                     bgGradient: ffMenuGradient
-                    exclusiveGroup: menuBarGroup2
+                    ButtonGroup.group: ffMenuBarGroup
                     onCheckedChanged:
                     {
                         if (checked == true)
@@ -161,11 +159,10 @@ Rectangle
                     id: twodView
                     imgSource: "2dview.svg"
                     entryText: qsTr("2D View")
-                    checkable: true
                     checked: true
                     checkedColor: UISettings.toolbarSelectionSub
                     bgGradient: ffMenuGradient
-                    exclusiveGroup: menuBarGroup2
+                    ButtonGroup.group: ffMenuBarGroup
                     onCheckedChanged:
                     {
                         if (checked == true)
@@ -185,10 +182,9 @@ Rectangle
                     id: threedView
                     imgSource: "3dview.svg"
                     entryText: qsTr("3D View")
-                    checkable: true
                     checkedColor: UISettings.toolbarSelectionSub
                     bgGradient: ffMenuGradient
-                    exclusiveGroup: menuBarGroup2
+                    ButtonGroup.group: ffMenuBarGroup
                     onCheckedChanged:
                     {
                         if (checked == true)
@@ -225,7 +221,7 @@ Rectangle
                 IconButton
                 {
                     id: settingsButton
-                    height: viewToolbar.height - 2
+                    implicitHeight: viewToolbar.height - 2
                     checkable: true
                     imgSource: "qrc:/configure.svg"
                     onToggled: previewLoader.item.showSettings(checked)
@@ -234,7 +230,7 @@ Rectangle
                 ZoomItem
                 {
                     width: UISettings.iconSizeMedium * 2
-                    height: viewToolbar.height - 2
+                    implicitHeight: viewToolbar.height - 2
                     fontColor: "#222"
                     onZoomOutClicked: previewLoader.item.setZoom(-0.5)
                     onZoomInClicked: previewLoader.item.setZoom(0.5)

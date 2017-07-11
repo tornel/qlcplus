@@ -19,9 +19,8 @@
 
 import QtQuick 2.0
 import QtQuick.Layouts 1.1
-import QtQuick.Controls 1.2
 
-import com.qlcplus.classes 1.0
+import org.qlcplus.classes 1.0
 import "."
 
 Rectangle
@@ -82,6 +81,24 @@ Rectangle
                 Rectangle { Layout.fillWidth: true }
                 IconButton
                 {
+                    id: searchItem
+                    z: 2
+                    width: height
+                    height: topBar.height - 2
+                    bgColor: UISettings.bgMain
+                    faColor: checked ? "white" : "gray"
+                    faSource: FontAwesome.fa_search
+                    checkable: true
+                    tooltip: qsTr("Set a Group/Fixture/Channel search filter")
+                    onToggled:
+                    {
+                        fixtureManager.searchFilter = ""
+                        if (checked)
+                            sTextInput.forceActiveFocus()
+                    }
+                }
+                IconButton
+                {
                     id: infoButton
                     z: 2
                     width: height
@@ -97,30 +114,71 @@ Rectangle
                         if (gfhcDragItem.itemsList.length === 0)
                             return;
 
+                        if (checked)
+                            previousView = fixtureAndFunctions.currentViewQML
+
                         switch(gfhcDragItem.itemsList[0].itemType)
                         {
                             case App.UniverseDragItem:
+                                if (checked)
+                                {
+                                    fixtureManager.universeFilter = gfhcDragItem.itemsList[0].cRef.id
+                                    fixtureAndFunctions.currentViewQML = "qrc:/UniverseSummary.qml"
+                                }
+
                             break;
                             case App.FixtureGroupDragItem:
                                 if (checked)
                                 {
                                     fixtureGroupEditor.setEditGroup(gfhcDragItem.itemsList[0].cRef)
-                                    previousView = fixtureAndFunctions.currentViewQML
                                     fixtureAndFunctions.currentViewQML = "qrc:/FixtureGroupEditor.qml"
                                 }
                                 else
                                 {
                                     fixtureGroupEditor.setEditGroup(null)
-                                    fixtureAndFunctions.currentViewQML = previousView
-                                    previousView = ""
                                 }
 
                             break;
                             case App.FixtureDragItem:
                             break;
                         }
+
+                        if (!checked)
+                        {
+                            fixtureAndFunctions.currentViewQML = previousView
+                            previousView = ""
+                        }
                     }
                 }
+            }
+        }
+
+        Rectangle
+        {
+            id: searchBox
+            visible: searchItem.checked
+            width: fgmContainer.width
+            height: UISettings.iconSizeMedium
+            z: 5
+            color: UISettings.bgMain
+            radius: 5
+            border.width: 2
+            border.color: "#111"
+
+            TextInput
+            {
+                id: sTextInput
+                y: 3
+                height: parent.height - 6
+                width: parent.width
+                color: UISettings.fgMain
+                text: modelProvider ? modelProvider.searchFilter : fixtureManager.searchFilter
+                font.family: "Roboto Condensed"
+                font.pixelSize: parent.height - 6
+                selectionColor: UISettings.highlightPressed
+                selectByMouse: true
+
+                onTextChanged: modelProvider ? modelProvider.searchFilter = text : fixtureManager.searchFilter = text
             }
         }
 
@@ -128,7 +186,7 @@ Rectangle
         {
             id: groupListView
             width: fgmContainer.width
-            height: fgmContainer.height - topBar.height
+            height: fgmContainer.height - topBar.height - (searchBox.visible ? searchBox.height : 0)
             z: 4
             boundsBehavior: Flickable.StopAtBounds
 

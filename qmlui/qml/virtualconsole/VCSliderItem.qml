@@ -20,7 +20,7 @@
 import QtQuick 2.0
 import QtQuick.Layouts 1.1
 
-import com.qlcplus.classes 1.0
+import org.qlcplus.classes 1.0
 import "."
 
 VCWidgetItem
@@ -28,6 +28,7 @@ VCWidgetItem
     id: sliderRoot
     property VCSlider sliderObj: null
     property int sliderValue: sliderObj ? sliderObj.value : 0
+    property int sliderMode: sliderObj ? sliderObj.sliderMode : VCSlider.Playback
 
     radius: 2
 
@@ -56,6 +57,48 @@ VCWidgetItem
         GradientStop { position: 1.0; color: "#333333" }
     }
 
+    Gradient
+    {
+        id: grandMasterHandleGradient
+        GradientStop { position: 0; color: "#A81919" }
+        GradientStop { position: 0.45; color: "#DB2020" }
+        GradientStop { position: 0.50; color: "#000" }
+        GradientStop { position: 0.55; color: "#DB2020" }
+        GradientStop { position: 1.0; color: "#A81919" }
+    }
+
+    Gradient
+    {
+        id: grandMasterHandleGradientHover
+        GradientStop { position: 0; color: "#DB2020" }
+        GradientStop { position: 0.45; color: "#F51C1C" }
+        GradientStop { position: 0.50; color: "#FFF" }
+        GradientStop { position: 0.55; color: "#F51C1C" }
+        GradientStop { position: 1.0; color: "#DB2020" }
+    }
+
+    Rectangle
+    {
+        visible: sliderObj && sliderObj.monitorEnabled
+        y: slFader.y
+        x: parent.width - width
+        height: slFader.height
+        width: UISettings.listItemHeight * 0.2
+        rotation: sliderObj ? (sliderObj.invertedAppearance ? 0 : 180) : 180
+        color: UISettings.bgLight
+        border.width: 1
+        border.color: UISettings.bgStrong
+
+        Rectangle
+        {
+            x: 1
+            y: 1
+            color: "#00FF00"
+            height: sliderObj ? parent.height * (sliderObj.monitorValue / 255) : 0
+            width: parent.width - 2
+        }
+    }
+
     ColumnLayout
     {
         anchors.fill: parent
@@ -81,20 +124,15 @@ VCWidgetItem
             Layout.fillHeight: true
             width: parent.width
             rotation: sliderObj ? (sliderObj.invertedAppearance ? 180 : 0) : 0
-            from: sliderObj ? (sliderObj.sliderMode === VCSlider.Level ? sliderObj.levelLowLimit : 0) : 0
-            to: sliderObj ? (sliderObj.sliderMode === VCSlider.Level ? sliderObj.levelHighLimit : 255) : 255
+            from: sliderMode === VCSlider.Level ? sliderObj.levelLowLimit : 0
+            to: sliderMode === VCSlider.Level ? sliderObj.levelHighLimit : 255
             value: sliderValue
-            handleGradient: sliderObj ? (sliderObj.sliderMode === VCSlider.Submaster ? submasterHandleGradient : defaultGradient) : defaultGradient
-            handleGradientHover: sliderObj ? (sliderObj.sliderMode === VCSlider.Submaster ? submasterHandleGradientHover : defaultGradientHover) : defaultGradientHover
-            trackColor: sliderObj ? (sliderObj.sliderMode === VCSlider.Submaster ? "#77DD73" : defaultTrackColor) : defaultTrackColor
+            handleGradient: sliderMode === VCSlider.Submaster ? submasterHandleGradient :
+                            (sliderMode === VCSlider.GrandMaster ? grandMasterHandleGradient : defaultGradient)
+            handleGradientHover: sliderMode === VCSlider.Submaster ? submasterHandleGradientHover :
+                                 (sliderMode === VCSlider.GrandMaster ? grandMasterHandleGradientHover : defaultGradientHover)
+            trackColor: sliderMode === VCSlider.Submaster ? "#77DD73" : defaultTrackColor
 
-            onTouchPressedChanged:
-            {
-                console.log("Slider touch pressed: " + touchPressed)
-                // QML tends to propagate touch events, so temporarily disable
-                // the page Flickable interactivity during this operation
-                virtualConsole.setPageInteraction(!touchPressed)
-            }
             onPositionChanged: if (sliderObj) sliderObj.value = valueAt(position)
         }
 
@@ -140,6 +178,15 @@ VCWidgetItem
             onFontChanged: calculateTextHeight()
             onTextChanged: calculateTextHeight()
         }
+
+        IconButton
+        {
+            visible: sliderObj ? sliderObj.monitorEnabled : false
+            anchors.horizontalCenter: parent.horizontalCenter
+            imgSource: "qrc:/reset.svg"
+            bgColor: sliderObj && sliderObj.isOverriding ? "red" : UISettings.bgLight
+            onClicked: if (sliderObj) sliderObj.isOverriding = false
+        }
     }
 
     DropArea
@@ -155,7 +202,7 @@ VCWidgetItem
         {
             // attach function here
             if (drag.source.hasOwnProperty("fromFunctionManager"))
-                sliderObj.playbackFunction = drag.source.itemsList[0]
+                sliderObj.controlledFunction = drag.source.itemsList[0]
         }
 
         states: [
@@ -165,7 +212,7 @@ VCWidgetItem
                 PropertyChanges
                 {
                     target: sliderRoot
-                    color: "#9DFF52"
+                    color: UISettings.activeDropArea
                 }
             }
         ]

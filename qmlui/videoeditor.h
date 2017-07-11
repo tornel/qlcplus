@@ -31,11 +31,15 @@ class VideoEditor : public FunctionEditor
     Q_OBJECT
 
     Q_PROPERTY(QString sourceFileName READ sourceFileName WRITE setSourceFileName NOTIFY sourceFileNameChanged)
-    Q_PROPERTY(QStringList mimeTypes READ mimeTypes CONSTANT)
+    Q_PROPERTY(QStringList videoExtensions READ videoExtensions CONSTANT)
+    Q_PROPERTY(QStringList pictureExtensions READ pictureExtensions CONSTANT)
     Q_PROPERTY(QVariant mediaInfo READ mediaInfo NOTIFY mediaInfoChanged)
     Q_PROPERTY(QStringList screenList READ screenList CONSTANT)
     Q_PROPERTY(int screenIndex READ screenIndex WRITE setScreenIndex NOTIFY screenIndexChanged)
+    Q_PROPERTY(bool fullscreen READ isFullscreen WRITE setFullscreen NOTIFY fullscreenChanged)
     Q_PROPERTY(bool looped READ isLooped WRITE setLooped NOTIFY loopedChanged)
+    Q_PROPERTY(bool hasCustomGeometry READ hasCustomGeometry CONSTANT)
+    Q_PROPERTY(QRect customGeometry READ customGeometry WRITE setCustomGeometry NOTIFY customGeometryChanged)
 
 public:
     VideoEditor(QQuickView *view, Doc *doc, QObject *parent = 0);
@@ -48,20 +52,34 @@ public:
     QString sourceFileName() const;
     void setSourceFileName(QString sourceFileName);
 
-    /** Get the supported file types that can be decoded */
-    QStringList mimeTypes() const;
+    /** Get the supported video file types that can be decoded */
+    QStringList videoExtensions() const;
+
+    /** Get the supported picture file types that can be rendered */
+    QStringList pictureExtensions() const;
 
     /** Get the information of the currently loaded media source */
     QVariant mediaInfo() const;
 
-    /** Get/Set looped attribute for this Audio function */
+    QStringList screenList() const;
+
+    /** Get/Set the screen index of this Video function */
+    int screenIndex() const;
+    void setScreenIndex(int screenIndex);
+
+    /** Get/Set the fullscreen flag of this Video function */
+    bool isFullscreen() const;
+    void setFullscreen(bool fullscreen);
+
+    /** Get/Set looped attribute for this Video function */
     bool isLooped();
     void setLooped(bool looped);
 
-    QStringList screenList() const;
+    bool hasCustomGeometry() const;
 
-    int screenIndex() const;
-    void setScreenIndex(int screenIndex);
+    /** Get/Set the custom geometry for this Video function */
+    QRect customGeometry() const;
+    void setCustomGeometry(QRect customGeometry);
 
 protected slots:
     void slotDurationChanged(qint64 duration);
@@ -70,9 +88,11 @@ protected slots:
 signals:
     void sourceFileNameChanged(QString sourceFileName);
     void mediaInfoChanged();
+    void screenIndexChanged(int screenIndex);
+    void fullscreenChanged(bool fullscreen);
     void loopedChanged();
 
-    void screenIndexChanged(int screenIndex);
+    void customGeometryChanged(QRect customGeometry);
 
 private:
     /** Reference of the Video currently being edited */

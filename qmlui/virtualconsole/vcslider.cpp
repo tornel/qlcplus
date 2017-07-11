@@ -20,15 +20,19 @@
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
 #include <QQmlEngine>
+#include <qmath.h>
 
 #include "treemodelitem.h"
+#include "fixturemanager.h"
 #include "qlcfixturemode.h"
 #include "qlcmacros.h"
 #include "vcslider.h"
+#include "function.h"
 #include "doc.h"
 #include "app.h"
 
 #define INPUT_SLIDER_CONTROL_ID     0
+#define INPUT_SLIDER_RESET_ID       1
 
 VCSlider::VCSlider(Doc *doc, QObject *parent)
     : VCWidget(doc, parent)
@@ -36,25 +40,32 @@ VCSlider::VCSlider(Doc *doc, QObject *parent)
     , m_widgetMode(WSlider)
     , m_valueDisplayStyle(DMXValue)
     , m_invertedAppearance(false)
-    , m_sliderMode(Playback)
+    , m_sliderMode(Adjust)
     , m_value(0)
     , m_levelLowLimit(0)
     , m_levelHighLimit(UCHAR_MAX)
-    , m_levelValue(0)
     , m_levelValueChanged(false)
     , m_monitorEnabled(false)
     , m_monitorValue(0)
+    , m_isOverriding(false)
     , m_fixtureTree(NULL)
-    , m_playbackFunction(Function::invalidId())
+    , m_searchFilter(QString())
+    , m_controlledFunction(Function::invalidId())
+    , m_controlledAttribute(Function::Intensity)
 {
     setType(VCWidget::SliderWidget);
     setBackgroundColor(QColor("#444"));
 
     registerExternalControl(INPUT_SLIDER_CONTROL_ID, tr("Slider Control"), false);
+    registerExternalControl(INPUT_SLIDER_RESET_ID, tr("Reset Control"), false);
 }
 
 VCSlider::~VCSlider()
 {
+    /* When application exits these are already NULL and unregistration
+       is no longer necessary. But a normal deletion of a VCSlider in
+       design mode must unregister the slider. */
+    m_doc->masterTimer()->unregisterDMXSource(this);
 }
 
 void VCSlider::setID(quint32 id)
@@ -99,16 +110,6 @@ QString VCSlider::propertiesResource() const
 
 QVariant VCSlider::channelsList()
 {
-/*
-    if (m_channelsTree == NULL)
-    {
-        m_channelsTree = new TreeModel(this);
-        QQmlEngine::setObjectOwnership(m_channelsTree, QQmlEngine::CppOwnership);
-        QStringList treeColumns;
-        treeColumns << "classRef" << "uni" << "fxID" << "chIndex";
-        m_channelsTree->setColumnNames(treeColumns);
-    }
-*/
     return QVariant::fromValue(m_channelsTree);
 }
 
@@ -121,10 +122,9 @@ QString VCSlider::sliderModeToString(SliderMode mode)
     switch (mode)
     {
         case Level: return QString("Level");
-        case Playback: return QString("Playback");
         case Submaster: return QString("Submaster");
         case GrandMaster: return QString("GrandMaster");
-        case Attribute: return QString("Attribute");
+        case Adjust: return QString("Attribute");
         default: return QString("Unknown");
     }
 }
@@ -137,10 +137,8 @@ VCSlider::SliderMode VCSlider::stringToSliderMode(const QString& mode)
         return Submaster;
     else if (mode == QString("GrandMaster"))
         return GrandMaster;
-    else if (mode == QString("Attribute"))
-        return Attribute;
     else
-        return Playback;
+        return Adjust;
 }
 
 VCSlider::SliderMode VCSlider::sliderMode() const
@@ -148,15 +146,37 @@ VCSlider::SliderMode VCSlider::sliderMode() const
     return m_sliderMode;
 }
 
-void VCSlider::setSliderMode(SliderMode mode)
+void VCSlider::setSliderMode(SliderMode mode, bool init)
 {
     Q_ASSERT(mode >= Level && mode <= GrandMaster);
 
-    if (m_sliderMode == mode)
+    if (init == false && m_sliderMode == mode)
         return;
 
     m_sliderMode = mode;
+
     emit sliderModeChanged(mode);
+
+    setLevelLowLimit(0);
+    setLevelHighLimit(UCHAR_MAX);
+
+    switch(mode)
+    {
+        case Level:
+        case Adjust:
+            setValue(0);
+            m_doc->masterTimer()->registerDMXSource(this);
+        break;
+        case Submaster:
+            setValue(UCHAR_MAX);
+            m_doc->masterTimer()->unregisterDMXSource(this);
+        break;
+        case GrandMaster:
+            setValueDisplayStyle(PercentageValue);
+            setValue(UCHAR_MAX);
+            m_doc->masterTimer()->unregisterDMXSource(this);
+        break;
+    }
 }
 
 /*********************************************************************
@@ -258,13 +278,52 @@ int VCSlider::value() const
     return m_value;
 }
 
-void VCSlider::setValue(int value)
+void VCSlider::setValue(int value, bool setDMX, bool updateFeedback)
 {
     if (m_value == value)
         return;
 
     m_value = value;
+
+    switch(sliderMode())
+    {
+        case Level:
+            if (m_monitorEnabled == true && m_isOverriding == false && setDMX)
+            {
+                m_priority = DMXSource::Override;
+                m_doc->masterTimer()->requestNewPriority(this);
+                m_isOverriding = true;
+                emit isOverridingChanged();
+            }
+        break;
+        case Submaster:
+        break;
+        case GrandMaster:
+            m_doc->inputOutputMap()->setGrandMasterValue(value);
+        break;
+        case Adjust:
+        break;
+    }
+
     emit valueChanged(value);
+
+    if (setDMX)
+        m_levelValueChanged = true;
+
+    Q_UNUSED(updateFeedback)
+    /* TODO
+    if (updateFeedback)
+    {
+        int fbv = 0;
+        if (invertedAppearance() == true)
+            fbv = levelHighLimit() - m_value;
+        else
+            fbv = m_value;
+        fbv = (int)SCALE(float(fbv), float(levelLowLimit()),
+                         float(levelHighLimit()), float(0), float(UCHAR_MAX));
+        sendFeedback(fbv);
+    }
+    */
 }
 
 /*********************************************************************
@@ -298,6 +357,46 @@ uchar VCSlider::levelHighLimit() const
     return m_levelHighLimit;
 }
 
+void VCSlider::setMonitorEnabled(bool enable)
+{
+    if (enable == m_monitorEnabled)
+        return;
+
+    m_monitorEnabled = enable;
+
+    m_priority = DMXSource::Override;
+    m_doc->masterTimer()->requestNewPriority(this);
+
+    emit monitorEnabledChanged();
+}
+
+bool VCSlider::monitorEnabled() const
+{
+    return m_monitorEnabled;
+}
+
+int VCSlider::monitorValue() const
+{
+    return m_monitorValue;
+}
+
+bool VCSlider::isOverriding() const
+{
+    return m_isOverriding;
+}
+
+void VCSlider::setIsOverriding(bool enable)
+{
+    if (enable == m_isOverriding)
+        return;
+
+    if (enable == false && m_monitorEnabled)
+        setValue(m_monitorValue, false, false);
+
+    m_isOverriding = enable;
+    emit isOverridingChanged();
+}
+
 void VCSlider::addLevelChannel(quint32 fixture, quint32 channel)
 {
     SceneValue lch(fixture, channel);
@@ -325,97 +424,6 @@ QList<SceneValue> VCSlider::levelChannels()
     return m_levelChannels;
 }
 
-void VCSlider::updateFixtureTree(Doc *doc, TreeModel *treeModel)
-{
-    if (doc == NULL || treeModel == NULL)
-        return;
-
-    treeModel->clear();
-
-    QStringList uniNames = doc->inputOutputMap()->universeNames();
-
-    // add Fixture Groups first
-    for (FixtureGroup* grp : doc->fixtureGroups()) // C++11
-    {
-        foreach(quint32 fxID, grp->fixtureList())
-        {
-            Fixture *fixture = doc->fixture(fxID);
-            if (fixture == NULL)
-                continue;
-
-            QLCFixtureMode *mode = fixture->fixtureMode();
-            if (mode == NULL)
-                continue;
-
-            int chIdx = 0;
-            QString chPath = QString("%1/%2").arg(grp->name()).arg(fixture->name());
-            for (QLCChannel *channel : mode->channels()) // C++11
-            {
-                int flags = TreeModel::Checkable;
-                QVariantList chParams;
-                chParams.append(QVariant::fromValue(NULL)); // classRef
-                chParams.append(App::ChannelDragItem); // type
-                chParams.append(fixture->id()); // id
-                chParams.append(grp->id()); // subid
-                chParams.append(chIdx); // chIdx
-
-                if (m_levelChannels.contains(SceneValue(fixture->id(), chIdx)))
-                    flags |= TreeModel::Checked;
-                treeModel->addItem(channel->name(), chParams, chPath, flags);
-                chIdx++;
-            }
-
-            // when all the channel 'leaves' have been added, set the parent node data
-            QVariantList params;
-            params.append(QVariant::fromValue(fixture)); // classRef
-            params.append(App::FixtureDragItem); // type
-            params.append(fixture->id()); // id
-            params.append(grp->id()); // subid
-            params.append(0); // chIdx
-            treeModel->setPathData(chPath, params);
-        }
-    }
-
-    // add the current universes as groups
-    for (Fixture *fixture : doc->fixtures()) // C++11
-    {
-        if (fixture->universe() >= (quint32)uniNames.count())
-            continue;
-
-        QString chPath = QString("%1/%2").arg(uniNames.at(fixture->universe())).arg(fixture->name());
-        QLCFixtureMode *mode = fixture->fixtureMode();
-        if (mode == NULL)
-            continue;
-
-        int chIdx = 0;
-        for (QLCChannel *channel : mode->channels()) // C++11
-        {
-            int flags = TreeModel::Checkable;
-            QVariantList chParams;
-            chParams.append(QVariant::fromValue(NULL)); // classRef
-            chParams.append(App::ChannelDragItem); // type
-            chParams.append(fixture->id()); // id
-            chParams.append(fixture->universe()); // subid
-            chParams.append(chIdx); // chIdx
-
-            if (m_levelChannels.contains(SceneValue(fixture->id(), chIdx)))
-                flags |= TreeModel::Checked;
-            treeModel->addItem(channel->name(), chParams, chPath, flags);
-            chIdx++;
-        }
-
-        // when all the channel 'leaves' have been added, set the parent node data
-        QVariantList params;
-        params.append(QVariant::fromValue(fixture)); // classRef
-        params.append(App::FixtureDragItem); // type
-        params.append(fixture->id()); // id
-        params.append(fixture->universe()); // subid
-        params.append(0); // chIdx
-
-        treeModel->setPathData(chPath, params);
-    }
-}
-
 QVariant VCSlider::groupsTreeModel()
 {
     qDebug() << "Requesting tree model from slider" << m_levelChannels.count();
@@ -427,7 +435,9 @@ QVariant VCSlider::groupsTreeModel()
         treeColumns << "classRef" << "type" << "id" << "subid" << "chIdx";
         m_fixtureTree->setColumnNames(treeColumns);
         m_fixtureTree->enableSorting(false);
-        updateFixtureTree(m_doc, m_fixtureTree);
+        m_fixtureTree->setCheckable(true);
+
+        FixtureManager::updateFixtureTree(m_doc, m_fixtureTree, m_searchFilter, m_levelChannels);
 
         connect(m_fixtureTree, SIGNAL(roleChanged(TreeModelItem*,int,const QVariant&)),
                 this, SLOT(slotTreeDataChanged(TreeModelItem*,int,const QVariant&)));
@@ -436,19 +446,28 @@ QVariant VCSlider::groupsTreeModel()
     return QVariant::fromValue(m_fixtureTree);
 }
 
-void VCSlider::setLevelValue(uchar value)
+QString VCSlider::searchFilter() const
 {
-    m_levelValueMutex.lock();
-    m_levelValue = value;
-    if (m_monitorEnabled == true)
-        m_monitorValue = m_levelValue;
-    m_levelValueChanged = true;
-    m_levelValueMutex.unlock();
+    return m_searchFilter;
 }
 
-uchar VCSlider::levelValue() const
+void VCSlider::setSearchFilter(QString searchFilter)
 {
-    return m_levelValue;
+    if (m_searchFilter == searchFilter)
+        return;
+
+    int currLen = m_searchFilter.length();
+
+    m_searchFilter = searchFilter;
+
+    if (searchFilter.length() >= SEARCH_MIN_CHARS ||
+        (currLen >= SEARCH_MIN_CHARS && searchFilter.length() < SEARCH_MIN_CHARS))
+    {
+        FixtureManager::updateFixtureTree(m_doc, m_fixtureTree, m_searchFilter, m_levelChannels);
+        emit groupsTreeModelChanged();
+    }
+
+    emit searchFilterChanged();
 }
 
 void VCSlider::slotTreeDataChanged(TreeModelItem *item, int role, const QVariant &value)
@@ -475,22 +494,22 @@ void VCSlider::slotTreeDataChanged(TreeModelItem *item, int role, const QVariant
 }
 
 /*********************************************************************
- * Playback mode
+ * Attribute mode
  *********************************************************************/
 
-quint32 VCSlider::playbackFunction() const
+quint32 VCSlider::controlledFunction() const
 {
-    return m_playbackFunction;
+    return m_controlledFunction;
 }
 
-void VCSlider::setPlaybackFunction(quint32 playbackFunction)
+void VCSlider::setControlledFunction(quint32 fid)
 {
     bool running = false;
 
-    if (m_playbackFunction == playbackFunction)
+    if (m_controlledFunction == fid)
         return;
 
-    Function* current = m_doc->function(m_playbackFunction);
+    Function* current = m_doc->function(m_controlledFunction);
     if (current != NULL)
     {
         /* Get rid of old function connections */
@@ -509,7 +528,7 @@ void VCSlider::setPlaybackFunction(quint32 playbackFunction)
         }
     }
 
-    Function* function = m_doc->function(playbackFunction);
+    Function* function = m_doc->function(fid);
     if (function != NULL)
     {
         /* Connect to the new function */
@@ -521,26 +540,311 @@ void VCSlider::setPlaybackFunction(quint32 playbackFunction)
         connect(function, SIGNAL(flashing(quint32,bool)),
                 this, SLOT(slotFunctionFlashing(quint32,bool)));
 */
-        m_playbackFunction = playbackFunction;
+        m_controlledFunction = fid;
+        m_controlledAttribute = Function::Intensity;
+
         if ((isEditing() && caption().isEmpty()) || caption() == defaultCaption())
             setCaption(function->name());
 
         if(running)
             function->start(m_doc->masterTimer(), functionParent());
-        emit playbackFunctionChanged(playbackFunction);
+
+        emit controlledFunctionChanged(fid);
+        emit availableAttributesChanged();
     }
     else
     {
         /* No function attachment */
-        m_playbackFunction = Function::invalidId();
-        emit playbackFunctionChanged(-1);
+        m_controlledFunction = Function::invalidId();
+        emit controlledFunctionChanged(-1);
     }
     setDocModified();
+}
+
+int VCSlider::controlledAttribute() const
+{
+    return m_controlledAttribute;
+}
+
+void VCSlider::setControlledAttribute(int attr)
+{
+    if (m_controlledAttribute == attr)
+        return;
+
+    Function* function = m_doc->function(m_controlledFunction);
+    if (function == NULL || attr >= function->attributes().count())
+        return;
+
+    m_controlledAttribute = attr;
+    emit controlledAttributeChanged(attr);
+
+    int newValue = int(floor((qreal(m_levelHighLimit) * function->getAttributeValue(attr)) + 0.5));
+    setValue(newValue, false, true);
+}
+
+QStringList VCSlider::availableAttributes() const
+{
+    QStringList list;
+
+    Function* function = m_doc->function(m_controlledFunction);
+    if (function == NULL)
+        return list;
+
+    for (Attribute attr : function->attributes())
+        list << attr.name;
+
+    return list;
 }
 
 FunctionParent VCSlider::functionParent() const
 {
     return FunctionParent(FunctionParent::ManualVCWidget, id());
+}
+
+/*********************************************************************
+ * Grand Master mode
+ *********************************************************************/
+
+GrandMaster::ValueMode VCSlider::grandMasterValueMode() const
+{
+    return m_doc->inputOutputMap()->grandMasterValueMode();
+}
+
+void VCSlider::setGrandMasterValueMode(GrandMaster::ValueMode mode)
+{
+    if (mode == m_doc->inputOutputMap()->grandMasterValueMode())
+        return;
+
+    m_doc->inputOutputMap()->setGrandMasterValueMode(mode);
+    emit grandMasterValueModeChanged(mode);
+}
+
+GrandMaster::ChannelMode VCSlider::grandMasterChannelMode() const
+{
+    return m_doc->inputOutputMap()->grandMasterChannelMode();
+}
+
+void VCSlider::setGrandMasterChannelMode(GrandMaster::ChannelMode mode)
+{
+    if (mode == m_doc->inputOutputMap()->grandMasterChannelMode())
+        return;
+
+    m_doc->inputOutputMap()->setGrandMasterChannelMode(mode);
+    emit grandMasterChannelModeChanged(mode);
+}
+
+/*********************************************************************
+ * DMXSource
+ *********************************************************************/
+
+void VCSlider::writeDMX(MasterTimer* timer, QList<Universe*> universes)
+{
+    if (sliderMode() == Level)
+        writeDMXLevel(timer, universes);
+    else if (sliderMode() == Adjust)
+        writeDMXAdjust(timer, universes);
+}
+
+void VCSlider::writeDMXLevel(MasterTimer* timer, QList<Universe *> universes)
+{
+    Q_UNUSED(timer);
+
+    QMutexLocker locker(&m_levelValueMutex);
+
+    uchar modLevel = m_value;
+/*
+    int r = 0, g = 0, b = 0, c = 0, m = 0, y = 0;
+
+    if (m_cngType == ClickAndGoWidget::RGB)
+    {
+        float f = 0;
+        if (m_slider)
+            f = SCALE(float(m_levelValue), float(m_slider->minimum()),
+                      float(m_slider->maximum()), float(0), float(200));
+
+        if ((uchar)f != 0)
+        {
+            QColor modColor = m_cngRGBvalue.lighter((uchar)f);
+            r = modColor.red();
+            g = modColor.green();
+            b = modColor.blue();
+        }
+    }
+    else if (m_cngType == ClickAndGoWidget::CMY)
+    {
+        float f = 0;
+        if (m_slider)
+            f = SCALE(float(m_levelValue), float(m_slider->minimum()),
+                      float(m_slider->maximum()), float(0), float(200));
+        if ((uchar)f != 0)
+        {
+            QColor modColor = m_cngRGBvalue.lighter((uchar)f);
+            c = modColor.cyan();
+            m = modColor.magenta();
+            y = modColor.yellow();
+        }
+    }
+*/
+    if (m_monitorEnabled == true && m_levelValueChanged == false)
+    {
+        bool mixedDMXlevels = false;
+        int monitorSliderValue = -1;
+
+        for (SceneValue scv : m_levelChannels)
+        {
+            Fixture* fxi = m_doc->fixture(scv.fxi);
+            if (fxi != NULL)
+            {
+                const QLCChannel* qlcch = fxi->channel(scv.channel);
+                if (qlcch == NULL)
+                    continue;
+
+                quint32 dmx_ch = fxi->address() + scv.channel;
+                int uni = fxi->universe();
+                if (uni < universes.count())
+                {
+                    uchar chValue = universes[uni]->preGMValue(dmx_ch);
+                    if (monitorSliderValue == -1)
+                    {
+                        monitorSliderValue = chValue;
+                        //qDebug() << caption() << "Monitor DMX value:" << monitorSliderValue << "level value:" << m_value;
+                    }
+                    else
+                    {
+                        if (chValue != (uchar)monitorSliderValue)
+                        {
+                            mixedDMXlevels = true;
+                            // no need to proceed further as mixed values cannot
+                            // be represented by one single slider
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // check if all the DMX channels controlled by this slider
+        // have the same value. If so, move the widget slider or knob
+        // to the detected position
+        if (mixedDMXlevels == false &&
+            monitorSliderValue != m_monitorValue)
+        {
+            //qDebug() << caption() << "Monitor DMX value:" << monitorSliderValue << "level value:" << m_value;
+
+            m_monitorValue = monitorSliderValue;
+            emit monitorValueChanged();
+
+            if (m_isOverriding == false)
+            {
+                setValue(m_monitorValue, false, true);
+                return;
+            }
+        }
+    }
+
+    for (SceneValue scv : m_levelChannels)
+    {
+        Fixture* fxi = m_doc->fixture(scv.fxi);
+        if (fxi != NULL)
+        {
+            const QLCChannel* qlcch = fxi->channel(scv.channel);
+            if (qlcch == NULL)
+                continue;
+
+            quint32 dmx_ch = fxi->address() + scv.channel;
+            int uni = fxi->universe();
+
+            // Dirty channel group check: is the channel HTP or LTP ?
+            QLCChannel::Group group = qlcch->group();
+            if (fxi->forcedLTPChannels().contains(scv.channel))
+                group = QLCChannel::Effect;
+            if (fxi->forcedHTPChannels().contains(scv.channel))
+                group = QLCChannel::Intensity;
+
+            if (group != QLCChannel::Intensity &&
+                m_levelValueChanged == false)
+            {
+                /* Value has not changed and this is not an intensity channel.
+                   LTP in effect. */
+                continue;
+            }
+/*
+            if (qlcch->group() == QLCChannel::Intensity)
+            {
+                if (m_cngType == ClickAndGoWidget::RGB)
+                {
+                    if (qlcch->colour() == QLCChannel::Red)
+                        modLevel = (uchar)r;
+                    else if (qlcch->colour() == QLCChannel::Green)
+                        modLevel = (uchar)g;
+                    else if (qlcch->colour() == QLCChannel::Blue)
+                        modLevel = (uchar)b;
+                }
+                else if (m_cngType == ClickAndGoWidget::CMY)
+                {
+                    if (qlcch->colour() == QLCChannel::Cyan)
+                        modLevel = (uchar)c;
+                    else if (qlcch->colour() == QLCChannel::Magenta)
+                        modLevel = (uchar)m;
+                    else if (qlcch->colour() == QLCChannel::Yellow)
+                        modLevel = (uchar)y;
+                }
+            }
+*/
+            if (uni < universes.count())
+                universes[uni]->write(dmx_ch, modLevel * intensity(), m_isOverriding ? true : false);
+        }
+    }
+    m_levelValueChanged = false;
+}
+
+void VCSlider::writeDMXAdjust(MasterTimer* timer, QList<Universe *> ua)
+{
+    Q_UNUSED(ua);
+
+    QMutexLocker locker(&m_levelValueMutex);
+
+    //if (m_playbackChangeCounter == 0)
+    //    return;
+
+    Function* function = m_doc->function(m_controlledFunction);
+    if (function == NULL)
+        return;
+
+    uchar value = m_value;
+    qreal pIntensity = qreal(value) / qreal(UCHAR_MAX);
+
+    if (m_controlledAttribute == Function::Intensity)
+    {
+        if (value == 0)
+        {
+            // Make sure we ignore the fade out time
+            function->adjustAttribute(0, Function::Intensity);
+            if (function->stopped() == false)
+                function->stop(functionParent());
+        }
+        else
+        {
+            if (function->stopped() == true)
+            {
+#if 0 // temporarily revert #699 until a better solution is found
+                // Since this function is started by a fader, its fade in time
+                // is decided by the fader movement.
+                function->start(timer, functionParent(),
+                                0, 0, Function::defaultSpeed(), Function::defaultSpeed());
+#endif
+                function->start(timer, functionParent());
+                qDebug() << "Function started";
+            }
+            //emit functionStarting(m_playbackFunction, pIntensity);  // TODO
+            function->adjustAttribute(pIntensity * intensity(), Function::Intensity);
+        }
+    }
+    else
+    {
+        function->adjustAttribute(pIntensity * intensity(), m_controlledAttribute);
+    }
+    //m_playbackChangeCounter--;
 }
 
 /*********************************************************************
@@ -552,7 +856,7 @@ void VCSlider::slotInputValueChanged(quint8 id, uchar value)
     if (id != INPUT_SLIDER_CONTROL_ID)
         return;
 
-    setValue(value);
+    setValue(value, true, false);
 }
 
 /*********************************************************************
@@ -567,7 +871,6 @@ bool VCSlider::loadXML(QXmlStreamReader &root)
         return false;
     }
 
-    SliderMode sliderMode = Playback;
     QString str;
 
     /* Widget commons */
@@ -604,7 +907,7 @@ bool VCSlider::loadXML(QXmlStreamReader &root)
         else if (root.name() == KXMLQLCVCSliderMode)
         {
             QXmlStreamAttributes mAttrs = root.attributes();
-            sliderMode = stringToSliderMode(root.readElementText());
+            setSliderMode(stringToSliderMode(root.readElementText()), true);
 
             str = mAttrs.value(KXMLQLCVCSliderValueDisplayStyle).toString();
             setValueDisplayStyle(stringToValueDisplayStyle(str));
@@ -614,23 +917,26 @@ bool VCSlider::loadXML(QXmlStreamReader &root)
                 str = mAttrs.value(KXMLQLCVCSliderClickAndGoType).toString();
                 setClickAndGoType(ClickAndGoWidget::stringToClickAndGoType(str));
             }
-
+*/
             if (mAttrs.hasAttribute(KXMLQLCVCSliderLevelMonitor))
             {
                 if (mAttrs.value(KXMLQLCVCSliderLevelMonitor).toString() == "false")
-                    setChannelsMonitorEnabled(false);
+                    setMonitorEnabled(false);
                 else
-                    setChannelsMonitorEnabled(true);
+                    setMonitorEnabled(true);
             }
-*/
+        }
+        else if (root.name() == KXMLQLCVCSliderOverrideReset)
+        {
+            loadXMLSources(root, INPUT_SLIDER_RESET_ID);
         }
         else if (root.name() == KXMLQLCVCSliderLevel)
         {
             loadXMLLevel(root);
         }
-        else if (root.name() == KXMLQLCVCSliderPlayback)
+        else if (root.name() == KXMLQLCVCSliderPlayback) // LEGACY
         {
-            loadXMLPlayback(root);
+            loadXMLLegacyPlayback(root);
         }
         else
         {
@@ -638,9 +944,6 @@ bool VCSlider::loadXML(QXmlStreamReader &root)
             root.skipCurrentElement();
         }
     }
-
-    /* Set the mode last, after everything else has been set */
-    setSliderMode(sliderMode);
 
     return true;
 }
@@ -668,7 +971,7 @@ bool VCSlider::loadXMLLevel(QXmlStreamReader &level_root)
 
     /* Level value */
     str = attrs.value(KXMLQLCVCSliderLevelValue).toString();
-    setLevelValue(str.toInt());
+    setValue(str.toInt());
 
     QXmlStreamReader::TokenType tType = level_root.readNext();
 
@@ -706,7 +1009,7 @@ bool VCSlider::loadXMLLevel(QXmlStreamReader &level_root)
     return true;
 }
 
-bool VCSlider::loadXMLPlayback(QXmlStreamReader &pb_root)
+bool VCSlider::loadXMLLegacyPlayback(QXmlStreamReader &pb_root)
 {
     if (pb_root.name() != KXMLQLCVCSliderPlayback)
     {
@@ -720,7 +1023,7 @@ bool VCSlider::loadXMLPlayback(QXmlStreamReader &pb_root)
         if (pb_root.name() == KXMLQLCVCSliderPlaybackFunction)
         {
             /* Function */
-            setPlaybackFunction(pb_root.readElementText().toUInt());
+            setControlledFunction(pb_root.readElementText().toUInt());
         }
         else
         {

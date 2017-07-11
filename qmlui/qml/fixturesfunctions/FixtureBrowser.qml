@@ -20,7 +20,7 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.1
 
-import com.qlcplus.classes 1.0
+import org.qlcplus.classes 1.0
 import "."
 
 Rectangle
@@ -160,8 +160,8 @@ Rectangle
                 anchors.verticalCenter: parent.verticalCenter
                 source: "qrc:/arrow-right.svg"
                 sourceSize: Qt.size(width, height)
-                height: 26
-                width: 18
+                height: parent.height
+                width: height * 0.8
             }
 
             RobotoText

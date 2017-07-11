@@ -61,10 +61,10 @@ FunctionManager::FunctionManager(QQuickView *view, Doc *doc, QObject *parent)
     m_currentEditor = NULL;
     m_sceneEditor = NULL;
 
-    qmlRegisterUncreatableType<Collection>("com.qlcplus.classes", 1, 0, "Collection", "Can't create a Collection");
-    qmlRegisterUncreatableType<Chaser>("com.qlcplus.classes", 1, 0, "Chaser", "Can't create a Chaser");
-    qmlRegisterUncreatableType<RGBMatrix>("com.qlcplus.classes", 1, 0, "RGBMatrix", "Can't create a RGBMatrix");
-    qmlRegisterUncreatableType<EFX>("com.qlcplus.classes", 1, 0, "EFX", "Can't create an EFX");
+    qmlRegisterUncreatableType<Collection>("org.qlcplus.classes", 1, 0, "Collection", "Can't create a Collection");
+    qmlRegisterUncreatableType<Chaser>("org.qlcplus.classes", 1, 0, "Chaser", "Can't create a Chaser");
+    qmlRegisterUncreatableType<RGBMatrix>("org.qlcplus.classes", 1, 0, "RGBMatrix", "Can't create a RGBMatrix");
+    qmlRegisterUncreatableType<EFX>("org.qlcplus.classes", 1, 0, "EFX", "Can't create an EFX");
 
     m_functionTree = new TreeModel(this);
     QQmlEngine::setObjectOwnership(m_functionTree, QQmlEngine::CppOwnership);
@@ -128,14 +128,13 @@ void FunctionManager::setSearchFilter(QString searchFilter)
     if (m_searchFilter == searchFilter)
         return;
 
-    int curreLen = m_searchFilter.length();
+    int currLen = m_searchFilter.length();
 
     m_searchFilter = searchFilter;
 
-    if (searchFilter.length() >= SEARCH_MIN_CHARS)
-        updateFunctionsTree();
-    else if(curreLen >= SEARCH_MIN_CHARS && searchFilter.length() < SEARCH_MIN_CHARS)
-        updateFunctionsTree();
+    if (searchFilter.length() >= SEARCH_MIN_CHARS ||
+        (currLen >= SEARCH_MIN_CHARS && searchFilter.length() < SEARCH_MIN_CHARS))
+            updateFunctionsTree();
 
     emit searchFilterChanged();
 }
@@ -509,7 +508,7 @@ void FunctionManager::deleteEditorItems(QVariantList list)
         m_currentEditor->deleteItems(list);
 }
 
-void FunctionManager::renameFunctions(QVariantList IDList, QString newName, int startNumber, int digits)
+void FunctionManager::renameFunctions(QVariantList IDList, QString newName, bool numbering, int startNumber, int digits)
 {
     if (IDList.isEmpty())
         return;
@@ -531,9 +530,14 @@ void FunctionManager::renameFunctions(QVariantList IDList, QString newName, int 
             if (f == NULL)
                 continue;
 
-            QString fName = QString("%1 %2").arg(newName.simplified()).arg(currNumber, digits, 10, QChar('0'));
-            f->setName(fName);
-            currNumber++;
+            if (numbering)
+            {
+                QString fName = QString("%1 %2").arg(newName.simplified()).arg(currNumber, digits, 10, QChar('0'));
+                f->setName(fName);
+                currNumber++;
+            }
+            else
+                f->setName(newName.simplified());
         }
     }
 
@@ -585,7 +589,7 @@ void FunctionManager::resetDumpValues()
     emit dumpValuesCountChanged();
 }
 
-void FunctionManager::dumpOnNewScene(QList<quint32> selectedFixtures)
+void FunctionManager::dumpOnNewScene(QList<quint32> selectedFixtures, QString name)
 {
     if (selectedFixtures.isEmpty() || m_dumpValues.isEmpty())
         return;
@@ -604,12 +608,13 @@ void FunctionManager::dumpOnNewScene(QList<quint32> selectedFixtures)
             newScene->setValue(sv);
     }
 
-    newScene->setName(QString("%1 %2").arg(newScene->name()).arg(m_doc->nextFunctionID() + 1));
+    if (name.isEmpty())
+        newScene->setName(QString("%1 %2").arg(newScene->name()).arg(m_doc->nextFunctionID() + 1));
+    else
+        newScene->setName(name);
 
     if (m_doc->addFunction(newScene) == true)
-    {
         slotDocLoaded();
-    }
     else
         delete newScene;
 }

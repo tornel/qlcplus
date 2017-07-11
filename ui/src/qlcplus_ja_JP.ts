@@ -510,377 +510,377 @@
 <context>
     <name>App</name>
     <message>
-        <location filename="app.cpp" line="367"/>
+        <location filename="app.cpp" line="365"/>
         <source>Cannot exit in Operate mode</source>
         <translation>本番モード中は終了できません</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="368"/>
+        <location filename="app.cpp" line="366"/>
         <source>You must switch back to Design mode to close the application.</source>
         <translation>仕込みモードに戻ってから閉じてください。</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="376"/>
+        <location filename="app.cpp" line="374"/>
         <source>Close</source>
         <translation>閉じる</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="376"/>
+        <location filename="app.cpp" line="374"/>
         <source>Do you wish to save the current workspace before closing the application?</source>
         <translation>閉じる前に、現在のプロジェクトを保存しますか？</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="433"/>
+        <location filename="app.cpp" line="431"/>
         <source>Starting Q Light Controller Plus</source>
         <oldsource>Starting Q Light Controller</oldsource>
         <translation>QLC+ を開始</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="517"/>
+        <location filename="app.cpp" line="515"/>
         <source> - New Workspace</source>
         <translation> - 新規プロジェクト</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="585"/>
+        <location filename="app.cpp" line="583"/>
         <source>Switch to Design Mode</source>
         <translation>仕込みモードにする</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="586"/>
+        <location filename="app.cpp" line="584"/>
         <source>There are still running functions.
 Really stop them and switch back to Design mode?</source>
         <translation>再生中のシーンがあります。
 すべて停止して仕込みモードに戻りますか？</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="621"/>
+        <location filename="app.cpp" line="619"/>
         <source>Design</source>
         <translation>仕込みモード</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="622"/>
+        <location filename="app.cpp" line="620"/>
         <source>Switch to design mode</source>
         <translation>仕込みモードにする</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="633"/>
+        <location filename="app.cpp" line="631"/>
         <source>Operate</source>
         <translation>本番モード</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="634"/>
-        <location filename="app.cpp" line="662"/>
+        <location filename="app.cpp" line="632"/>
+        <location filename="app.cpp" line="660"/>
         <source>Switch to operate mode</source>
         <translation>本番モードにする</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="645"/>
+        <location filename="app.cpp" line="643"/>
         <source>&amp;New</source>
         <translation>新規</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="646"/>
+        <location filename="app.cpp" line="644"/>
         <source>CTRL+N</source>
         <comment>File|New</comment>
         <translation></translation>
     </message>
     <message>
-        <location filename="app.cpp" line="649"/>
+        <location filename="app.cpp" line="647"/>
         <source>&amp;Open</source>
         <translation>開く</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="650"/>
+        <location filename="app.cpp" line="648"/>
         <source>CTRL+O</source>
         <comment>File|Open</comment>
         <translation></translation>
     </message>
     <message>
-        <location filename="app.cpp" line="653"/>
+        <location filename="app.cpp" line="651"/>
         <source>&amp;Save</source>
         <translation>上書き保存</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="654"/>
+        <location filename="app.cpp" line="652"/>
         <source>CTRL+S</source>
         <comment>File|Save</comment>
         <translation></translation>
     </message>
     <message>
-        <location filename="app.cpp" line="657"/>
+        <location filename="app.cpp" line="655"/>
         <source>Save &amp;As...</source>
         <translation>名前を付けて保存</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="661"/>
+        <location filename="app.cpp" line="659"/>
         <source>&amp;Operate</source>
         <translation>本番モード</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="666"/>
+        <location filename="app.cpp" line="664"/>
         <source>&amp;Monitor</source>
         <translation>モニタ</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="673"/>
+        <location filename="app.cpp" line="671"/>
         <source>Toggle &amp;Blackout</source>
         <translation>暗転</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="663"/>
+        <location filename="app.cpp" line="661"/>
         <source>CTRL+F12</source>
         <comment>Control|Toggle operate/design mode</comment>
         <translation></translation>
     </message>
     <message>
-        <location filename="app.cpp" line="667"/>
+        <location filename="app.cpp" line="665"/>
         <source>CTRL+M</source>
         <comment>Control|Monitor</comment>
         <translation></translation>
     </message>
     <message>
-        <location filename="app.cpp" line="678"/>
+        <location filename="app.cpp" line="676"/>
         <source>Live edit a function</source>
         <translation>再生中修正</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="718"/>
+        <location filename="app.cpp" line="716"/>
         <source>Toggle Full Screen</source>
         <translation>フルスクリーン</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="720"/>
+        <location filename="app.cpp" line="718"/>
         <source>CTRL+F11</source>
         <comment>Control|Toggle Full Screen</comment>
         <translation></translation>
     </message>
     <message>
-        <location filename="app.cpp" line="724"/>
+        <location filename="app.cpp" line="722"/>
         <source>&amp;Index</source>
         <translation>ヘルプ</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="725"/>
+        <location filename="app.cpp" line="723"/>
         <source>SHIFT+F1</source>
         <comment>Help|Index</comment>
         <translation></translation>
     </message>
     <message>
-        <location filename="app.cpp" line="728"/>
+        <location filename="app.cpp" line="726"/>
         <source>&amp;About QLC+</source>
         <oldsource>&amp;About QLC</oldsource>
         <translation>&amp;QLC+ について</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="281"/>
+        <location filename="app.cpp" line="279"/>
         <source>Fixtures</source>
         <translation>機器</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="283"/>
+        <location filename="app.cpp" line="281"/>
         <source>Functions</source>
         <translation>ファンクション</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="285"/>
+        <location filename="app.cpp" line="283"/>
         <source>Shows</source>
         <translation>タイムライン</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="287"/>
+        <location filename="app.cpp" line="285"/>
         <source>Virtual Console</source>
         <translation>バーチャルコンソール</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="289"/>
+        <location filename="app.cpp" line="287"/>
         <source>Simple Desk</source>
         <translation>シンプル卓</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="291"/>
+        <location filename="app.cpp" line="289"/>
         <source>Inputs/Outputs</source>
         <translation>入力/出力設定</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="390"/>
+        <location filename="app.cpp" line="388"/>
         <source>Close the application?</source>
         <translation>QLC+ を終了</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="391"/>
+        <location filename="app.cpp" line="389"/>
         <source>Do you wish to close the application?</source>
         <translation>QLC+ を終了しますか？</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="568"/>
+        <location filename="app.cpp" line="566"/>
         <source>Exit</source>
         <translation>閉じる</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="670"/>
+        <location filename="app.cpp" line="668"/>
         <source>Address Tool</source>
         <translation>ディップスイッチ設定用ツール</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="682"/>
+        <location filename="app.cpp" line="680"/>
         <source>Toggle Virtual Console Live edit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="app.cpp" line="687"/>
+        <location filename="app.cpp" line="685"/>
         <source>Dump DMX values to a function</source>
         <translation>現在のDMX値をシーンにする</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="688"/>
+        <location filename="app.cpp" line="686"/>
         <source>CTRL+D</source>
         <comment>Control|Dump DMX</comment>
         <translation>CTRL+D</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="691"/>
+        <location filename="app.cpp" line="689"/>
         <source>Stop ALL functions!</source>
         <translation>全ファンクション停止</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="696"/>
+        <location filename="app.cpp" line="694"/>
         <source>Fade 1 second and stop</source>
         <translation>1秒フェードで停止</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="701"/>
+        <location filename="app.cpp" line="699"/>
         <source>Fade 5 seconds and stop</source>
         <translation>5秒フェードで停止</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="706"/>
+        <location filename="app.cpp" line="704"/>
         <source>Fade 10 second and stop</source>
         <translation>10秒フェードで停止</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="711"/>
+        <location filename="app.cpp" line="709"/>
         <source>Fade 30 second and stop</source>
         <translation>30秒フェードで停止</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="733"/>
+        <location filename="app.cpp" line="731"/>
         <source>Quit QLC+</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="app.cpp" line="741"/>
+        <location filename="app.cpp" line="739"/>
         <source>Workspace</source>
         <translation>プロジェクト</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="799"/>
+        <location filename="app.cpp" line="797"/>
         <source>Unable to read from file</source>
         <translation>ファイル読み取り不可</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="802"/>
+        <location filename="app.cpp" line="800"/>
         <source>Unable to write to file</source>
         <translation>ファイル書き込み不可</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="805"/>
+        <location filename="app.cpp" line="803"/>
         <source>A fatal error occurred</source>
         <translatorcomment>...la vilaine!</translatorcomment>
         <translation>深刻なエラーが発生しました</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="808"/>
+        <location filename="app.cpp" line="806"/>
         <source>Unable to access resource</source>
         <translation>リソースにアクセスできません</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="811"/>
+        <location filename="app.cpp" line="809"/>
         <source>Unable to open file for reading or writing</source>
         <translation>読み書きのためのファイルを開けません</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="814"/>
+        <location filename="app.cpp" line="812"/>
         <source>Operation was aborted</source>
         <translation>操作は中断されました</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="817"/>
+        <location filename="app.cpp" line="815"/>
         <source>Operation timed out</source>
         <translation>操作はタイムアウトしました</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="821"/>
+        <location filename="app.cpp" line="819"/>
         <source>An unspecified error has occurred. Nice.</source>
         <translation>予期しないエラーが発生しました。な、何だってー！？</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="825"/>
+        <location filename="app.cpp" line="823"/>
         <source>File error</source>
         <translation>ファイルエラー</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="919"/>
-        <location filename="app.cpp" line="935"/>
-        <location filename="app.cpp" line="1216"/>
+        <location filename="app.cpp" line="917"/>
+        <location filename="app.cpp" line="933"/>
+        <location filename="app.cpp" line="1214"/>
         <source>Do you wish to save the current workspace?
 Changes will be lost if you don&apos;t save them.</source>
         <translatorcomment>Tiens tiens...perspicace!</translatorcomment>
         <translation>開く前に、現在のプロジェクトを保存しますか？</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="921"/>
+        <location filename="app.cpp" line="919"/>
         <source>New Workspace</source>
         <translation>新規プロジェクト</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="937"/>
-        <location filename="app.cpp" line="945"/>
-        <location filename="app.cpp" line="1218"/>
+        <location filename="app.cpp" line="935"/>
+        <location filename="app.cpp" line="943"/>
+        <location filename="app.cpp" line="1216"/>
         <source>Open Workspace</source>
         <translation>プロジェクトを開く</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="953"/>
-        <location filename="app.cpp" line="1036"/>
+        <location filename="app.cpp" line="951"/>
+        <location filename="app.cpp" line="1034"/>
         <source>Workspaces (*%1)</source>
         <translation>プロジェクト (*%1)</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="955"/>
-        <location filename="app.cpp" line="1038"/>
+        <location filename="app.cpp" line="953"/>
+        <location filename="app.cpp" line="1036"/>
         <source>All Files (*.*)</source>
         <translation>すべてのファイル (*.*)</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="957"/>
-        <location filename="app.cpp" line="1040"/>
+        <location filename="app.cpp" line="955"/>
+        <location filename="app.cpp" line="1038"/>
         <source>All Files (*)</source>
         <translation>すべてのファイル (*)</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="1030"/>
+        <location filename="app.cpp" line="1028"/>
         <source>Save Workspace As</source>
         <translation>プロジェクトを名前を付けて保存</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="1209"/>
+        <location filename="app.cpp" line="1207"/>
         <source>Error</source>
         <translation>エラー</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="1210"/>
+        <location filename="app.cpp" line="1208"/>
         <source>File not found !
 The selected file has been moved or deleted.</source>
         <translation>ファイルが見つかりません。
 移動または削除された可能性があります。</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="1386"/>
+        <location filename="app.cpp" line="1384"/>
         <source>Warning</source>
         <translation>警告</translation>
     </message>
     <message>
-        <location filename="app.cpp" line="1387"/>
+        <location filename="app.cpp" line="1385"/>
         <source>Some errors occurred while loading the project:</source>
         <translation>次のプロジェクトを読み込み中に何らかのエラーが発生しました:</translation>
     </message>
@@ -3259,19 +3259,19 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <location filename="inputoutputpatcheditor.ui" line="85"/>
-        <location filename="inputoutputpatcheditor.ui" line="255"/>
+        <location filename="inputoutputpatcheditor.ui" line="281"/>
         <source>Device</source>
         <translation>Device</translation>
     </message>
     <message>
         <location filename="inputoutputpatcheditor.ui" line="90"/>
-        <location filename="inputoutputpatcheditor.ui" line="260"/>
+        <location filename="inputoutputpatcheditor.ui" line="286"/>
         <source>Input</source>
         <translation>入力</translation>
     </message>
     <message>
         <location filename="inputoutputpatcheditor.ui" line="98"/>
-        <location filename="inputoutputpatcheditor.ui" line="265"/>
+        <location filename="inputoutputpatcheditor.ui" line="291"/>
         <source>Output</source>
         <translation>出力</translation>
     </message>
@@ -3281,138 +3281,148 @@ p, li { white-space: pre-wrap; }
         <translation>MIDIフィードバック</translation>
     </message>
     <message>
-        <location filename="inputoutputpatcheditor.ui" line="142"/>
-        <location filename="inputoutputpatcheditor.ui" line="231"/>
+        <location filename="inputoutputpatcheditor.ui" line="124"/>
+        <source>Configure the selected plugin</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="inputoutputpatcheditor.ui" line="144"/>
+        <source>Enable/Disable USB hotplugging (requires restart)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="inputoutputpatcheditor.ui" line="168"/>
+        <location filename="inputoutputpatcheditor.ui" line="257"/>
         <source>Profile</source>
         <translation>プロファイル</translation>
     </message>
     <message>
-        <location filename="inputoutputpatcheditor.ui" line="148"/>
+        <location filename="inputoutputpatcheditor.ui" line="174"/>
         <source>Create a new input profile</source>
         <translation>新規プロファイルを作成</translation>
     </message>
     <message>
-        <location filename="inputoutputpatcheditor.ui" line="168"/>
+        <location filename="inputoutputpatcheditor.ui" line="194"/>
         <source>Delete the selected input profile</source>
         <translation>選択したプロファイルの削除</translation>
     </message>
     <message>
-        <location filename="inputoutputpatcheditor.ui" line="188"/>
+        <location filename="inputoutputpatcheditor.ui" line="214"/>
         <source>Edit the selected input profile</source>
         <translation>選択したプロファイルの編集</translation>
     </message>
     <message>
-        <location filename="inputoutputpatcheditor.ui" line="236"/>
+        <location filename="inputoutputpatcheditor.ui" line="262"/>
         <source>Type</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="inputoutputpatcheditor.ui" line="245"/>
+        <location filename="inputoutputpatcheditor.ui" line="271"/>
         <source>Audio</source>
         <translation>オーディオ</translation>
     </message>
     <message>
-        <location filename="inputoutputpatcheditor.ui" line="273"/>
+        <location filename="inputoutputpatcheditor.ui" line="299"/>
         <source>Configuration</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="inputoutputpatcheditor.ui" line="279"/>
+        <location filename="inputoutputpatcheditor.ui" line="305"/>
         <source>Sample Rate (Hz)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="inputoutputpatcheditor.ui" line="286"/>
+        <location filename="inputoutputpatcheditor.ui" line="312"/>
         <source>Channels</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="inputoutputpatcheditor.ui" line="293"/>
+        <location filename="inputoutputpatcheditor.ui" line="319"/>
         <source>Level Monitor</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="inputoutputpatcheditor.cpp" line="427"/>
-        <location filename="inputoutputpatcheditor.cpp" line="446"/>
-        <location filename="inputoutputpatcheditor.cpp" line="546"/>
+        <location filename="inputoutputpatcheditor.cpp" line="435"/>
+        <location filename="inputoutputpatcheditor.cpp" line="454"/>
+        <location filename="inputoutputpatcheditor.cpp" line="560"/>
         <source>Error</source>
         <translation>エラー</translation>
     </message>
     <message>
-        <location filename="inputoutputpatcheditor.cpp" line="428"/>
-        <location filename="inputoutputpatcheditor.cpp" line="447"/>
+        <location filename="inputoutputpatcheditor.cpp" line="436"/>
+        <location filename="inputoutputpatcheditor.cpp" line="455"/>
         <source>Output line already assigned</source>
         <translation>出力先はすでに選択されています</translation>
     </message>
     <message>
-        <location filename="inputoutputpatcheditor.cpp" line="547"/>
+        <location filename="inputoutputpatcheditor.cpp" line="561"/>
         <source>An error occurred while trying to open the selected device line.
 This can be caused either by a wrong system configuration or an unsupported input/output mode.
 Please refer to the plugins documentation to troubleshoot this.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="inputoutputpatcheditor.cpp" line="688"/>
-        <location filename="inputoutputpatcheditor.cpp" line="822"/>
+        <location filename="inputoutputpatcheditor.cpp" line="702"/>
+        <location filename="inputoutputpatcheditor.cpp" line="836"/>
         <source>Existing Input Profile</source>
         <translation>上書き確認</translation>
     </message>
     <message>
-        <location filename="inputoutputpatcheditor.cpp" line="689"/>
-        <location filename="inputoutputpatcheditor.cpp" line="823"/>
+        <location filename="inputoutputpatcheditor.cpp" line="703"/>
+        <location filename="inputoutputpatcheditor.cpp" line="837"/>
         <source>An input profile at %1 already exists. Do you wish to overwrite it?</source>
         <translation>プロファイル &apos;%1&apos; は既に存在します。上書き保存しますか？</translation>
     </message>
     <message>
-        <location filename="inputoutputpatcheditor.cpp" line="698"/>
-        <location filename="inputoutputpatcheditor.cpp" line="832"/>
+        <location filename="inputoutputpatcheditor.cpp" line="712"/>
+        <location filename="inputoutputpatcheditor.cpp" line="846"/>
         <source>Save Input Profile</source>
         <translation>プロファイルを保存</translation>
     </message>
     <message>
-        <location filename="inputoutputpatcheditor.cpp" line="699"/>
-        <location filename="inputoutputpatcheditor.cpp" line="833"/>
+        <location filename="inputoutputpatcheditor.cpp" line="713"/>
+        <location filename="inputoutputpatcheditor.cpp" line="847"/>
         <source>Input Profiles (*.qxi)</source>
         <translation>外部入力用プロファイル (*.qxi)</translation>
     </message>
     <message>
-        <location filename="inputoutputpatcheditor.cpp" line="712"/>
-        <location filename="inputoutputpatcheditor.cpp" line="849"/>
+        <location filename="inputoutputpatcheditor.cpp" line="726"/>
+        <location filename="inputoutputpatcheditor.cpp" line="863"/>
         <source>Saving failed</source>
         <translation>保存に失敗しました</translation>
     </message>
     <message>
-        <location filename="inputoutputpatcheditor.cpp" line="713"/>
+        <location filename="inputoutputpatcheditor.cpp" line="727"/>
         <source>Unable to save the profile to %1</source>
         <translation>プロファイルを &apos;%1&apos;.に保存できませんでした。</translation>
     </message>
     <message>
-        <location filename="inputoutputpatcheditor.cpp" line="750"/>
+        <location filename="inputoutputpatcheditor.cpp" line="764"/>
         <source>Delete profile</source>
         <translation>プロファイルの削除</translation>
     </message>
     <message>
-        <location filename="inputoutputpatcheditor.cpp" line="751"/>
+        <location filename="inputoutputpatcheditor.cpp" line="765"/>
         <source>Do you wish to permanently delete profile &quot;%1&quot;?</source>
         <translation>本当にプロファイル &quot;%1&quot; を削除しますか？</translation>
     </message>
     <message>
-        <location filename="inputoutputpatcheditor.cpp" line="779"/>
+        <location filename="inputoutputpatcheditor.cpp" line="793"/>
         <source>File deletion failed</source>
         <translation>ファイルの削除に失敗しました</translation>
     </message>
     <message>
-        <location filename="inputoutputpatcheditor.cpp" line="780"/>
+        <location filename="inputoutputpatcheditor.cpp" line="794"/>
         <source>Unable to delete file %1</source>
         <translation>&apos;%1&apos; を削除できません。</translation>
     </message>
     <message>
-        <location filename="inputoutputpatcheditor.cpp" line="850"/>
+        <location filename="inputoutputpatcheditor.cpp" line="864"/>
         <source>Unable to save %1 to %2</source>
         <translation>&apos;%1&apos; を &apos;%2&apos; に保存できません。</translation>
     </message>
     <message>
-        <location filename="inputoutputpatcheditor.cpp" line="870"/>
+        <location filename="inputoutputpatcheditor.cpp" line="884"/>
         <source>Default device</source>
         <translation>既定のデバイス</translation>
     </message>
@@ -4995,115 +5005,115 @@ Duration: %3
     </message>
     <message>
         <location filename="showmanager/showmanager.cpp" line="693"/>
-        <location filename="showmanager/showmanager.cpp" line="813"/>
+        <location filename="showmanager/showmanager.cpp" line="811"/>
         <source> (Copy)</source>
         <translation type="unfinished"> (コピー)</translation>
     </message>
     <message>
-        <location filename="showmanager/showmanager.cpp" line="766"/>
+        <location filename="showmanager/showmanager.cpp" line="764"/>
         <source>Track %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="showmanager/showmanager.cpp" line="795"/>
-        <location filename="showmanager/showmanager.cpp" line="887"/>
+        <location filename="showmanager/showmanager.cpp" line="793"/>
+        <location filename="showmanager/showmanager.cpp" line="883"/>
         <source>New Sequence</source>
         <translation>新しいシーケンス</translation>
     </message>
     <message>
-        <location filename="showmanager/showmanager.cpp" line="865"/>
-        <location filename="showmanager/showmanager.cpp" line="942"/>
-        <location filename="showmanager/showmanager.cpp" line="1001"/>
+        <location filename="showmanager/showmanager.cpp" line="861"/>
+        <location filename="showmanager/showmanager.cpp" line="938"/>
+        <location filename="showmanager/showmanager.cpp" line="997"/>
         <source>Overlapping error</source>
         <translation>オーバーラップはできません</translation>
     </message>
     <message>
-        <location filename="showmanager/showmanager.cpp" line="865"/>
-        <location filename="showmanager/showmanager.cpp" line="942"/>
-        <location filename="showmanager/showmanager.cpp" line="1001"/>
+        <location filename="showmanager/showmanager.cpp" line="861"/>
+        <location filename="showmanager/showmanager.cpp" line="938"/>
+        <location filename="showmanager/showmanager.cpp" line="997"/>
         <source>Overlapping not allowed. Operation canceled.</source>
         <translation>オーバーラップはできません。新しいトラックを追加してください。</translation>
     </message>
     <message>
-        <location filename="showmanager/showmanager.cpp" line="875"/>
+        <location filename="showmanager/showmanager.cpp" line="871"/>
         <source>Scene for %1 - Track %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="showmanager/showmanager.cpp" line="900"/>
+        <location filename="showmanager/showmanager.cpp" line="896"/>
         <source>Open Audio File</source>
         <translation>オーディオファイルを開く</translation>
     </message>
     <message>
-        <location filename="showmanager/showmanager.cpp" line="909"/>
+        <location filename="showmanager/showmanager.cpp" line="905"/>
         <source>Audio Files (%1)</source>
         <translation>オーディオファイル (%1)</translation>
     </message>
     <message>
-        <location filename="showmanager/showmanager.cpp" line="911"/>
-        <location filename="showmanager/showmanager.cpp" line="970"/>
+        <location filename="showmanager/showmanager.cpp" line="907"/>
+        <location filename="showmanager/showmanager.cpp" line="966"/>
         <source>All Files (*.*)</source>
         <translation>すべてのファイル (*.*)</translation>
     </message>
     <message>
-        <location filename="showmanager/showmanager.cpp" line="913"/>
-        <location filename="showmanager/showmanager.cpp" line="972"/>
+        <location filename="showmanager/showmanager.cpp" line="909"/>
+        <location filename="showmanager/showmanager.cpp" line="968"/>
         <source>All Files (*)</source>
         <translation>すべてのファイル (*)</translation>
     </message>
     <message>
-        <location filename="showmanager/showmanager.cpp" line="935"/>
+        <location filename="showmanager/showmanager.cpp" line="931"/>
         <source>Unsupported audio file</source>
         <translation>サポートしていないファイル</translation>
     </message>
     <message>
-        <location filename="showmanager/showmanager.cpp" line="935"/>
+        <location filename="showmanager/showmanager.cpp" line="931"/>
         <source>This audio file cannot be played with QLC+. Sorry.</source>
         <translation>そのオーディオファイルはQLC+では再生できません。</translation>
     </message>
     <message>
-        <location filename="showmanager/showmanager.cpp" line="959"/>
+        <location filename="showmanager/showmanager.cpp" line="955"/>
         <source>Open Video File</source>
         <translation>ビデオファイルを開く</translation>
     </message>
     <message>
-        <location filename="showmanager/showmanager.cpp" line="968"/>
+        <location filename="showmanager/showmanager.cpp" line="964"/>
         <source>Video Files (%1)</source>
         <translation>ビデオファイル (%1)</translation>
     </message>
     <message>
-        <location filename="showmanager/showmanager.cpp" line="994"/>
+        <location filename="showmanager/showmanager.cpp" line="990"/>
         <source>Unsupported video file</source>
         <translation>サポートしていないファイル</translation>
     </message>
     <message>
-        <location filename="showmanager/showmanager.cpp" line="994"/>
+        <location filename="showmanager/showmanager.cpp" line="990"/>
         <source>This video file cannot be played with QLC+. Sorry.</source>
         <translation>そのビデオファイルはQLC+では再生できません。</translation>
     </message>
     <message>
-        <location filename="showmanager/showmanager.cpp" line="1037"/>
-        <location filename="showmanager/showmanager.cpp" line="1093"/>
+        <location filename="showmanager/showmanager.cpp" line="1033"/>
+        <location filename="showmanager/showmanager.cpp" line="1087"/>
         <source>Paste error</source>
         <translation>貼り付けエラー</translation>
     </message>
     <message>
-        <location filename="showmanager/showmanager.cpp" line="1037"/>
+        <location filename="showmanager/showmanager.cpp" line="1033"/>
         <source>Overlapping paste not allowed. Operation canceled.</source>
         <translation>オーバーラップする貼り付けはできません。</translation>
     </message>
     <message>
-        <location filename="showmanager/showmanager.cpp" line="1093"/>
+        <location filename="showmanager/showmanager.cpp" line="1087"/>
         <source>Trying to paste on an incompatible Scene. Operation canceled.</source>
         <translation>そのシーンには貼り付けできません。</translation>
     </message>
     <message>
-        <location filename="showmanager/showmanager.cpp" line="1408"/>
+        <location filename="showmanager/showmanager.cpp" line="1400"/>
         <source>Track name setup</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="showmanager/showmanager.cpp" line="1409"/>
+        <location filename="showmanager/showmanager.cpp" line="1401"/>
         <source>Track name:</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5398,7 +5408,7 @@ Duration: %3
         <translation>全ファンクション停止</translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcbutton.cpp" line="803"/>
+        <location filename="virtualconsole/vcbutton.cpp" line="806"/>
         <source>Icon</source>
         <translation>アイコン</translation>
     </message>
@@ -5519,54 +5529,79 @@ Duration: %3
         <translation>時計の詳細</translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcclockproperties.ui" line="43"/>
+        <location filename="virtualconsole/vcclockproperties.ui" line="47"/>
+        <source>General</source>
+        <translation type="unfinished">全般</translation>
+    </message>
+    <message>
+        <location filename="virtualconsole/vcclockproperties.ui" line="53"/>
         <source>Clock type</source>
         <translation>タイプ</translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcclockproperties.ui" line="49"/>
+        <location filename="virtualconsole/vcclockproperties.ui" line="59"/>
         <source>Stopwatch</source>
         <translation>ストップウォッチ</translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcclockproperties.ui" line="56"/>
+        <location filename="virtualconsole/vcclockproperties.ui" line="66"/>
         <source>h</source>
         <translation> h</translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcclockproperties.ui" line="66"/>
+        <location filename="virtualconsole/vcclockproperties.ui" line="76"/>
         <source>Countdown</source>
         <translation>カウントダウン</translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcclockproperties.ui" line="73"/>
+        <location filename="virtualconsole/vcclockproperties.ui" line="83"/>
         <source>m</source>
         <translation> min</translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcclockproperties.ui" line="83"/>
+        <location filename="virtualconsole/vcclockproperties.ui" line="93"/>
         <source>s</source>
         <translation> s</translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcclockproperties.ui" line="99"/>
+        <location filename="virtualconsole/vcclockproperties.ui" line="109"/>
         <source>Clock</source>
         <translation>現在時刻</translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcclockproperties.ui" line="112"/>
+        <location filename="virtualconsole/vcclockproperties.ui" line="122"/>
         <source>Schedule</source>
         <translation>スケジュール</translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcclockproperties.ui" line="178"/>
+        <location filename="virtualconsole/vcclockproperties.ui" line="188"/>
         <source>Function</source>
         <translation>ファンクション</translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcclockproperties.ui" line="183"/>
+        <location filename="virtualconsole/vcclockproperties.ui" line="193"/>
         <source>Time</source>
         <translation>時間</translation>
+    </message>
+    <message>
+        <location filename="virtualconsole/vcclockproperties.ui" line="205"/>
+        <source>Input</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="virtualconsole/vcclockproperties.ui" line="214"/>
+        <source>No input control available for Clock type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="virtualconsole/vcclockproperties.cpp" line="39"/>
+        <source>Play/Pause control</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="virtualconsole/vcclockproperties.cpp" line="48"/>
+        <source>Reset control</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -5804,7 +5839,7 @@ Duration: %3
 <context>
     <name>VCFrame</name>
     <message>
-        <location filename="virtualconsole/vcframe.cpp" line="1430"/>
+        <location filename="virtualconsole/vcframe.cpp" line="1439"/>
         <source>Add</source>
         <translation>追加</translation>
     </message>
@@ -6449,12 +6484,12 @@ Duration: %3
 <context>
     <name>VCSlider</name>
     <message>
-        <location filename="virtualconsole/vcslider.cpp" line="220"/>
+        <location filename="virtualconsole/vcslider.cpp" line="228"/>
         <source>Slider %1</source>
         <translation>フェーダー %1</translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcslider.cpp" line="581"/>
+        <location filename="virtualconsole/vcslider.cpp" line="589"/>
         <source>Reset channels override</source>
         <translation type="unfinished"></translation>
     </message>
@@ -6818,190 +6853,200 @@ Duration: %3
         <translation>ファンクション</translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.ui" line="98"/>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="101"/>
+        <source>Copy the factors of the selected function</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="121"/>
+        <source>Paste copied factors to all selected functions</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="182"/>
         <source>Function</source>
         <translation>ファンクション</translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.ui" line="103"/>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="187"/>
         <source>Fade In factor</source>
         <oldsource>Fade In *</oldsource>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.ui" line="106"/>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="190"/>
         <source>Multiplier applied before time is sent as Fade In Time to the function.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.ui" line="111"/>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="195"/>
         <source>Fade Out factor</source>
         <oldsource>Fade Out *</oldsource>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.ui" line="114"/>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="198"/>
         <source>Multiplier applied before time is sent as Fade Out Time to the function.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.ui" line="119"/>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="203"/>
         <source>Duration factor (+tap)</source>
         <oldsource>Duration * (+tap)</oldsource>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.ui" line="122"/>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="206"/>
         <source>Multiplier applied before time is sent as Duration to the function.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.ui" line="130"/>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="67"/>
         <source>Add functions to be controlled</source>
         <translation>ファンクションの追加</translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.ui" line="147"/>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="84"/>
         <source>Remove selected functions</source>
         <translation>選択したファンクションの削除</translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.ui" line="178"/>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="215"/>
         <source>Input</source>
         <translation>外部入力</translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.ui" line="184"/>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="221"/>
         <source>Absolute Value</source>
         <translation>スピード値を直接入力</translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.ui" line="392"/>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="429"/>
         <source>Preset Name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.ui" line="196"/>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="233"/>
         <source>Range</source>
         <translation>範囲</translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.ui" line="209"/>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="246"/>
         <source>ms precision</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.ui" line="222"/>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="259"/>
         <source>Tap</source>
         <translation>Tap</translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.ui" line="230"/>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="267"/>
         <source>Apply</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.ui" line="335"/>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="372"/>
         <source>Multiplier</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.ui" line="341"/>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="378"/>
         <source>Reset multiplier factor when the dial value changes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.ui" line="371"/>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="408"/>
         <source>Presets</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.ui" line="417"/>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="454"/>
         <source>Name</source>
         <translation type="unfinished">名前</translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.ui" line="422"/>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="459"/>
         <source>Value</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.ui" line="402"/>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="439"/>
         <source> Add preset</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.ui" line="430"/>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="467"/>
         <source> Remove</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.ui" line="379"/>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="416"/>
         <source>Preset name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.ui" line="252"/>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="289"/>
         <source>Appearance</source>
         <translation type="unfinished">外見</translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.ui" line="258"/>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="295"/>
         <source>Show plus and minus buttons</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.ui" line="307"/>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="344"/>
         <source>Show multiplier and divisor buttons</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.ui" line="265"/>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="302"/>
         <source>Show the central dial</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.ui" line="272"/>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="309"/>
         <source>Show the tap button</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.ui" line="314"/>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="351"/>
         <source>Show the apply button</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.ui" line="279"/>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="316"/>
         <source>Show the hours field</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.ui" line="286"/>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="323"/>
         <source>Show the minutes field</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.ui" line="293"/>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="330"/>
         <source>Show the seconds field</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.ui" line="300"/>
+        <location filename="virtualconsole/vcspeeddialproperties.ui" line="337"/>
         <source>Show the milliseconds field</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.cpp" line="114"/>
+        <location filename="virtualconsole/vcspeeddialproperties.cpp" line="115"/>
         <source>Multiply by 2 Input</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.cpp" line="123"/>
+        <location filename="virtualconsole/vcspeeddialproperties.cpp" line="124"/>
         <source>Divide by 2 Input</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="virtualconsole/vcspeeddialproperties.cpp" line="132"/>
+        <location filename="virtualconsole/vcspeeddialproperties.cpp" line="133"/>
         <source>Factor Reset Input</source>
         <translation type="unfinished"></translation>
     </message>
@@ -7440,32 +7485,32 @@ Please select one with such channels.</source>
         <translation type="unfinished">繰り返し</translation>
     </message>
     <message>
-        <location filename="videoeditor.cpp" line="129"/>
+        <location filename="videoeditor.cpp" line="122"/>
         <source>Open Video File</source>
         <translation type="unfinished">ビデオファイルを開く</translation>
     </message>
     <message>
-        <location filename="videoeditor.cpp" line="137"/>
+        <location filename="videoeditor.cpp" line="130"/>
         <source>Video Files (%1)</source>
         <translation type="unfinished">ビデオファイル (%1)</translation>
     </message>
     <message>
-        <location filename="videoeditor.cpp" line="139"/>
+        <location filename="videoeditor.cpp" line="132"/>
         <source>All Files (*.*)</source>
         <translation type="unfinished">すべてのファイル (*.*)</translation>
     </message>
     <message>
-        <location filename="videoeditor.cpp" line="141"/>
+        <location filename="videoeditor.cpp" line="134"/>
         <source>All Files (*)</source>
         <translation type="unfinished">すべてのファイル (*)</translation>
     </message>
     <message>
-        <location filename="videoeditor.cpp" line="169"/>
+        <location filename="videoeditor.cpp" line="162"/>
         <source>Video source URL</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="videoeditor.cpp" line="170"/>
+        <location filename="videoeditor.cpp" line="163"/>
         <source>Enter a URL:</source>
         <translation type="unfinished"></translation>
     </message>

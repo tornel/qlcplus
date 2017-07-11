@@ -21,7 +21,7 @@ import QtQuick 2.0
 import QtQuick.Layouts 1.2
 import QtQuick.Dialogs 1.1
 
-import com.qlcplus.classes 1.0
+import org.qlcplus.classes 1.0
 
 import "TimeUtils.js" as TimeUtils
 import "."
@@ -157,7 +157,7 @@ Rectangle
                     height: editorColumn.itemsHeight
                     model: rgbMatrixEditor.algorithms
                     currentIndex: rgbMatrixEditor.algorithmIndex
-                    onCurrentTextChanged:
+                    onCurrentIndexChanged:
                     {
                         rgbMatrixEditor.algorithmIndex = currentIndex
                         paramSection.sectionContents = null

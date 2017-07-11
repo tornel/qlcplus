@@ -75,10 +75,25 @@ void VideoEditor::setSourceFileName(QString sourceFileName)
         return;
 
     m_video->setSourceUrl(sourceFileName);
-    if (sourceFileName.contains("://"))
-        m_mediaPlayer->setMedia(QUrl(sourceFileName));
+
+    if (m_video->isPicture())
+    {
+        QPixmap img(sourceFileName);
+        if (!img.isNull())
+        {
+            m_video->setResolution(img.size());
+            m_video->setTotalDuration(1000);
+            slotMetaDataChanged("Resolution", QVariant(img.size()));
+            slotMetaDataChanged("Duration", 1000);
+        }
+    }
     else
-        m_mediaPlayer->setMedia(QUrl::fromLocalFile(sourceFileName));
+    {
+        if (sourceFileName.contains("://"))
+            m_mediaPlayer->setMedia(QUrl(sourceFileName));
+        else
+            m_mediaPlayer->setMedia(QUrl::fromLocalFile(sourceFileName));
+    }
 
     emit sourceFileNameChanged(sourceFileName);
     emit mediaInfoChanged();
@@ -86,12 +101,20 @@ void VideoEditor::setSourceFileName(QString sourceFileName)
     emit loopedChanged();
 }
 
-QStringList VideoEditor::mimeTypes() const
+QStringList VideoEditor::videoExtensions() const
 {
     if (m_video == NULL)
         return QStringList();
 
-    return m_video->getCapabilities();
+    return m_video->getVideoCapabilities();
+}
+
+QStringList VideoEditor::pictureExtensions() const
+{
+    if (m_video == NULL)
+        return QStringList();
+
+    return m_video->getPictureCapabilities();
 }
 
 QVariant VideoEditor::mediaInfo() const
@@ -102,6 +125,7 @@ QVariant VideoEditor::mediaInfo() const
 void VideoEditor::slotDurationChanged(qint64 duration)
 {
     infoMap.insert("Duration",Function::speedToString(duration));
+    m_video->setTotalDuration(duration);
     emit mediaInfoChanged();
 }
 
@@ -140,6 +164,23 @@ void VideoEditor::setScreenIndex(int screenIndex)
     emit screenIndexChanged(screenIndex);
 }
 
+bool VideoEditor::isFullscreen() const
+{
+    if (m_video != NULL)
+        return m_video->fullscreen();
+
+    return false;
+}
+
+void VideoEditor::setFullscreen(bool fullscreen)
+{
+    if (m_video == NULL || m_video->fullscreen() == fullscreen)
+        return;
+
+    m_video->setFullscreen(fullscreen);
+    emit fullscreenChanged(fullscreen);
+}
+
 bool VideoEditor::isLooped()
 {
     if (m_video != NULL)
@@ -157,4 +198,29 @@ void VideoEditor::setLooped(bool looped)
         else
             m_video->setRunOrder(Video::SingleShot);
     }
+}
+
+bool VideoEditor::hasCustomGeometry() const
+{
+    if (m_video != NULL && m_video->customGeometry().isNull() == false)
+        return true;
+
+    return false;
+}
+
+QRect VideoEditor::customGeometry() const
+{
+    if (m_video != NULL)
+        return m_video->customGeometry();
+
+    return QRect();
+}
+
+void VideoEditor::setCustomGeometry(QRect customGeometry)
+{
+    if (m_video == NULL || m_video->customGeometry() == customGeometry)
+        return;
+
+    m_video->setCustomGeometry(customGeometry);
+    emit customGeometryChanged(customGeometry);
 }

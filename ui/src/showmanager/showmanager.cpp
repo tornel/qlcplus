@@ -957,7 +957,7 @@ void ShowManager::slotAddVideo()
     //dialog.selectFile(fileName());
 
     /* Append file filters to the dialog */
-    QStringList extList = Video::getCapabilities();
+    QStringList extList = Video::getVideoCapabilities();
 
     QStringList filters;
     qDebug() << Q_FUNC_INFO << "Extensions: " << extList.join(" ");
@@ -1653,6 +1653,14 @@ void ShowManager::updateMultiTrackView()
     {
         if (firstTrack == NULL)
             firstTrack = track;
+
+        quint32 boundSceneID = track->getSceneID();
+        if (boundSceneID != Function::invalidId())
+        {
+            Function *f = m_doc->function(boundSceneID);
+            if (f == NULL || f->type() != Function::SceneType)
+                track->setSceneID(Function::invalidId());
+        }
 
         m_showview->addTrack(track);
 
