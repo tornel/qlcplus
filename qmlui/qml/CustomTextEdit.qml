@@ -23,8 +23,8 @@ import "."
 Rectangle
 {
     id: customTextEditRect
-    implicitWidth: 200
-    implicitHeight: UISettings.listItemHeight
+    width: 200
+    height: UISettings.listItemHeight
     clip: true
     radius: 3
     color: UISettings.bgMedium
@@ -67,6 +67,15 @@ Rectangle
     border.color: "#222"
 
     onFocusChanged: if (focus) selectAndFocus()
+
+    Rectangle
+    {
+        anchors.fill: parent
+        z: 3
+        color: "black"
+        opacity: 0.5
+        visible: !parent.enabled
+    }
 
     TextInput
     {

@@ -37,10 +37,10 @@ public:
     virtual ~VCLabel();
 
     /** @reimp */
-    void setID(quint32 id);
+    QString defaultCaption();
 
     /** @reimp */
-    QString defaultCaption();
+    void setupLookAndFeel(qreal pixelDensity, int page);
 
     /** @reimp */
     void render(QQuickView *view, QQuickItem *parent);
@@ -50,8 +50,11 @@ public:
      *********************************************************************/
 
 public:
+    /** @reimp */
     bool loadXML(QXmlStreamReader &root);
-    //bool saveXML(QXmlStreamWriter *doc);
+
+    /** @reimp */
+    bool saveXML(QXmlStreamWriter *doc);
 };
 
 #endif

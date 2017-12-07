@@ -37,6 +37,8 @@ Rectangle
     property string currentView: "2D"
     //property bool docLoaded: qlcplus.docLoaded
 
+    Component.onCompleted: contextManager.updateFixturesCapabilities()
+
     function enableContext(ctx, setChecked)
     {
         var item = null
@@ -55,6 +57,17 @@ Rectangle
             if (setChecked)
                 item.checked = true
         }
+        settingsButton.checked = false
+    }
+
+    function loadContext(checked, qmlres, ctx)
+    {
+        if (checked === false)
+            return
+
+        settingsButton.checked = false
+        currentViewQML = qmlres
+        currentView = ctx
     }
 
     LeftPanel
@@ -118,14 +131,8 @@ Rectangle
                     checkedColor: UISettings.toolbarSelectionSub
                     bgGradient: ffMenuGradient
                     ButtonGroup.group: ffMenuBarGroup
-                    onCheckedChanged:
-                    {
-                        if (checked == true)
-                        {
-                            currentViewQML = "qrc:/UniverseGridView.qml"
-                            currentView = "UNIGRID"
-                        }
-                    }
+
+                    onCheckedChanged: loadContext(checked, "qrc:/UniverseGridView.qml", "UNIGRID")
                     onRightClicked:
                     {
                         uniView.visible = false
@@ -140,14 +147,8 @@ Rectangle
                     checkedColor: UISettings.toolbarSelectionSub
                     bgGradient: ffMenuGradient
                     ButtonGroup.group: ffMenuBarGroup
-                    onCheckedChanged:
-                    {
-                        if (checked == true)
-                        {
-                            currentViewQML = "qrc:/DMXView.qml"
-                            currentView = "DMX"
-                        }
-                    }
+
+                    onCheckedChanged:loadContext(checked, "qrc:/DMXView.qml", "DMX")
                     onRightClicked:
                     {
                         dmxView.visible = false
@@ -163,14 +164,8 @@ Rectangle
                     checkedColor: UISettings.toolbarSelectionSub
                     bgGradient: ffMenuGradient
                     ButtonGroup.group: ffMenuBarGroup
-                    onCheckedChanged:
-                    {
-                        if (checked == true)
-                        {
-                            currentViewQML = "qrc:/2DView.qml"
-                            currentView = "2D"
-                        }
-                    }
+
+                    onCheckedChanged:loadContext(checked, "qrc:/2DView.qml", "2D")
                     onRightClicked:
                     {
                         twodView.visible = false
@@ -185,14 +180,8 @@ Rectangle
                     checkedColor: UISettings.toolbarSelectionSub
                     bgGradient: ffMenuGradient
                     ButtonGroup.group: ffMenuBarGroup
-                    onCheckedChanged:
-                    {
-                        if (checked == true)
-                        {
-                            currentViewQML = "qrc:/3DView.qml"
-                            currentView = "3D"
-                        }
-                    }
+
+                    onCheckedChanged:loadContext(checked, "qrc:/3DView.qml", "3D")
                     onRightClicked:
                     {
                         threedView.visible = false
@@ -231,7 +220,7 @@ Rectangle
                 {
                     width: UISettings.iconSizeMedium * 2
                     implicitHeight: viewToolbar.height - 2
-                    fontColor: "#222"
+                    fontColor: UISettings.bgStrong
                     onZoomOutClicked: previewLoader.item.setZoom(-0.5)
                     onZoomInClicked: previewLoader.item.setZoom(0.5)
                 }

@@ -30,7 +30,6 @@
 #include "qlcfile.h"
 #include "doc.h"
 
-
 #define KXMLQLCVCCaption "Caption"
 #define KXMLQLCVCFrameStyle "FrameStyle"    // LEGACY
 
@@ -76,7 +75,7 @@ class VCWidget : public QObject
     Q_PROPERTY(quint32 id READ id CONSTANT)
     Q_PROPERTY(QString propertiesResource READ propertiesResource CONSTANT)
     Q_PROPERTY(bool isEditing READ isEditing WRITE setIsEditing NOTIFY isEditingChanged)
-    Q_PROPERTY(QRect geometry READ geometry WRITE setGeometry NOTIFY geometryChanged)
+    Q_PROPERTY(QRectF geometry READ geometry WRITE setGeometry NOTIFY geometryChanged)
     Q_PROPERTY(bool allowResize READ allowResize WRITE setAllowResize NOTIFY allowResizeChanged)
     Q_PROPERTY(bool isDisabled READ isDisabled WRITE setDisabled NOTIFY disabledStateChanged)
     Q_PROPERTY(bool isVisible READ isVisible WRITE setVisible NOTIFY isVisibleChanged)
@@ -89,22 +88,31 @@ class VCWidget : public QObject
 
     Q_PROPERTY(int externalControlsCount READ externalControlsCount CONSTANT)
     Q_PROPERTY(QVariant externalControlsList READ externalControlsList CONSTANT)
-    Q_PROPERTY(QVariant inputSourcesList READ inputSourcesList NOTIFY inputSourcesListChanged)
+    Q_PROPERTY(QVariantList inputSourcesList READ inputSourcesList NOTIFY inputSourcesListChanged)
 
     /*********************************************************************
      * Initialization
      *********************************************************************/
-
 public:
     VCWidget(Doc* doc = NULL, QObject* parent = 0);
     virtual ~VCWidget();
 
     void setDocModified();
 
+    virtual void setupLookAndFeel(qreal pixelDensity, int page);
+
     virtual void render(QQuickView *view, QQuickItem *parent);
 
+    QQuickItem *renderItem() const;
+
+    void enqueueTardisAction(int code, QVariant oldVal, QVariant newVal);
+
 protected:
+    /** Reference to the project document */
     Doc* m_doc;
+
+    /** Reference to the onscreen Quick item */
+    QQuickItem *m_item;
 
     /*********************************************************************
      * ID
@@ -150,6 +158,7 @@ public:
         AnimationWidget,
         ClockWidget
     };
+    Q_ENUM(WidgetType)
 
 public:
     /** Set the widget's type */
@@ -174,18 +183,21 @@ protected:
      * Geometry
      *********************************************************************/
 public:
-    /** Get this widget's geometry */
-    QRect geometry() const;
-
-    /** Set this widget's geometry. x/y position is relative to
+    /** Get/Set this widget's geometry. x/y position is relative to
      *  the widget's parent */
-    void setGeometry(QRect rect);
+    QRectF geometry() const;
+    void setGeometry(QRectF rect);
+
+    /** Get/Set the widget's scale factor */
+    qreal scaleFactor() const;
+    void setScaleFactor(qreal factor);
 
 signals:
-    void geometryChanged(QRect rect);
+    void geometryChanged();
 
 protected:
-    QRect m_geometry;
+    QRectF m_geometry;
+    qreal m_scaleFactor;
 
     /*********************************************************************
      * Allow resize
@@ -373,12 +385,19 @@ public:
      *  possible to stop the currently running Function */
     virtual void notifyFunctionStarting(VCWidget *widget, quint32 fid, qreal fIntensity);
 
+    virtual void adjustFunctionIntensity(Function *f, qreal value);
+
+    void resetIntensityOverrideAttribute();
+
 signals:
     /** Signal emitted when a VCWidget controlling a Function has been
       * requested to start the Function.
       * At the moment this is used by a restriceted number of widgets (see above)
       */
     void functionStarting(VCWidget *widget, quint32 fid, qreal intensity = 1.0);
+
+protected:
+    int m_intensityOverrideId;
 
     /*********************************************************************
      * Intensity
@@ -437,6 +456,9 @@ public:
     /** Returns a list of the registered external controls suitable for the UI */
     QVariant externalControlsList() const;
 
+    /** Returns the index of a control with the given $id */
+    int controlIndex(quint8 id);
+
     /************************
      * Input sources
      ************************/
@@ -461,7 +483,7 @@ public:
     QList <QSharedPointer<QLCInputSource> > inputSources() const;
 
     /** Return a list of input sources to be used by the UI */
-    QVariant inputSourcesList() const;
+    QVariantList inputSourcesList();
 
     /** Return a input source reference that matches the specified $id, $universe and $channel */
     QSharedPointer<QLCInputSource> inputSource(quint32 id, quint32 universe, quint32 channel) const;
@@ -498,6 +520,8 @@ protected:
     /** The map of key sequences that can control this widget,
      *  arranged by sequence / control ID */
     QMap <QKeySequence, quint32> m_keySequenceMap;
+
+    QVariantList m_sourcesList;
 
     /*********************************************************************
      * Load & Save
@@ -542,20 +566,18 @@ protected:
      */
     bool loadXMLSources(QXmlStreamReader &root, const quint8& id);
 
-    /** Save the widget common properties */
+    /** Write the widget common properties */
     bool saveXMLCommon(QXmlStreamWriter *doc);
 
-    /** Save the widget appearance, if customized */
+    /** Write the widget appearance, if customized */
     bool saveXMLAppearance(QXmlStreamWriter *doc);
 
-    /**
-     * Write this widget's geometry and visibility to an XML document.
-     *
-     * @param doc A QXmlStreamReader to save the tag to
-     *
-     * @return true if succesful, otherwise false
-     */
+    /** Write this widget's geometry and visibility to an XML document */
     bool saveXMLWindowState(QXmlStreamWriter *doc);
+
+    /** Save all the input sources and key combination with the given $controlId
+     *  in a tag with the given $tagName */
+    bool saveXMLInputControl(QXmlStreamWriter *doc, quint8 controlId, QString tagName);
 };
 
 #endif

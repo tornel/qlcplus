@@ -28,22 +28,82 @@ Popup
     id: menuRoot
     padding: 0
 
+    property Item submenuItem: null
+
+    onClosed: submenuItem = null
+
     FileDialog
     {
-        id: fileDialog
+        id: openDialog
         visible: false
+        title: qsTr("Open a workspace")
         folder: "file://" + qlcplus.workingPath
+        nameFilters: [ qsTr("Workspace files") + " (*.qxw)", qsTr("All files") + " (*)" ]
 
         onAccepted:
         {
-            console.log("You chose: " + fileDialog.fileUrl)
-            qlcplus.loadWorkspace(fileDialog.fileUrl)
+            console.log("You chose: " + openDialog.fileUrl)
+            qlcplus.loadWorkspace(openDialog.fileUrl)
             console.log("Folder: " + folder.toString())
             qlcplus.workingPath = folder.toString()
         }
         onRejected:
         {
             console.log("Canceled")
+        }
+    }
+
+    FileDialog
+    {
+        id: saveDialog
+        visible: false
+        title: qsTr("Save workspace as")
+        selectExisting: false
+        nameFilters: [ qsTr("Workspace files") + " (*.qxw)", qsTr("All files") + " (*)" ]
+
+        onAccepted:
+        {
+            console.log("You chose: " + saveDialog.fileUrl)
+            qlcplus.saveWorkspace(saveDialog.fileUrl)
+        }
+        onRejected:
+        {
+            console.log("Canceled")
+        }
+    }
+
+    CustomPopupDialog
+    {
+        id: saveFirstPopup
+        title: qsTr("Your project has changes")
+        message: qsTr("Do you wish to save the current workspace first ?\nChanges will be lost if you don't save them.")
+        standardButtons: Dialog.Yes | Dialog.No | Dialog.Cancel
+
+        property bool openAction: false
+
+        onClicked:
+        {
+            if (role === Dialog.Yes)
+            {
+                if (qlcplus.fileName())
+                    qlcplus.saveWorkspace(qlcplus.fileName())
+                else
+                {
+                    //saveDialog.visible = true
+                    saveDialog.open()
+                }
+            }
+            else if (role === Dialog.No)
+            {
+                if (openAction)
+                    openDialog.open()
+                else
+                    qlcplus.newWorkspace()
+            }
+            else if (role === Dialog.Cancel)
+            {
+                console.log("Cancel clicked")
+            }
         }
     }
 
@@ -59,6 +119,7 @@ Popup
     Column
     {
         id: actionsMenuEntries
+
         ContextMenuEntry
         {
             id: fileNew
@@ -66,10 +127,17 @@ Popup
             entryText: qsTr("New project")
             onClicked:
             {
-                qlcplus.newWorkspace()
-                menuRoot.visible = false
+                menuRoot.close()
+
+                if (qlcplus.docModified)
+                {
+                    saveFirstPopup.openAction = false
+                    saveFirstPopup.open()
+                }
+                else
+                    qlcplus.newWorkspace()
             }
-            onEntered: recentMenu.visible = false
+            onEntered: submenuItem = null
         }
         ContextMenuEntry
         {
@@ -78,14 +146,17 @@ Popup
             entryText: qsTr("Open project")
             onClicked:
             {
-                fileDialog.title = qsTr("Open a workspace")
-                fileDialog.nameFilters = [ qsTr("Workspace files") + " (*.qxw)", qsTr("All files") + " (*)" ]
-                fileDialog.visible = true
-                menuRoot.visible = false
-                fileDialog.open()
+                menuRoot.close()
+
+                if (qlcplus.docModified)
+                {
+                    saveFirstPopup.openAction = true
+                    saveFirstPopup.open()
+                }
+                else
+                    openDialog.open()
             }
-            onEntered: recentMenu.visible = true
-            //onExited: recentMenu.visible = false
+            onEntered: submenuItem = recentMenu
 
             Rectangle
             {
@@ -94,7 +165,7 @@ Popup
                 width: recentColumn.width
                 height: recentColumn.height
                 color: UISettings.bgStrong
-                visible: false
+                visible: submenuItem === recentMenu
 
                 Column
                 {
@@ -108,8 +179,7 @@ Popup
                                 entryText: modelData
                                 onClicked:
                                 {
-                                    recentMenu.visible = false
-                                    menuRoot.visible = false
+                                    menuRoot.close()
                                     qlcplus.loadWorkspace(entryText)
                                 }
                             }
@@ -122,28 +192,136 @@ Popup
             id: fileSave
             imgSource: "qrc:/filesave.svg"
             entryText: qsTr("Save project")
-            onClicked: { }
-            onEntered: recentMenu.visible = false
+            onEntered: submenuItem = null
+
+            onClicked:
+            {
+                menuRoot.close()
+
+                if (qlcplus.fileName())
+                    qlcplus.saveWorkspace(qlcplus.fileName())
+                else
+                    saveDialog.open()
+            }
         }
         ContextMenuEntry
         {
             id: fileSaveAs
             imgSource: "qrc:/filesaveas.svg"
             entryText: qsTr("Save project as...")
-            onClicked: { }
-            onEntered: recentMenu.visible = false
+            onEntered: submenuItem = null
+
+            onClicked:
+            {
+                menuRoot.close()
+                saveDialog.open()
+            }
+        }
+        Row
+        {
+            height: UISettings.iconSizeDefault
+
+            ContextMenuEntry
+            {
+                width: actionsMenuEntries.width / 2
+                imgSource: "qrc:/undo.svg"
+                entryText: qsTr("Undo")
+                onEntered: submenuItem = null
+
+                onClicked:
+                {
+                    menuRoot.close()
+                    tardis.undoAction()
+                }
+            }
+            ContextMenuEntry
+            {
+                width: actionsMenuEntries.width / 2
+                imgSource: "qrc:/redo.svg"
+                entryText: qsTr("Redo")
+                onEntered: submenuItem = null
+
+                onClicked:
+                {
+                    menuRoot.close()
+                    tardis.redoAction()
+                }
+            }
+        }
+        ContextMenuEntry
+        {
+            imgSource: "qrc:/network.svg"
+            entryText: qsTr("Network")
+            onEntered: submenuItem = networkMenu
+
+            onClicked:
+            {
+                if (Qt.platform.os === "android")
+                    submenuItem = networkMenu
+            }
+
+            Rectangle
+            {
+                id: networkMenu
+                x: menuRoot.width
+                width: networkColumn.width
+                height: networkColumn.height
+                color: UISettings.bgStrong
+                visible: submenuItem === networkMenu
+
+                Column
+                {
+                    id: networkColumn
+
+                    ContextMenuEntry
+                    {
+                        id: startServer
+                        entryText: qsTr("Server setup")
+
+                        onClicked:
+                        {
+                            menuRoot.close()
+                            pNetServer.open()
+                        }
+
+                        PopupNetworkServer
+                        {
+                            id: pNetServer
+                            implicitWidth: Math.min(UISettings.bigItemHeight * 4, mainView.width / 3)
+                        }
+                    }
+
+                    ContextMenuEntry
+                    {
+                        id: connectToServer
+                        entryText: qsTr("Client setup")
+
+                        onClicked:
+                        {
+                            menuRoot.close()
+                            pNetClient.open()
+                        }
+
+                        PopupNetworkClient
+                        {
+                            id: pNetClient
+                            implicitWidth: Math.min(UISettings.bigItemHeight * 4, mainView.width / 3)
+                        }
+                    }
+                }
+            }
         }
 
         ContextMenuEntry
         {
             imgSource: "qrc:/diptool.svg"
             entryText: qsTr("Address tool")
+            onEntered: submenuItem = null
             onClicked:
             {
                 close()
                 addrToolDialog.open()
             }
-            onEntered: recentMenu.visible = false
 
             CustomPopupDialog
             {
@@ -162,10 +340,10 @@ Popup
             id: fullScreen
             imgSource: "qrc:/fullscreen.svg"
             entryText: qsTr("Toggle fullscreen")
-            onEntered: recentMenu.visible = false
+            onEntered: submenuItem = null
             onClicked:
             {
-                menuRoot.visible = false
+                menuRoot.close()
                 qlcplus.toggleFullscreen()
             }
         }

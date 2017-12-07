@@ -353,13 +353,8 @@ bool Chaser::saveXML(QXmlStreamWriter *doc)
     doc->writeEndElement();
 
     /* Steps */
-    int stepNumber = 0;
-    QListIterator <ChaserStep> it(m_steps);
-    while (it.hasNext() == true)
-    {
-        ChaserStep step(it.next());
-        step.saveXML(doc, stepNumber++, false);
-    }
+    for (int i = 0; i < m_steps.count(); i++)
+        m_steps.at(i).saveXML(doc, i, false);
 
     /* End the <Function> tag */
     doc->writeEndElement();
@@ -688,14 +683,17 @@ void Chaser::postRun(MasterTimer* timer, QList<Universe *> universes)
  * Intensity
  *****************************************************************************/
 
-void Chaser::adjustAttribute(qreal fraction, int attributeIndex)
+int Chaser::adjustAttribute(qreal fraction, int attributeId)
 {
-    if (attributeIndex == Intensity)
+    int attrIndex = Function::adjustAttribute(fraction, attributeId);
+
+    if (attrIndex == Intensity)
     {
         QMutexLocker runnerLocker(&m_runnerMutex);
         QMutexLocker stepListLocker(&m_stepListMutex);
         if (m_runner != NULL)
-            m_runner->adjustIntensity(fraction);
+            m_runner->adjustIntensity(getAttributeValue(Function::Intensity));
     }
-    Function::adjustAttribute(fraction, attributeIndex);
+
+    return attrIndex;
 }

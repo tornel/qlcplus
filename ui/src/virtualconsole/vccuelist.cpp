@@ -479,6 +479,7 @@ void VCCueList::updateStepList()
         m_defCol = item->background(COL_NUM);
 
     m_tree->header()->resizeSections(QHeaderView::ResizeToContents);
+    m_tree->header()->setSectionHidden(COL_NAME, ch->type() == Function::SequenceType ? true : false);
     m_listIsUpdating = false;
 }
 
@@ -590,7 +591,10 @@ void VCCueList::notifyFunctionStarting(quint32 fid, qreal intensity)
 void VCCueList::slotFunctionRemoved(quint32 fid)
 {
     if (fid == m_chaserID)
+    {
         setChaser(Function::invalidId());
+        resetIntensityOverrideAttribute();
+    }
 }
 
 void VCCueList::slotFunctionChanged(quint32 fid)
@@ -649,6 +653,12 @@ void VCCueList::slotPlayback()
                 m_playbackButton->setStyleSheet("QToolButton{ background: #5B81FF; }");
                 m_playbackButton->setIcon(QIcon(":/player_play.png"));
             }
+
+            // check if the item selection has been changed during pause
+            int currentTreeIndex = m_tree->indexOfTopLevelItem(m_tree->currentItem());
+            if (currentTreeIndex != ch->currentStepIndex())
+                playCueAtIndex(currentTreeIndex);
+
             ch->setPause(!ch->isPaused());
         }
         else if (playbackLayout() == PlayStopPause)
@@ -719,7 +729,10 @@ void VCCueList::slotNextCue()
 
     if (ch->isRunning())
     {
-        ch->next();
+        if (ch->isPaused())
+            m_tree->setCurrentItem(m_tree->topLevelItem(getNextIndex()));
+        else
+            ch->next();
     }
     else
     {
@@ -753,7 +766,10 @@ void VCCueList::slotPreviousCue()
 
     if (ch->isRunning())
     {
-        ch->previous();
+        if (ch->isPaused())
+            m_tree->setCurrentItem(m_tree->topLevelItem(getPrevIndex()));
+        else
+            ch->previous();
     }
     else
     {
@@ -940,7 +956,7 @@ void VCCueList::startChaser(int startIndex)
         return;
     ch->setStepIndex(startIndex);
     ch->setStartIntensity(getPrimaryIntensity());
-    ch->adjustAttribute(intensity(), Function::Intensity);
+    adjustFunctionIntensity(ch, intensity());
     ch->start(m_doc->masterTimer(), functionParent());
     emit functionStarting(m_chaserID);
 }
@@ -951,6 +967,7 @@ void VCCueList::stopChaser()
     if (ch == NULL)
         return;
     ch->stop(functionParent());
+    resetIntensityOverrideAttribute();
 }
 
 void VCCueList::setNextPrevBehavior(NextPrevBehavior nextPrev)
@@ -1395,7 +1412,7 @@ void VCCueList::adjustIntensity(qreal val)
     Chaser* ch = chaser();
     if (ch != NULL)
     {
-        ch->adjustAttribute(val, Function::Intensity);
+        adjustFunctionIntensity(ch, val);
 
         // Refresh intensity of current steps
         if (!ch->stopped() && slidersMode() == Crossfade)

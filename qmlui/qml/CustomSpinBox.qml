@@ -34,6 +34,7 @@ SpinBox
     from: 0
     to: 255
     clip: true
+    wheelEnabled: true
 
     property bool showControls: true
     property string suffix: ""
@@ -48,24 +49,21 @@ SpinBox
         if (focus) contentItem.selectAll()
     }
 
-    MouseArea
-    {
-        anchors.fill: parent
-        onWheel:
-        {
-            if (wheel.angleDelta.y > 0)
-                control.value++
-            else
-                control.value--
-        }
-    }
-
     textFromValue: function(value) {
         return value + suffix
     }
 
     valueFromText: function(text) {
         return parseInt(text.replace(suffix, ""))
+    }
+
+    Rectangle
+    {
+        anchors.fill: parent
+        z: 3
+        color: "black"
+        opacity: 0.6
+        visible: !parent.enabled
     }
 
     background: Rectangle {

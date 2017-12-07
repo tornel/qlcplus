@@ -31,7 +31,7 @@ Rectangle
     onWidthChanged: twoDView.calculateCellSize()
     onHeightChanged: twoDView.calculateCellSize()
 
-    Component.onDestruction: contextManager.enableContext("2D", false, twoDView)
+    Component.onDestruction: if (contextManager) contextManager.enableContext("2D", false, twoDView)
 
     function setZoom(amount)
     {
@@ -64,14 +64,8 @@ Rectangle
         //contentWidth: parent.width
         //contentHeight: parent.height
 
-        property size gridSize: View2D.gridSize
+        property vector3d gridSize: View2D.gridSize
         property real gridUnits: View2D.gridUnits
-
-        Component.onCompleted:
-        {
-            calculateCellSize()
-            contextManager.enableContext("2D", true, twoDView)
-        }
 
         onGridSizeChanged: calculateCellSize()
         onGridUnitsChanged: calculateCellSize()
@@ -81,8 +75,8 @@ Rectangle
             if (width <= 0 || height <= 0)
                 return;
             var w = twoDSettings.visible ? (width - twoDSettings.width) : width
-            var xDiv = w / gridSize.width
-            var yDiv = height / gridSize.height
+            var xDiv = w / gridSize.x
+            var yDiv = height / gridSize.z
             twoDContents.x = 0
             twoDContents.y = 0
 
@@ -93,8 +87,8 @@ Rectangle
 
             //console.log("Cell size calculated: " + View2D.cellPixels)
 
-            contentWidth = View2D.cellPixels * gridSize.width;
-            contentHeight = View2D.cellPixels * gridSize.height;
+            contentWidth = View2D.cellPixels * gridSize.x;
+            contentHeight = View2D.cellPixels * gridSize.z;
 
             if (contentWidth < w)
                 twoDContents.x = (w - contentWidth) / 2;
@@ -143,6 +137,12 @@ Rectangle
                 twoDView.interactive = status
             }
 
+            Component.onCompleted:
+            {
+                twoDView.calculateCellSize()
+                contextManager.enableContext("2D", true, twoDView)
+            }
+
             onPaint:
             {
                 context.globalAlpha = 1.0
@@ -155,13 +155,13 @@ Rectangle
                 context.fillRect(0, 0, width, height)
                 context.rect(0, 0, width, height)
 
-                for (var vl = 1; vl < twoDView.gridSize.width; vl++)
+                for (var vl = 1; vl < twoDView.gridSize.x; vl++)
                 {
                     var xPos = cellSize * vl
                     context.moveTo(xPos, 0)
                     context.lineTo(xPos, height)
                 }
-                for (var hl = 1; hl < twoDView.gridSize.height; hl++)
+                for (var hl = 1; hl < twoDView.gridSize.z; hl++)
                 {
                     var yPos = cellSize * hl
                     context.moveTo(0, yPos)

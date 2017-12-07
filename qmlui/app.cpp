@@ -20,6 +20,7 @@
 #include <QQuickItemGrabResult>
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
+#include <QtCore/qbuffer.h>
 #include <QFontDatabase>
 #include <QPrintDialog>
 #include <QQmlContext>
@@ -43,6 +44,9 @@
 #include "fixturegroupeditor.h"
 #include "inputoutputmanager.h"
 
+#include "tardis.h"
+#include "networkmanager.h"
+
 #include "qlcfixturedefcache.h"
 #include "audioplugincache.h"
 #include "rgbscriptscache.h"
@@ -52,6 +56,7 @@
 
 #define SETTINGS_WORKINGPATH "workspace/workingpath"
 #define SETTINGS_RECENTFILE "workspace/recent"
+#define KXMLQLCWorkspaceWindow "CurrentWindow"
 
 #define MAX_RECENT_FILES    10
 
@@ -64,6 +69,7 @@ App::App()
     , m_videoProvider(NULL)
     , m_doc(NULL)
     , m_docLoaded(false)
+    , m_fileName(QString())
 {
     QSettings settings;
 
@@ -73,7 +79,10 @@ App::App()
     if (dir.isValid() == true)
         m_workingPath = dir.toString();
 
+    setAccessMask(defaultMask());
+
     connect(this, &App::screenChanged, this, &App::slotScreenChanged);
+    connect(this, SIGNAL(closing(QQuickCloseEvent*)), this, SLOT(slotClosing()));
 }
 
 App::~App()
@@ -107,19 +116,10 @@ void App::startup()
     rootContext()->setContextProperty("ioManager", m_ioManager);
 
     m_fixtureBrowser = new FixtureBrowser(this, m_doc);
-    rootContext()->setContextProperty("fixtureBrowser", m_fixtureBrowser);
-
     m_fixtureManager = new FixtureManager(this, m_doc);
-    rootContext()->setContextProperty("fixtureManager", m_fixtureManager);
-
     m_fixtureGroupEditor = new FixtureGroupEditor(this, m_doc);
-    rootContext()->setContextProperty("fixtureGroupEditor", m_fixtureGroupEditor);
-
     m_functionManager = new FunctionManager(this, m_doc);
-    rootContext()->setContextProperty("functionManager", m_functionManager);
-
     m_contextManager = new ContextManager(this, m_doc, m_fixtureManager, m_functionManager);
-    rootContext()->setContextProperty("contextManager", m_contextManager);
 
     m_virtualConsole = new VirtualConsole(this, m_doc, m_contextManager);
     rootContext()->setContextProperty("virtualConsole", m_virtualConsole);
@@ -129,6 +129,20 @@ void App::startup()
 
     // register an uncreatable type just to use the enums in QML
     qmlRegisterUncreatableType<ShowManager>("org.qlcplus.classes", 1, 0, "ShowManager", "Can't create a ShowManager !");
+
+    m_networkManager = new NetworkManager(this, m_doc);
+    rootContext()->setContextProperty("networkManager", m_networkManager);
+
+    // register an uncreatable type just to use the enums in QML
+    qmlRegisterUncreatableType<NetworkManager>("org.qlcplus.classes", 1, 0, "NetworkManager", "Can't create a NetworkManager !");
+
+    connect(m_networkManager, &NetworkManager::clientAccessRequest, this, &App::slotClientAccessRequest);
+    connect(m_networkManager, &NetworkManager::accessMaskChanged, this, &App::setAccessMask);
+    connect(m_networkManager, &NetworkManager::requestProjectLoad, this, &App::slotLoadDocFromMemory);
+
+    m_tardis = new Tardis(this, m_doc, m_networkManager, m_fixtureManager, m_functionManager,
+                          m_contextManager, m_showManager, m_virtualConsole);
+    rootContext()->setContextProperty("tardis", m_tardis);
 
     m_contextManager->registerContext(m_virtualConsole);
     m_contextManager->registerContext(m_showManager);
@@ -175,6 +189,26 @@ qreal App::pixelDensity() const
     return m_pixelDensity;
 }
 
+int App::accessMask() const
+{
+    return m_accessMask;
+}
+
+void App::setAccessMask(int mask)
+{
+    if (mask == m_accessMask)
+        return;
+
+    m_accessMask = mask;
+    emit accessMaskChanged(mask);
+}
+
+int App::defaultMask() const
+{
+    return AC_FixtureEditing | AC_FunctionEditing | AC_InputOutput |
+            AC_ShowManager | AC_SimpleDesk | AC_VCControl | AC_VCEditing;
+}
+
 void App::keyPressEvent(QKeyEvent *e)
 {
     if (m_contextManager)
@@ -198,6 +232,22 @@ void App::slotScreenChanged(QScreen *screen)
     rootContext()->setContextProperty("screenPixelDensity", m_pixelDensity);
 }
 
+void App::slotClosing()
+{
+    delete m_contextManager;
+}
+
+void App::slotClientAccessRequest(QString name)
+{
+    QMetaObject::invokeMethod(rootObject(), "openAccessRequest",
+                              Q_ARG(QVariant, name));
+}
+
+void App::slotAccessMaskChanged(int mask)
+{
+    setAccessMask(mask);
+}
+
 void App::clearDocument()
 {
     if (m_videoProvider)
@@ -211,11 +261,11 @@ void App::clearDocument()
     m_virtualConsole->resetContents();
     //SimpleDesk::instance()->clearContents();
     m_showManager->resetContents();
+    m_tardis->resetHistory();
     m_doc->inputOutputMap()->resetUniverses();
     setFileName(QString());
     m_doc->resetModified();
     m_doc->masterTimer()->start();
-
 }
 
 Doc *App::doc()
@@ -223,9 +273,9 @@ Doc *App::doc()
     return m_doc;
 }
 
-void App::slotDocModified(bool state)
+bool App::docModified() const
 {
-    Q_UNUSED(state)
+    return m_doc->isModified();
 }
 
 void App::initDoc()
@@ -233,7 +283,7 @@ void App::initDoc()
     Q_ASSERT(m_doc == NULL);
     m_doc = new Doc(this);
 
-    connect(m_doc, SIGNAL(modified(bool)), this, SLOT(slotDocModified(bool)));
+    connect(m_doc, SIGNAL(modified(bool)), this, SIGNAL(docModifiedChanged()));
 
     /* Load user fixtures first so that they override system fixtures */
     m_doc->fixtureDefCache()->load(QLCFixtureDefCache::userDefinitionDirectory());
@@ -407,15 +457,6 @@ void App::setWorkingPath(QString workingPath)
 
 bool App::newWorkspace()
 {
-    /*
-    QString msg(tr("Do you wish to save the current workspace?\n" \
-                   "Changes will be lost if you don't save them."));
-    if (saveModifiedDoc(tr("New Workspace"), msg) == false)
-    {
-        return false;
-    }
-    */
-
     clearDocument();
     m_fixtureManager->slotDocLoaded();
     m_functionManager->slotDocLoaded();
@@ -446,6 +487,64 @@ bool App::loadWorkspace(const QString &fileName)
         m_videoProvider = new VideoProvider(this, m_doc);
         return true;
     }
+    return false;
+}
+
+void App::slotLoadDocFromMemory(QByteArray &xmlData)
+{
+    if (xmlData.isEmpty())
+        return;
+
+    /* Clear existing document data */
+    clearDocument();
+
+    QBuffer databuf;
+    databuf.setData(xmlData);
+    databuf.open(QIODevice::ReadOnly | QIODevice::Text);
+
+    //qDebug() << "Buffer data:" << databuf.data();
+    QXmlStreamReader doc(&databuf);
+
+    if (doc.hasError())
+    {
+        qWarning() << Q_FUNC_INFO << "Unable to read from XML in memory";
+        return;
+    }
+
+    while (!doc.atEnd())
+    {
+        if (doc.readNext() == QXmlStreamReader::DTD)
+            break;
+    }
+    if (doc.hasError())
+    {
+        qDebug() << "XML has errors:" << doc.errorString();
+        return;
+    }
+
+    if (doc.dtdName() == KXMLQLCWorkspace)
+        loadXML(doc, true, true);
+    else
+        qDebug() << "XML doesn't have a Workspace tag";
+}
+
+bool App::saveWorkspace(const QString &fileName)
+{
+    QString localFilename = fileName;
+    if (localFilename.startsWith("file:"))
+        localFilename = QUrl(fileName).toLocalFile();
+
+    /* Always use the workspace suffix */
+    if (localFilename.right(4) != KExtWorkspace)
+        localFilename += KExtWorkspace;
+
+    if (saveXML(localFilename) == QFile::NoError)
+    {
+        setTitle(QString("%1 - %2").arg(APPNAME).arg(localFilename));
+        updateRecentFilesList(localFilename);
+        return true;
+    }
+
     return false;
 }
 
@@ -505,7 +604,6 @@ QFileDevice::FileError App::loadXML(const QString &fileName)
 
 bool App::loadXML(QXmlStreamReader &doc, bool goToConsole, bool fromMemory)
 {
-    Q_UNUSED(goToConsole) // TODO
     if (doc.readNextStartElement() == false)
         return false;
 
@@ -515,7 +613,7 @@ bool App::loadXML(QXmlStreamReader &doc, bool goToConsole, bool fromMemory)
         return false;
     }
 
-    //QString activeWindowName = doc.attributes().value(KXMLQLCWorkspaceWindow).toString();
+    QString contextName = doc.attributes().value(KXMLQLCWorkspaceWindow).toString();
 
     while (doc.readNextStartElement())
     {
@@ -545,21 +643,20 @@ bool App::loadXML(QXmlStreamReader &doc, bool goToConsole, bool fromMemory)
         }
     }
 
-/*
     if (goToConsole == true)
         // Force the active window to be Virtual Console
-        setActiveWindow(VirtualConsole::staticMetaObject.className());
+        m_contextManager->switchToContext("VirtualConsole");
     else
         // Set the active window to what was saved in the workspace file
-        setActiveWindow(activeWindowName);
-*/
+        m_contextManager->switchToContext(contextName);
+
     // Perform post-load operations
     m_virtualConsole->postLoad();
 
     if (m_doc->errorLog().isEmpty() == false &&
         fromMemory == false)
     {
-        // emit a signal to inform the QML UI to display an error message
+        // TODO: emit a signal to inform the QML UI to display an error message
         /*
         QMessageBox msg(QMessageBox::Warning, tr("Warning"),
                         tr("Some errors occurred while loading the project:") + "\n\n" + m_doc->errorLog(),
@@ -569,6 +666,71 @@ bool App::loadXML(QXmlStreamReader &doc, bool goToConsole, bool fromMemory)
     }
 
     return true;
+}
+
+QFile::FileError App::saveXML(const QString& fileName)
+{
+    QString tempFileName(fileName);
+    tempFileName += ".temp";
+    QFile file(tempFileName);
+    if (file.open(QIODevice::WriteOnly) == false)
+        return file.error();
+
+    QXmlStreamWriter doc(&file);
+    doc.setAutoFormatting(true);
+    doc.setAutoFormattingIndent(1);
+    doc.setCodec("UTF-8");
+
+    doc.writeStartDocument();
+    doc.writeDTD(QString("<!DOCTYPE %1>").arg(KXMLQLCWorkspace));
+
+    doc.writeStartElement(KXMLQLCWorkspace);
+    doc.writeAttribute("xmlns", QString("%1%2").arg(KXMLQLCplusNamespace).arg(KXMLQLCWorkspace));
+
+    /* Currently active context */
+    doc.writeAttribute(KXMLQLCWorkspaceWindow, m_contextManager->currentContext());
+
+    /* Creator information */
+    doc.writeStartElement(KXMLQLCCreator);
+    doc.writeTextElement(KXMLQLCCreatorName, APPNAME);
+    doc.writeTextElement(KXMLQLCCreatorVersion, APPVERSION);
+    doc.writeTextElement(KXMLQLCCreatorAuthor, QLCFile::currentUserName());
+    doc.writeEndElement();
+
+    /* Write engine components to the XML document */
+    m_doc->saveXML(&doc);
+
+    /* Write virtual console to the XML document */
+    m_virtualConsole->saveXML(&doc);
+
+    /* Write Simple Desk to the XML document */
+    //SimpleDesk::instance()->saveXML(&doc);
+
+    doc.writeEndElement(); // close KXMLQLCWorkspace
+
+    /* End the document and close all the open elements */
+    doc.writeEndDocument();
+    file.close();
+
+    // Save to actual requested file name
+    QFile currFile(fileName);
+    if (currFile.exists() && !currFile.remove())
+    {
+        qWarning() << "Could not erase" << fileName;
+        return currFile.error();
+    }
+    if (!file.rename(fileName))
+    {
+        qWarning() << "Could not rename" << tempFileName << "to" << fileName;
+        return file.error();
+    }
+
+    /* Set the file name for the current Doc instance and
+       set it also in an unmodified state. */
+    setFileName(fileName);
+    m_doc->resetModified();
+
+    return QFile::NoError;
 }
 
 

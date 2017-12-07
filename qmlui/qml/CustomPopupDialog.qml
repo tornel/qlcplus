@@ -37,6 +37,8 @@ Dialog
 
     property string message: ""
 
+    signal clicked(int role)
+
     function setButtonStatus(index, status)
     {
         buttonBoxControl.itemAt(index).enabled = status
@@ -56,7 +58,7 @@ Dialog
             background:
                 Rectangle
                 {
-                    color: UISettings.bgLight
+                    color: UISettings.sectionHeader
                     x: 2
                     y: 2
                     width: parent.width - 4
@@ -89,6 +91,18 @@ Dialog
             visible: count > 0
 
             contentItem.implicitHeight: UISettings.iconSizeDefault
+
+            onClicked:
+            {
+                if (button === standardButton(Dialog.Yes))
+                    control.clicked(Dialog.Yes)
+                else if (button === standardButton(Dialog.No))
+                    control.clicked(Dialog.No)
+                else if (button === standardButton(Dialog.Ok))
+                    control.clicked(Dialog.Ok)
+                else if (button === standardButton(Dialog.Cancel))
+                    control.clicked(Dialog.Cancel)
+            }
 
             background:
                 Rectangle

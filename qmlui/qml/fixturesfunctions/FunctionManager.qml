@@ -34,6 +34,9 @@ Rectangle
 
     function loadFunctionEditor(funcID, funcType)
     {
+        if (!(qlcplus.accessMask & App.AC_FunctionEditing))
+            return
+
         //console.log("Request to open Function editor. ID: " + funcID + " type: " + funcType)
         functionManager.setEditorFunction(funcID, false)
         functionManager.viewPosition = functionsListView.contentY
@@ -312,6 +315,7 @@ Rectangle
                                     fDragItem.parent = mainView
                                     fDragItem.x = posnInWindow.x - (fDragItem.width / 4)
                                     fDragItem.y = posnInWindow.y - (fDragItem.height / 4)
+                                    fDragItem.modifiers = mouseMods
                                 break;
                                 case App.Clicked:
                                     if (qItem == item)

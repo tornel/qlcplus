@@ -37,6 +37,17 @@ PreviewContext::PreviewContext(QQuickView *view, Doc *doc, QString name, QObject
     //connect(m_doc, &Doc::loaded, this, &PreviewContext::slotRefreshView);
 }
 
+PreviewContext::~PreviewContext()
+{
+    qDebug() << "Destroy context" << m_name;
+
+    if (detached())
+    {
+        m_view->close();
+        m_view->deleteLater();
+    }
+}
+
 QString PreviewContext::contextResource() const
 {
     return m_resource;
@@ -134,6 +145,7 @@ void PreviewContext::setDetached(bool detached)
         m_view->rootContext()->setContextProperty("showManager", m_mainView->rootContext()->contextProperty("showManager"));
         m_view->rootContext()->setContextProperty("actionManager", m_mainView->rootContext()->contextProperty("actionManager"));
         m_view->rootContext()->setContextProperty("View2D", m_mainView->rootContext()->contextProperty("View2D"));
+        m_view->rootContext()->setContextProperty("View3D", m_mainView->rootContext()->contextProperty("View3D"));
 
         /** Set the fundamental properties to allow the detached context to properly load */
         m_view->rootContext()->setContextProperty("viewSource", contextResource());

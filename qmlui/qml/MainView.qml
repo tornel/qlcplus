@@ -21,6 +21,7 @@ import QtQuick 2.2
 import QtQuick.Layouts 1.1
 import QtQuick.Controls 2.1
 
+import org.qlcplus.classes 1.0
 import "."
 
 Rectangle
@@ -63,12 +64,19 @@ Rectangle
 
         enableContext(ctx, true)
         currentContext = ctx
-        mainViewLoader.source = qmlRes
+        if (qmlRes)
+            mainViewLoader.source = qmlRes
     }
 
     function setDimScreen(enable)
     {
         dimScreen.visible = enable
+    }
+
+    function openAccessRequest(clientName)
+    {
+        clientAccessPopup.clientName = clientName
+        clientAccessPopup.open()
     }
 
     FontLoader
@@ -106,9 +114,20 @@ Rectangle
                 id: actEntry
                 imgSource: "qrc:/qlcplus.svg"
                 entryText: qsTr("Actions")
-                onClicked: actionsMenu.visible = true
+                onPressed: actionsMenu.open()
                 autoExclusive: false
                 checkable: false
+
+                Image
+                {
+                    visible: qlcplus.docModified
+                    source: "qrc:/filesave.svg"
+                    x: 1
+                    y: parent.height - height - 1
+                    height: parent.height / 3
+                    width: height
+                    sourceSize: Qt.size(width, height)
+                }
             }
             MenuBarEntry
             {
@@ -126,6 +145,7 @@ Rectangle
             MenuBarEntry
             {
                 id: vcEntry
+                visible: qlcplus.accessMask & App.AC_VCControl
                 imgSource: "qrc:/virtualconsole.svg"
                 entryText: qsTr("Virtual Console")
                 ButtonGroup.group: menuBarGroup
@@ -143,6 +163,7 @@ Rectangle
             MenuBarEntry
             {
                 id: sdEntry
+                visible: qlcplus.accessMask & App.AC_SimpleDesk
                 imgSource: "qrc:/simpledesk.svg"
                 entryText: qsTr("Simple Desk")
                 ButtonGroup.group: menuBarGroup
@@ -160,6 +181,7 @@ Rectangle
             MenuBarEntry
             {
                 id: smEntry
+                visible: qlcplus.accessMask & App.AC_ShowManager
                 imgSource: "qrc:/showmanager.svg"
                 entryText: qsTr("Show Manager")
                 ButtonGroup.group: menuBarGroup
@@ -177,6 +199,7 @@ Rectangle
             MenuBarEntry
             {
                 id: ioEntry
+                visible: qlcplus.accessMask & App.AC_InputOutput
                 imgSource: "qrc:/inputoutput.svg"
                 entryText: qsTr("Input/Output")
                 ButtonGroup.group: menuBarGroup
@@ -252,16 +275,6 @@ Rectangle
         } // end of RowLayout
     } // end of mainToolbar
 
-    /** Menu to open/load/save a project */
-    ActionsMenu
-    {
-        id: actionsMenu
-        x: 1
-        y: actEntry.height + 1
-        visible: false
-        z: visible ? 99 : 0
-    }
-
     Rectangle
     {
         id: mainViewArea
@@ -276,6 +289,18 @@ Rectangle
             anchors.fill: parent
             source: "qrc:/FixturesAndFunctions.qml"
         }
+    }
+
+    PopupNetworkConnect { id: clientAccessPopup }
+
+    /** Menu to open/load/save a project */
+    ActionsMenu
+    {
+        id: actionsMenu
+        x: 1
+        y: actEntry.height + 1
+        visible: false
+        z: visible ? 99 : 0
     }
 
     /* Rectangle covering the whole window to

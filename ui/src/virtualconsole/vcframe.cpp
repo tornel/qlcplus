@@ -643,7 +643,7 @@ void VCFrame::slotModeChanged(Doc::Mode mode)
 void VCFrame::slotSubmasterValueChanged(qreal value)
 {
     qDebug() << Q_FUNC_INFO << "val:" << value;
-    VCSlider *submaster = (VCSlider *)sender();
+    VCSlider *submaster = qobject_cast<VCSlider *>(sender());
     QListIterator <VCWidget*> it(this->findChildren<VCWidget*>());
     while (it.hasNext() == true)
     {
@@ -741,9 +741,17 @@ void VCFrame::updateFeedback()
     if (!src.isNull() && src->isValid() == true)
     {
         if (m_disableState == false)
+        {
             sendFeedback(src->upperValue(), enableInputSourceId);
+        }
         else
+        {
+            // temporarily revert the disabled state otherwise this
+            // feedback will never go through (cause of acceptsInput)
+            m_disableState = false;
             sendFeedback(src->lowerValue(), enableInputSourceId);
+            m_disableState = true;
+        }
     }
 
     foreach (VCFramePageShortcut* shortcut, m_pageShortcuts)
@@ -1167,7 +1175,7 @@ bool VCFrame::loadXML(QXmlStreamReader &root)
             {
                 addWidgetToPageMap(slider);
                 slider->show();
-                // always connect a slider as it it was a submaster
+                // always connect a slider as if it was a submaster
                 // cause this signal is emitted only when a slider is
                 // a submaster
                 connect(slider, SIGNAL(submasterValueChanged(qreal)),
@@ -1470,4 +1478,7 @@ void VCFrame::mouseMoveEvent(QMouseEvent* e)
         VCWidget::mouseMoveEvent(e);
     else
         QWidget::mouseMoveEvent(e);
+
+    m_width = this->width();
+    m_height = this->height();
 }

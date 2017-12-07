@@ -28,7 +28,7 @@ VCWidgetItem
     id: sliderRoot
     property VCSlider sliderObj: null
     property int sliderValue: sliderObj ? sliderObj.value : 0
-    property int sliderMode: sliderObj ? sliderObj.sliderMode : VCSlider.Playback
+    property int sliderMode: sliderObj ? sliderObj.sliderMode : VCSlider.Adjust
 
     radius: 2
 
@@ -120,12 +120,13 @@ VCWidgetItem
         {
             id: slFader
             visible: sliderObj ? sliderObj.widgetStyle === VCSlider.WSlider : false
+            enabled: visible
             anchors.horizontalCenter: parent.horizontalCenter
             Layout.fillHeight: true
             width: parent.width
             rotation: sliderObj ? (sliderObj.invertedAppearance ? 180 : 0) : 0
-            from: sliderMode === VCSlider.Level ? sliderObj.levelLowLimit : 0
-            to: sliderMode === VCSlider.Level ? sliderObj.levelHighLimit : 255
+            from: sliderObj ? sliderObj.rangeLowLimit : 0
+            to: sliderObj ? sliderObj.rangeHighLimit : 255
             value: sliderValue
             handleGradient: sliderMode === VCSlider.Submaster ? submasterHandleGradient :
                             (sliderMode === VCSlider.GrandMaster ? grandMasterHandleGradient : defaultGradient)
@@ -133,19 +134,22 @@ VCWidgetItem
                                  (sliderMode === VCSlider.GrandMaster ? grandMasterHandleGradientHover : defaultGradientHover)
             trackColor: sliderMode === VCSlider.Submaster ? "#77DD73" : defaultTrackColor
 
-            onPositionChanged: if (sliderObj) sliderObj.value = valueAt(position)
+            onMoved: if (sliderObj) sliderObj.value = valueAt(position)
         }
 
         QLCPlusKnob
         {
             id: slKnob
             visible: sliderObj ? sliderObj.widgetStyle === VCSlider.WKnob : false
+            enabled: visible
             anchors.horizontalCenter: parent.horizontalCenter
             Layout.fillHeight: true
             //width: parent.width
+            from: sliderObj ? sliderObj.rangeLowLimit : 0
+            to: sliderObj ? sliderObj.rangeHighLimit : 255
             value: sliderValue
 
-            onPositionChanged: if (sliderObj) sliderObj.value = position * 255
+            onMoved: if (sliderObj) sliderObj.value = value // position * 255
         }
 
         // widget name text box
@@ -186,6 +190,118 @@ VCWidgetItem
             imgSource: "qrc:/reset.svg"
             bgColor: sliderObj && sliderObj.isOverriding ? "red" : UISettings.bgLight
             onClicked: if (sliderObj) sliderObj.isOverriding = false
+        }
+
+        IconButton
+        {
+            id: clickAndGoButton
+            visible: cngType
+            width: UISettings.iconSizeDefault * 1.2
+            height: width
+            anchors.horizontalCenter: parent.horizontalCenter
+
+            property int cngType: sliderObj ? sliderObj.clickAndGoType : VCSlider.CnGNone
+            property string cngResource: sliderObj ? sliderObj.cngPresetResource : ""
+
+            onCngTypeChanged:
+            {
+                switch(cngType)
+                {
+                    case VCSlider.CnGNone: colorToolLoader.source = ""; break;
+                    case VCSlider.CnGColors: colorToolLoader.source = "qrc:/ColorTool.qml"; break;
+                    case VCSlider.CnGPreset: colorToolLoader.source = "qrc:/PresetsTool.qml"; break;
+                }
+            }
+
+            onCngResourceChanged:
+            {
+                if (cngResource === "")
+                {
+                    colorPreviewBox.biColor = false
+                    presetPreviewBox.visible = false
+                    presetImageBox.source = ""
+                    return
+                }
+
+                presetPreviewBox.visible = true
+                if (Qt.platform.os === "android")
+                    presetImageBox.source = cngResource
+                else
+                    presetImageBox.source = "file:/" + cngResource
+            }
+
+            onClicked: colorToolLoader.toggleVisibility()
+
+            MultiColorBox
+            {
+                id: colorPreviewBox
+                anchors.fill: parent
+                anchors.margins: 5
+                primary: sliderObj ? sliderObj.cngPrimaryColor : "black"
+                secondary: sliderObj ? sliderObj.cngSecondaryColor : "black"
+
+                onSecondaryChanged:
+                {
+                    if (clickAndGoButton.cngType == VCSlider.CnGPreset && secondary != "#000000")
+                        biColor = true
+                    else
+                        biColor = false
+                }
+            }
+
+            Rectangle
+            {
+                id: presetPreviewBox
+                visible: false
+                anchors.fill: parent
+                anchors.margins: 5
+
+                Image
+                {
+                    id: presetImageBox
+                    anchors.fill: parent
+                }
+            }
+
+            Loader
+            {
+                id: colorToolLoader
+
+                function toggleVisibility()
+                {
+                    item.visible = !item.visible
+                    if (sliderObj && clickAndGoButton.cngType == VCSlider.CnGPreset)
+                        item.updatePresets(sliderObj.clickAndGoPresetsList)
+                }
+
+                onLoaded:
+                {
+                    item.y = parent.height
+                    item.visible = false
+                    item.closeOnSelect = true
+                }
+
+                Connections
+                {
+                    ignoreUnknownSignals: true
+                    target: colorToolLoader.item
+                    onColorChanged:
+                    {
+                        if (sliderObj)
+                            sliderObj.setClickAndGoColors(Qt.rgba(r, g, b, 1.0), Qt.rgba(w, a, uv, 1.0))
+                    }
+                }
+                Connections
+                {
+                    ignoreUnknownSignals: true
+                    target: colorToolLoader.item
+                    onPresetSelected:
+                    {
+                        if (sliderObj)
+                            sliderObj.setClickAndGoPresetValue(value)
+                    }
+                }
+            }
         }
     }
 

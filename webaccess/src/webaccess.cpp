@@ -136,7 +136,7 @@ void WebAccess::slotHandleRequest(QHttpRequest *req, QHttpResponse *resp)
         if (conn != NULL)
         {
             // Allocate user for WS on heap so it doesn't go out of scope
-            conn->userData = new WebAccessUser(user.username, user.passwordHash, user.level);
+            conn->userData = new WebAccessUser(user);
             m_webSocketsList.append(conn);
         }
 
@@ -588,8 +588,10 @@ void WebAccess::slotHandleWebSocketRequest(QHttpConnection *conn, QString data)
                     case VCWidget::ButtonWidget:
                     {
                         VCButton *button = qobject_cast<VCButton*>(widget);
-                        if (button->isOn())
+                        if (button->state() == VCButton::Active)
                             wsAPIMessage.append("255");
+                        else if (button->state() == VCButton::Monitoring)
+                            wsAPIMessage.append("127");
                         else
                             wsAPIMessage.append("0");
                     }
@@ -692,21 +694,19 @@ void WebAccess::slotHandleWebSocketRequest(QHttpConnection *conn, QString data)
 
     if (widget != NULL)
     {
-                
         switch(widget->type())
         {
             case VCWidget::ButtonWidget:
             {
                 VCButton *button = qobject_cast<VCButton*>(widget);
-                if ((value == 0 && button->isOn()) ||
-                    (value != 0 && button->isOn() == false))
-                        button->pressFunction();
+                button->pressFunction();
             }
             break;
             case VCWidget::SliderWidget:
             {
                 VCSlider *slider = qobject_cast<VCSlider*>(widget);
                 slider->setSliderValue(value);
+                slider->updateFeedback();
             }
             break;
             case VCWidget::AudioTriggersWidget:
@@ -876,7 +876,7 @@ QString WebAccess::getSoloFrameHTML(VCSoloFrame *frame)
     int w = frame->isCollapsed() ? 200 : origSize.width();
     int h = frame->isCollapsed() ? 36 : origSize.height();
 
-    QString str = "<div class=\"vcsoloframe\" id=\"fr" + QString::number(frame->id()) + "\" "
+    QString str = "<div class=\"vcframe\" id=\"fr" + QString::number(frame->id()) + "\" "
           "style=\"left: " + QString::number(frame->x()) +
           "px; top: " + QString::number(frame->y()) + "px; width: " + QString::number(w) +
           "px; height: " + QString::number(h) + "px; "
@@ -887,7 +887,7 @@ QString WebAccess::getSoloFrameHTML(VCSoloFrame *frame)
 
     if (frame->isHeaderVisible())
     {
-        str += "<a class=\"vcframeButton\" style=\"position: absolute; left: 0;\" href=\"javascript:frameToggleCollapse(";
+        str += "<a class=\"vcframeButton\" style=\"position: absolute; left: 0; \" href=\"javascript:frameToggleCollapse(";
         str += QString::number(frame->id()) + ");\"><img src=\"expand.png\" width=\"27\"></a>\n";
         str += "<div class=\"vcsoloframeHeader\" style=\"color:" +
                 frame->foregroundColor().name() + ";\"><div class=\"vcFrameText\">" + frame->caption() + "</div></div>\n";
@@ -897,12 +897,13 @@ QString WebAccess::getSoloFrameHTML(VCSoloFrame *frame)
 
         if (frame->multipageMode())
         {
-            str += "<div style=\"position: absolute; top: 0; right: 2px;\">\n";
+            str += "<div id=\"frMpHdr" + QString::number(frame->id()) + "\"";
+            str += "style=\"position: absolute; top: 0; right: 2px;\">\n";
             str += "<a class=\"vcframeButton\" href=\"javascript:framePreviousPage(";
             str += QString::number(frame->id()) + ");\">";
-            str += "<img src=\"back.png\" width=\"27\"></a>\n";
-            str += "<div class=\"vcframePageLabel\" id=\"fr" + QString::number(frame->id()) + "Page\">";
-            str += QString ("%1 %2").arg(tr("Page")).arg(frame->currentPage() + 1) + "</div>\n";
+            str += "<img src=\"back.png\" width=\"27\"></a>";
+            str += "<div class=\"vcframePageLabel\"><div class=\"vcFrameText\" id=\"fr" + QString::number(frame->id()) + "Page\">";
+            str += QString ("%1 %2").arg(tr("Page")).arg(frame->currentPage() + 1) + "</div></div>";
             str += "<a class=\"vcframeButton\" href=\"javascript:frameNextPage(";
             str += QString::number(frame->id()) + ");\">";
             str += "<img src=\"forward.png\" width=\"27\"></a>\n";
@@ -920,15 +921,19 @@ QString WebAccess::getSoloFrameHTML(VCSoloFrame *frame)
     return str;
 }
 
-void WebAccess::slotButtonToggled(bool on)
+void WebAccess::slotButtonStateChanged(int state)
 {
     VCButton *btn = qobject_cast<VCButton *>(sender());
     if (btn == NULL)
         return;
 
+    qDebug() << "Button state changed" << state;
+
     QString wsMessage = QString::number(btn->id());
-    if (on == true)
-        wsMessage.append("|BUTTON|1");
+    if (state == VCButton::Active)
+        wsMessage.append("|BUTTON|255");
+    else if (state == VCButton::Monitoring)
+        wsMessage.append("|BUTTON|127");
     else
         wsMessage.append("|BUTTON|0");
 
@@ -938,8 +943,10 @@ void WebAccess::slotButtonToggled(bool on)
 QString WebAccess::getButtonHTML(VCButton *btn)
 {
     QString onCSS = "";
-    if (btn->isOn())
+    if (btn->state() == VCButton::Active)
         onCSS = "border: 3px solid #00E600;";
+    else if (btn->state() == VCButton::Monitoring)
+        onCSS = "border: 3px solid #FFAA00;";
 
     QString str = "<div class=\"vcbutton-wrapper\" style=\""
             "left: " + QString::number(btn->x()) + "px; "
@@ -953,8 +960,8 @@ QString WebAccess::getButtonHTML(VCButton *btn)
             "background-color: " + btn->backgroundColor().name() + "; " + onCSS + "\">" +
             btn->caption() + "</a>\n</div>\n";
 
-    connect(btn, SIGNAL(pressedState(bool)),
-            this, SLOT(slotButtonToggled(bool)));
+    connect(btn, SIGNAL(stateChanged(int)),
+            this, SLOT(slotButtonStateChanged(int)));
 
     return str;
 }

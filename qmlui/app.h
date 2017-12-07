@@ -37,7 +37,9 @@ class FunctionManager;
 class QXmlStreamReader;
 class FixtureGroupEditor;
 class InputOutputManager;
+class NetworkManager;
 class VideoProvider;
+class Tardis;
 
 #define KXMLQLCWorkspace "Workspace"
 
@@ -46,8 +48,10 @@ class App : public QQuickView
     Q_OBJECT
     Q_DISABLE_COPY(App)
     Q_PROPERTY(bool docLoaded READ docLoaded NOTIFY docLoadedChanged)
+    Q_PROPERTY(bool docModified READ docModified NOTIFY docModifiedChanged)
     Q_PROPERTY(QStringList recentFiles READ recentFiles NOTIFY recentFilesChanged)
     Q_PROPERTY(QString workingPath READ workingPath WRITE setWorkingPath NOTIFY workingPathChanged)
+    Q_PROPERTY(int accessMask READ accessMask WRITE setAccessMask NOTIFY accessMaskChanged)
 
 public:
     App();
@@ -94,6 +98,18 @@ public:
     };
     Q_ENUM(ChannelColors)
 
+    enum AccessControl
+    {
+        AC_FixtureEditing  = (1 << 0),
+        AC_FunctionEditing = (1 << 1),
+        AC_VCControl       = (1 << 2),
+        AC_VCEditing       = (1 << 3),
+        AC_SimpleDesk      = (1 << 4),
+        AC_ShowManager     = (1 << 5),
+        AC_InputOutput     = (1 << 6)
+    };
+    Q_ENUM(AccessControl)
+
     /** Method to turn the key and start the engine */
     void startup();
 
@@ -108,16 +124,32 @@ public:
     /** Return the number of pixels in 1mm */
     qreal pixelDensity() const;
 
+    /** Get/Set the UI access mask */
+    int defaultMask() const;
+    int accessMask() const;
+
+public slots:
+    void setAccessMask(int mask);
+
 protected:
     void keyPressEvent(QKeyEvent * e);
     void keyReleaseEvent(QKeyEvent * e);
 
 protected slots:
     void slotScreenChanged(QScreen *screen);
+    void slotClosing();
+    void slotClientAccessRequest(QString name);
+    void slotAccessMaskChanged(int mask);
+
+signals:
+    void accessMaskChanged(int mask);
 
 private:
     /** The number of pixels in one millimiter */
     qreal m_pixelDensity;
+
+    /** Bitmask to enable/disable UI functionalities */
+    int m_accessMask;
 
     FixtureBrowser *m_fixtureBrowser;
     FixtureManager *m_fixtureManager;
@@ -129,6 +161,8 @@ private:
     ShowManager *m_showManager;
     ActionManager *m_actionManager;
     VideoProvider *m_videoProvider;
+    NetworkManager *m_networkManager;
+    Tardis *m_tardis;
 
     /*********************************************************************
      * Doc
@@ -140,14 +174,14 @@ public:
 
     bool docLoaded() { return m_docLoaded; }
 
-private slots:
-    void slotDocModified(bool state);
+    bool docModified() const;
 
 private:
     void initDoc();
 
 signals:
     void docLoadedChanged();
+    void docModifiedChanged();
 
 private:
     Doc* m_doc;
@@ -171,7 +205,7 @@ private:
      *********************************************************************/
 public:
     /** Get/Set the name of the current workspace file */
-    QString fileName() const;
+    Q_INVOKABLE QString fileName() const;
     void setFileName(const QString& fileName);
 
     /** Return the list of the recently opened files */
@@ -186,6 +220,9 @@ public:
 
     /** Load the workspace with the given $fileName */
     Q_INVOKABLE bool loadWorkspace(const QString& fileName);
+
+    /** Save the current workspace with the given $fileName */
+    Q_INVOKABLE bool saveWorkspace(const QString& fileName);
 
     /**
      * Load workspace contents from a XML file with the given name.
@@ -202,6 +239,15 @@ public:
      */
     bool loadXML(QXmlStreamReader &doc, bool goToConsole = false, bool fromMemory = false);
 
+    /**
+     * Save workspace contents to a file with the given name. Changes the
+     * current workspace file name to the given fileName.
+     *
+     * @param fileName The name of the file to save to.
+     * @return QFile::NoError if successful.
+     */
+    QFile::FileError saveXML(const QString& fileName);
+
 private:
     /**
      * Update the list of the recently open files.
@@ -213,6 +259,9 @@ private:
 signals:
     void recentFilesChanged();
     void workingPathChanged(QString workingPath);
+
+public slots:
+    void slotLoadDocFromMemory(QByteArray &xmlData);
 
 private:
     QString m_fileName;

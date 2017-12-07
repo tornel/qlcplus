@@ -38,6 +38,7 @@
 
 const QString Script::startFunctionCmd = QString("startfunction");
 const QString Script::stopFunctionCmd = QString("stopfunction");
+const QString Script::blackoutCmd = QString("blackout");
 
 const QString Script::waitCmd = QString("wait");
 const QString Script::waitKeyCmd = QString("waitkey");
@@ -47,6 +48,9 @@ const QString Script::systemCmd = QString("systemcommand");
 
 const QString Script::labelCmd = QString("label");
 const QString Script::jumpCmd = QString("jump");
+
+const QString Script::blackoutOn = QString("on");
+const QString Script::blackoutOff = QString("off");
 
 const QStringList knownKeywords(QStringList() << "ch" << "val" << "arg");
 
@@ -184,7 +188,12 @@ QString Script::data() const
 
 QStringList Script::dataLines() const
 {
-    return m_data.split(QRegExp("(\r\n|\n\r|\r|\n)"), QString::KeepEmptyParts);
+    QStringList result = m_data.split(QRegExp("(\r\n|\n\r|\r|\n)"), QString::KeepEmptyParts);
+
+    while (result.count() && result.last().isEmpty())
+        result.takeLast();
+
+    return result;
 }
 
 QList<quint32> Script::functionList() const
@@ -414,6 +423,11 @@ bool Script::executeCommand(int index, MasterTimer* timer, QList<Universe *> uni
     {
         error = handleStopFunction(tokens);
     }
+    else if (tokens[0][0] == Script::blackoutCmd)
+    {
+        error = handleBlackout(tokens);
+        continueLoop = false;
+    }
     else if (tokens[0][0] == Script::waitCmd)
     {
         // Waiting should break out of the execution loop to prevent skipping
@@ -521,6 +535,36 @@ QString Script::handleStopFunction(const QList <QStringList>& tokens)
     {
         return QString("No such function (ID %1)").arg(id);
     }
+}
+
+QString Script::handleBlackout(const QList <QStringList>& tokens)
+{
+    qDebug() << Q_FUNC_INFO;
+
+    if (tokens.size() > 1)
+        return QString("Too many arguments");
+
+    InputOutputMap::BlackoutRequest request = InputOutputMap::BlackoutRequestNone;
+
+    if (tokens[0][1] == blackoutOn)
+    {
+        request = InputOutputMap::BlackoutRequestOn;
+    }
+    else if (tokens[0][1] == blackoutOff)
+    {
+        request = InputOutputMap::BlackoutRequestOff;
+    }
+    else
+    {
+        return QString("Invalid argument: %1").arg(tokens[0][1]);
+    }
+
+    Doc* doc = qobject_cast<Doc*> (parent());
+    Q_ASSERT(doc != NULL);
+
+    doc->inputOutputMap()->requestBlackout(request);
+
+    return QString();
 }
 
 QString Script::handleWait(const QList<QStringList>& tokens)
