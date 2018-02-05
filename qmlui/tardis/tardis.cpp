@@ -29,10 +29,16 @@
 #include "functionmanager.h"
 #include "contextmanager.h"
 #include "functioneditor.h"
+#include "collection.h"
+#include "rgbmatrix.h"
+#include "rgbimage.h"
 #include "vcwidget.h"
 #include "vcframe.h"
+#include "rgbtext.h"
 #include "chaser.h"
 #include "scene.h"
+#include "audio.h"
+#include "video.h"
 #include "efx.h"
 #include "doc.h"
 
@@ -111,7 +117,7 @@ void Tardis::enqueueAction(int code, quint32 objID, QVariant oldVal, QVariant ne
 
 void Tardis::undoAction()
 {
-    if (m_history.isEmpty())
+    if (m_historyIndex == -1 || m_history.isEmpty())
         return;
 
     m_busy = true;
@@ -400,7 +406,7 @@ bool Tardis::processBufferedAction(int action, quint32 objID, QVariant &value)
             ChaserStep step;
             int stepNumber = -1;
 
-            if (step.loadXML(xmlReader, stepNumber) == true)
+            if (step.loadXML(xmlReader, stepNumber, m_doc) == true)
                 chaser->addStep(step, stepNumber);
         }
         break;
@@ -502,7 +508,7 @@ int Tardis::processAction(TardisAction &action, bool undo)
         case FixtureSetDumpValue:
         {
             SceneValue scv = value->value<SceneValue>();
-            m_functionManager->setDumpValue(scv.fxi, scv.channel, scv.value, m_contextManager->dmxSource());
+            m_contextManager->setDumpValue(scv.fxi, scv.channel, scv.value);
         }
         break;
 
@@ -522,6 +528,12 @@ int Tardis::processAction(TardisAction &action, bool undo)
         case FunctionSetName:
         {
             auto member = std::mem_fn(&Function::setName);
+            member(qobject_cast<Function *>(m_doc->function(action.m_objID)), value->toString());
+        }
+        break;
+        case FunctionSetPath:
+        {
+            auto member = std::mem_fn(&Function::setPath);
             member(qobject_cast<Function *>(m_doc->function(action.m_objID)), value->toString());
         }
         break;
@@ -562,6 +574,8 @@ int Tardis::processAction(TardisAction &action, bool undo)
         }
         break;
 
+        /* *********************** Scene editing actions *********************** */
+
         case SceneSetChannelValue:
         case SceneUnsetChannelValue:
         {
@@ -571,6 +585,8 @@ int Tardis::processAction(TardisAction &action, bool undo)
                 scene->setValue(scv.fxi, scv.channel, scv.value);
         }
         break;
+
+        /* *********************** Chaser editing actions *********************** */
 
         case ChaserAddStep:
         {
@@ -614,6 +630,8 @@ int Tardis::processAction(TardisAction &action, bool undo)
             chaser->replaceStep(step, pairValue.first);
         }
         break;
+
+        /* *********************** EFX editing actions *********************** */
 
         case EFXAddFixture:
         {
@@ -697,6 +715,170 @@ int Tardis::processAction(TardisAction &action, bool undo)
         {
             auto member = std::mem_fn(&EFX::setYPhase);
             member(qobject_cast<EFX *>(m_doc->function(action.m_objID)), value->toInt());
+        }
+        break;
+
+        /* *********************** Collection editing actions *********************** */
+
+        case CollectionAddFunction:
+        {
+            Collection *collecion = qobject_cast<Collection *>(m_doc->function(action.m_objID));
+            UIntPair pairValue = value->value<UIntPair>(); // Function ID on first, insert index on second
+            if (undo)
+                collecion->removeFunction(pairValue.first);
+            else
+                collecion->addFunction(pairValue.first, pairValue.second);
+        }
+        break;
+        case CollectionRemoveFunction:
+        {
+            Collection *collecion = qobject_cast<Collection *>(m_doc->function(action.m_objID));
+            UIntPair pairValue = value->value<UIntPair>(); // Function ID on first, insert index on second
+            if (undo)
+                collecion->addFunction(pairValue.first, pairValue.second);
+            else
+                collecion->removeFunction(pairValue.first);
+        }
+        break;
+
+        /* *********************** RGBMatrix editing actions *********************** */
+
+        case RGBMatrixSetFixtureGroup:
+        {
+            auto member = std::mem_fn(&RGBMatrix::setFixtureGroup);
+            member(qobject_cast<RGBMatrix *>(m_doc->function(action.m_objID)), value->toUInt());
+        }
+        break;
+        case RGBMatrixSetAlgorithmIndex:
+        {
+            QStringList algoList = RGBAlgorithm::algorithms(m_doc);
+            RGBAlgorithm* algo = RGBAlgorithm::algorithm(m_doc, algoList.at(value->toInt()));
+            RGBMatrix *matrix = qobject_cast<RGBMatrix *>(m_doc->function(action.m_objID));
+            matrix->setAlgorithm(algo);
+        }
+        break;
+        case RGBMatrixSetStartColor:
+        {
+            auto member = std::mem_fn(&RGBMatrix::setStartColor);
+            member(qobject_cast<RGBMatrix *>(m_doc->function(action.m_objID)), value->value<QColor>());
+        }
+        break;
+        case RGBMatrixSetEndColor:
+        {
+            auto member = std::mem_fn(&RGBMatrix::setEndColor);
+            member(qobject_cast<RGBMatrix *>(m_doc->function(action.m_objID)), value->value<QColor>());
+        }
+        break;
+        case RGBMatrixSetScriptIntValue:
+        {
+            RGBMatrix *matrix = qobject_cast<RGBMatrix *>(m_doc->function(action.m_objID));
+            StringIntPair pairValue = value->value<StringIntPair>(); // param name on first, value on second
+            matrix->setProperty(pairValue.first, QString::number(pairValue.second));
+        }
+        break;
+        case RGBMatrixSetScriptStringValue:
+        {
+            RGBMatrix *matrix = qobject_cast<RGBMatrix *>(m_doc->function(action.m_objID));
+            StringStringPair pairValue = value->value<StringStringPair>(); // param name on first, value on second
+            matrix->setProperty(pairValue.first, pairValue.second);
+        }
+        break;
+        case RGBMatrixSetText:
+        {
+            RGBMatrix *matrix = qobject_cast<RGBMatrix *>(m_doc->function(action.m_objID));
+            RGBText* algo = static_cast<RGBText*> (matrix->algorithm());
+            algo->setText(value->toString());
+        }
+        break;
+        case RGBMatrixSetTextFont:
+        {
+            RGBMatrix *matrix = qobject_cast<RGBMatrix *>(m_doc->function(action.m_objID));
+            RGBText* algo = static_cast<RGBText*> (matrix->algorithm());
+            QFont font;
+            font.fromString(value->toString());
+            algo->setFont(font);
+        }
+        break;
+        case RGBMatrixSetImage:
+        {
+            RGBMatrix *matrix = qobject_cast<RGBMatrix *>(m_doc->function(action.m_objID));
+            RGBImage* algo = static_cast<RGBImage*> (matrix->algorithm());
+            algo->setFilename(value->toString());
+        }
+        break;
+        case RGBMatrixSetOffset:
+        {
+            RGBMatrix *matrix = qobject_cast<RGBMatrix *>(m_doc->function(action.m_objID));
+            if (matrix->algorithm()->type() == RGBAlgorithm::Image)
+            {
+                RGBImage* algo = static_cast<RGBImage*> (matrix->algorithm());
+                algo->setXOffset(value->toSize().width());
+                algo->setYOffset(value->toSize().height());
+            }
+            else if (matrix->algorithm()->type() == RGBAlgorithm::Text)
+            {
+                RGBText* algo = static_cast<RGBText*> (matrix->algorithm());
+                algo->setXOffset(value->toSize().width());
+                algo->setYOffset(value->toSize().height());
+            }
+        }
+        break;
+        case RGBMatrixSetAnimationStyle:
+        {
+            RGBMatrix *matrix = qobject_cast<RGBMatrix *>(m_doc->function(action.m_objID));
+            if (matrix->algorithm()->type() == RGBAlgorithm::Image)
+            {
+                RGBImage* algo = static_cast<RGBImage*> (matrix->algorithm());
+                algo->setAnimationStyle(RGBImage::AnimationStyle(value->toInt()));
+            }
+            else if (matrix->algorithm()->type() == RGBAlgorithm::Text)
+            {
+                RGBText* algo = static_cast<RGBText*> (matrix->algorithm());
+                algo->setAnimationStyle(RGBText::AnimationStyle(value->toInt()));
+            }
+        }
+        break;
+
+        /* *********************** Audio editing actions *********************** */
+
+        case AudioSetSource:
+        {
+            auto member = std::mem_fn(&Audio::setSourceFileName);
+            member(qobject_cast<Audio *>(m_doc->function(action.m_objID)), value->toString());
+        }
+        break;
+
+        /* *********************** Video editing actions *********************** */
+
+        case VideoSetSource:
+        {
+            auto member = std::mem_fn(&Video::setSourceUrl);
+            member(qobject_cast<Video *>(m_doc->function(action.m_objID)), value->toString());
+        }
+        break;
+        case VideoSetScreenIndex:
+        {
+            auto member = std::mem_fn(&Video::setScreen);
+            member(qobject_cast<Video *>(m_doc->function(action.m_objID)), value->toInt());
+        }
+        break;
+        case VideoSetFullscreen:
+        {
+            auto member = std::mem_fn(&Video::setFullscreen);
+            member(qobject_cast<Video *>(m_doc->function(action.m_objID)), value->toBool());
+        }
+        break;
+        case VideoSetGeometry:
+        {
+            auto member = std::mem_fn(&Video::setCustomGeometry);
+            member(qobject_cast<Video *>(m_doc->function(action.m_objID)), value->toRect());
+        }
+        break;
+        case VideoSetRotation:
+        {
+            QVector3D rotation = value->value<QVector3D>();
+            auto member = std::mem_fn(&Video::setRotation);
+            member(qobject_cast<Video *>(m_doc->function(action.m_objID)), rotation);
         }
         break;
 

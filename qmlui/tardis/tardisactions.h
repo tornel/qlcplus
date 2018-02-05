@@ -36,6 +36,12 @@ Q_DECLARE_METATYPE(TardisAction)
 typedef QPair<quint32, uint> UIntPair;
 Q_DECLARE_METATYPE(UIntPair)
 
+typedef QPair<QString, int> StringIntPair;
+Q_DECLARE_METATYPE(StringIntPair)
+
+typedef QPair<QString, QString> StringStringPair;
+Q_DECLARE_METATYPE(StringStringPair)
+
 enum
 {
     /* Fixture editing actions */
@@ -53,6 +59,7 @@ enum
     FunctionCreate = 0x0100,
     FunctionDelete,
     FunctionSetName,
+    FunctionSetPath,
     FunctionSetRunOrder,
     FunctionSetDirection,
     FunctionSetTempoType,
@@ -84,6 +91,29 @@ enum
     EFXSetYFrequency,
     EFXSetXPhase,
     EFXSetYPhase,
+
+    CollectionAddFunction,
+    CollectionRemoveFunction,
+
+    RGBMatrixSetFixtureGroup,
+    RGBMatrixSetAlgorithmIndex,
+    RGBMatrixSetStartColor,
+    RGBMatrixSetEndColor,
+    RGBMatrixSetScriptIntValue,
+    RGBMatrixSetScriptStringValue,
+    RGBMatrixSetText,
+    RGBMatrixSetTextFont,
+    RGBMatrixSetImage,
+    RGBMatrixSetOffset,
+    RGBMatrixSetAnimationStyle,
+
+    AudioSetSource,
+
+    VideoSetSource,
+    VideoSetScreenIndex,
+    VideoSetFullscreen,
+    VideoSetGeometry,
+    VideoSetRotation,
 
     /* Virtual console editing actions */
     VCWidgetCreate = 0xE000,
