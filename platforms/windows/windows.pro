@@ -59,6 +59,11 @@ lessThan(QT_MAJOR_VERSION, 5) {
                                 $$QT_LIBS_PATH/Qt5Concurrent.dll \
                                 $$QT_LIBS_PATH/Qt5Gamepad.dll \
                                 $$QT_LIBS_PATH/Qt5PrintSupport.dll
+        lessThan(QT_MINOR_VERSION, 10) {
+            release: qtlibs.files += $$QT_LIBS_PATH/Qt5MultimediaQuick_p.dll
+        } else {
+            release: qtlibs.files += $$QT_LIBS_PATH/Qt5MultimediaQuick.dll
+        }
     }
 
     # Qt library dependencies
@@ -125,13 +130,15 @@ greaterThan(QT_MAJOR_VERSION, 4) {
                          $$QT_QML_PATH/QtQml \
                          $$QT_QML_PATH/QtQuick \
                          $$QT_QML_PATH/QtQuick.2 \
-                         $$QT_QML_PATH/Qt3D
+                         $$QT_QML_PATH/Qt3D \
+                         $$QT_QML_PATH/QtMultimedia
 
         INSTALLS += qmldeps
 
         qmlpostinstall.path = $$INSTALLROOT/$$LIBSDIR
         qmlpostinstall.commands = cd $$INSTALLROOT/$$LIBSDIR && \
                                   find . -name plugins.qmltypes -type f -delete && \
+                                  find . -name *.qmlc -type f -delete && \
                                   rm -rf Qt/WebSockets QtQuick/Extras QtQuick/Particles.2 QtQuick/XmlListModel \
                                   rm -rf QtQuick/Controls.2/designer QtQuick/Controls.2/Material \
                                   rm -rf QtQuick/Controls.2/Universal QtQuick/Controls.2/Fusion \
