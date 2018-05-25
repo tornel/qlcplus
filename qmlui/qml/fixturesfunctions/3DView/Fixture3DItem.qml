@@ -30,7 +30,7 @@ Entity
 {
     id: fixtureEntity
 
-    property int fixtureID: fixtureManager.invalidFixture()
+    property int itemID: fixtureManager.invalidFixture()
     property alias itemSource: eSceneLoader.source
     property bool isSelected: false
 
@@ -54,7 +54,9 @@ Entity
     property vector3d direction: Qt.vector3d(0, -1, 0)
     property real cutOff: focusMinDegrees / 2
 
-    onFixtureIDChanged: isSelected = contextManager.isFixtureSelected(fixtureID)
+    property real intensityOrigValue: intensity
+
+    onItemIDChanged: isSelected = contextManager.isFixtureSelected(itemID)
 
     //onPanTransformChanged: console.log("Pan transform changed " + panTransform)
     //onTiltTransformChanged: console.log("Tilt transform changed " + tiltTransform)
@@ -62,12 +64,28 @@ Entity
     //onPositionChanged: console.log("Light position changed: " + position)
     //onDirectionChanged: console.log("Light direction changed: " + direction)
 
+    function bindPanTransform(t, maxDegrees)
+    {
+        console.log("Binding pan ----")
+        fixtureEntity.panTransform = t
+        fixtureEntity.panMaxDegrees = maxDegrees
+        t.rotationY = Qt.binding(function() { return panRotation })
+    }
+
+    function bindTiltTransform(t, maxDegrees)
+    {
+        console.log("Binding tilt ----")
+        fixtureEntity.tiltTransform = t
+        fixtureEntity.tiltMaxDegrees = maxDegrees
+        tiltRotation = maxDegrees / 2
+        t.rotationX = Qt.binding(function() { return tiltRotation })
+    }
+
     function setPosition(pan, tilt)
     {
         //console.log("[3Ditem] set position " + pan + ", " + tilt)
         if (panMaxDegrees)
         {
-
             panAnim.stop()
             panAnim.from = panRotation
             panAnim.to = (panMaxDegrees / 0xFFFF) * pan
@@ -92,21 +110,63 @@ Entity
         cutOff = ((((focusMaxDegrees - focusMinDegrees) / 255) * value) + focusMinDegrees) / 2
     }
 
-    function bindPanTransform(t, maxDegrees)
+    function setShutter(type, low, high)
     {
-        console.log("Binding pan ----")
-        fixtureEntity.panTransform = t
-        fixtureEntity.panMaxDegrees = maxDegrees
-        t.rotationY = Qt.binding(function() { return panRotation })
-    }
+        console.log("Shutter " + low + ", " + high)
+        shutterAnim.stop()
+        inPhase.duration = 0
+        inPhase.easing.type = Easing.Linear
+        highPhase.duration = 0
+        outPhase.duration = 0
+        outPhase.easing.type = Easing.Linear
+        lowPhase.duration = low
 
-    function bindTiltTransform(t, maxDegrees)
-    {
-        console.log("Binding tilt ----")
-        fixtureEntity.tiltTransform = t
-        fixtureEntity.tiltMaxDegrees = maxDegrees
-        tiltRotation = maxDegrees / 2
-        t.rotationX = Qt.binding(function() { return tiltRotation })
+        switch(type)
+        {
+            case QLCCapability.ShutterOpen:
+                intensity = intensityOrigValue
+            break;
+
+            case QLCCapability.ShutterClose:
+                intensityOrigValue = intensity
+                intensity = 0
+            break;
+
+            case QLCCapability.StrobeFastToSlow:
+            case QLCCapability.StrobeSlowToFast:
+            case QLCCapability.StrobeFrequency:
+            case QLCCapability.StrobeFreqRange:
+                highPhase.duration = high
+                shutterAnim.start()
+            break;
+
+            case QLCCapability.PulseFastToSlow:
+            case QLCCapability.PulseSlowToFast:
+            case QLCCapability.PulseFrequency:
+            case QLCCapability.PulseFreqRange:
+                inPhase.duration = high / 2
+                outPhase.duration = high / 2
+                inPhase.easing.type = Easing.InOutCubic
+                outPhase.easing.type = Easing.InOutCubic
+                shutterAnim.start()
+            break;
+
+            case QLCCapability.RampUpFastToSlow:
+            case QLCCapability.RampUpSlowToFast:
+            case QLCCapability.RampUpFrequency:
+            case QLCCapability.RampUpFreqRange:
+                inPhase.duration = high
+                shutterAnim.start()
+            break;
+
+            case QLCCapability.RampDownSlowToFast:
+            case QLCCapability.RampDownFastToSlow:
+            case QLCCapability.RampDownFrequency:
+            case QLCCapability.RampDownFreqRange:
+                outPhase.duration = high
+                shutterAnim.start()
+            break;
+        }
     }
 
     QQ2.NumberAnimation on panRotation
@@ -123,6 +183,18 @@ Entity
         easing.type: Easing.Linear
     }
 
+    // strobe/pulse effect
+    QQ2.SequentialAnimation on intensity
+    {
+        id: shutterAnim
+        running: false
+        loops: QQ2.Animation.Infinite
+        QQ2.NumberAnimation { id: inPhase; from: 0; to: intensityOrigValue; duration: 0; easing.type: Easing.Linear }
+        QQ2.NumberAnimation { id: highPhase; from: intensityOrigValue; to: intensityOrigValue; duration: 200; easing.type: Easing.Linear }
+        QQ2.NumberAnimation { id: outPhase; from: intensityOrigValue; to: 0; duration: 0; easing.type: Easing.Linear }
+        QQ2.NumberAnimation { id: lowPhase; from: 0; to: 0; duration: 800; easing.type: Easing.Linear }
+    }
+
     property Transform transform: Transform { }
 
     SceneLoader
@@ -132,7 +204,7 @@ Entity
         onStatusChanged:
         {
             if (status == SceneLoader.Ready)
-                View3D.initializeFixture(fixtureID, fixtureEntity, eObjectPicker, eSceneLoader)
+                View3D.initializeFixture(itemID, fixtureEntity, eObjectPicker, eSceneLoader)
         }
     }
 
@@ -151,7 +223,7 @@ Entity
         {
             console.log("3D item clicked")
             isSelected = !isSelected
-            contextManager.setFixtureSelection(fixtureID, isSelected)
+            contextManager.setFixtureSelection(itemID, isSelected)
         }
         //onPressed: lastPos = pick.worldIntersection
         //onReleased: console.log("Item release")
@@ -162,7 +234,7 @@ Entity
         {
             //console.log("Pick pos: " + pick.worldIntersection)
             //var x = pick.worldIntersection.x - lastPos
-            contextManager.setFixturePosition("3D", fixtureID,
+            contextManager.setFixturePosition("3D", itemID,
                                               pick.worldIntersection.x * 1000.0,
                                               pick.worldIntersection.y * 1000.0,
                                               pick.worldIntersection.z * 1000.0)

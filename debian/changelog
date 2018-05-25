@@ -1,3 +1,15 @@
+qlcplus (4.11.3) stable; urgency=low
+
+  * Fixture Editor: reworked to define more accurate information (see documentation)
+  * New fixtures: American DJ Auto Spot 150, Boom Box Fx2, Revo Sweep (thanks to Felix Edelmann)
+  * New fixtures: JB-Lighting Varyscan P7, Showtec Dominator, Showtec Sunraise LED (thanks to Felix Edelmann)
+  * New fixture: Orion Effects Lighting ORCAN2 (thanks to Felix Edelmann)
+  * New fixtures: American DJ Revo Burst, Ayra TDC Triple Burst, Chauvet GigBAR 2 (thanks to Flo Edelmann)
+  * New fixture: Venue TriStrip3Z (thanks to Flo Edelmann)
+  * New fixture: Stairville Crown FX PAR77 (thanks to Andres Robles)
+
+ -- Massimo Callegari <massimocallegari@yahoo.it>  Sun, 21 Oct 2018 12:13:14 +0200
+
 qlcplus (4.11.2) stable; urgency=low
 
   * engine: fix crash caused by an invalid IO mapping
@@ -26,7 +38,7 @@ qlcplus (4.11.2) stable; urgency=low
   * New fixture: DTS XR7 Spot (thanks to Nicolò Zanon)
   * New fixture: Ledj Slimline 12Q5 Batten (thanks to Dean Clough)
   * New fixture: Ayra Compar Kit 1 (thanks to eigenaardiger)
-  * New fixture: GLP Impression X4 S (thanks to Mitsch)
+  * New fixtures: GLP Impression X4 S, Eurolite LED KLS-2500 (thanks to Mitsch)
   * New fixture: Chauvet Intimidator Spot 255 IRC (thanks to Ham Sadler)
   * New fixtures: Chauvet Geyser RGB, Geyser P6 (thanks to Andrew)
   * New fixture: Chauvet Rotosphere Q3 (thanks to Eric Sherlock)
@@ -55,8 +67,9 @@ qlcplus (4.11.2) stable; urgency=low
   * New fixture: Fun Generation PicoWash 40 Pixel Quad LED (thanks to Harm Aldick)
   * New fixtures: American DJ Entourage, Elumen8 MS-700PE, Ibiza PAR LED 712IR (thanks to Tim Cullingworth)
   * New fixtures: Martin MAC 401 Dual RGB Zoom, MAC 401 Dual CT Zoom, Stairville MH-z720 (thanks to Tim Cullingworth)
+  * New fixture: Fun Generation SePar Quad UV (thanks to Helmet)
 
- -- Massimo Callegari <massimocallegari@yahoo.it>  Sun, 15 Apr 2018 12:13:14 +0200
+ -- Massimo Callegari <massimocallegari@yahoo.it>  Thu, 19 Apr 2018 20:21:22 +0200
 
 qlcplus (4.11.1) stable; urgency=low
 
