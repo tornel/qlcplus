@@ -227,12 +227,22 @@ Column
                         if (item.hasOwnProperty('itemIcon'))
                             item.itemIcon = nodeContainer.itemIcon
 
-                        if (item.hasOwnProperty('cRef'))
+                        if (classRef && item.hasOwnProperty('cRef'))
                             item.cRef = classRef
+
+                        if (item.hasOwnProperty('itemID'))
+                            item.itemID = id
+
+                        //console.log("Item flags: " + model.flags);
+                        if (model.flags !== undefined && item.hasOwnProperty("itemFlags"))
+                        {
+                            item.showFlags = true
+                            item.itemFlags = Qt.binding(function() { return model.flags })
+                        }
 
                         if (hasChildren)
                         {
-                            item.nodePath = nodePath + "/" + path
+                            item.nodePath = Qt.binding(function() { return nodePath + '`' + path })
                             item.isExpanded = isExpanded
                             item.nodeChildren = childrenModel
                             if (item.hasOwnProperty('dropKeys'))

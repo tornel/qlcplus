@@ -31,6 +31,7 @@ class TreeModel : public QAbstractListModel
 {
     Q_OBJECT
     Q_DISABLE_COPY(TreeModel)
+
 public:
     enum FixedRoles
     {
@@ -50,10 +51,11 @@ public:
     enum TreeItemsFlags
     {
         Selected  = (1 << 0),
-        Expanded  = (1 << 1),
-        Checkable = (1 << 2),
-        Checked   = (1 << 3),
-        Draggable = (1 << 4)
+        EmptyNode = (1 << 1),
+        Expanded  = (1 << 2),
+        Checkable = (1 << 3),
+        Checked   = (1 << 4),
+        Draggable = (1 << 5)
     };
 
     TreeModel(QObject *parent = 0);
@@ -82,8 +84,11 @@ public:
      *  using the TreeModelItem::addChild method.
      *  Therefore, $data belongs to the leaf, if you want to add data to a top node,
      *  use the setPathData method.
-     *  $flags are used to give an item a specific initial state. See TreeFlags */
+     *  $flags are used to give an item a specific initial state. See TreeItemsFlags */
     TreeModelItem *addItem(QString label, QVariantList data, QString path = QString(), int flags = 0);
+
+    /** Remove an item with the given $path from the tree */
+    bool removeItem(QString path);
 
     /**
      * Set the value of an item role by item path. This is recursive.
@@ -108,6 +113,9 @@ public:
 
     /** Set columns data on a specific item with the provided $path */
     void setPathData(QString path, QVariantList data);
+
+    /** Get the index of a role by its name. Useful before calling setItemRoleData */
+    int roleIndex(QString role);
 
     /** @reimp */
     Q_INVOKABLE int rowCount(const QModelIndex & parent = QModelIndex()) const;

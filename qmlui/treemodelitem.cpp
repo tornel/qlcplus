@@ -100,6 +100,14 @@ void TreeModelItem::setData(QVariantList data)
     m_data = data;
 }
 
+void TreeModelItem::setRoleData(int index, QVariant value)
+{
+    if (index < 0 || index >= m_data.count())
+        return;
+
+    m_data[index] = value;
+}
+
 bool TreeModelItem::setChildrenColumns(QStringList columns)
 {
     bool childrenTreeCreated = false;
@@ -144,7 +152,7 @@ TreeModel *TreeModelItem::children()
 
 void TreeModelItem::printItem(int tab)
 {
-    qDebug() << QString("%1%2").arg(QString(tab, QChar(0x20))).arg(label()) << m_data;
+    qDebug() << QString("%1%2").arg(QString(tab, QChar(0x20))).arg(label()) << m_path << m_data;
 }
 
 

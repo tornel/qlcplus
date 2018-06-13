@@ -22,6 +22,7 @@
 #include <QXmlStreamWriter>
 #include <QtCore/qbuffer.h>
 #include <QFontDatabase>
+#include <QOpenGLContext>
 #include <QPrintDialog>
 #include <QQmlContext>
 #include <QQuickItem>
@@ -85,6 +86,7 @@ App::App()
 
     connect(this, &App::screenChanged, this, &App::slotScreenChanged);
     connect(this, SIGNAL(closing(QQuickCloseEvent*)), this, SLOT(slotClosing()));
+    connect(this, &App::sceneGraphInitialized, this, &App::slotSceneGraphInitialized);
 }
 
 App::~App()
@@ -104,8 +106,8 @@ QString App::appVersion() const
 
 void App::startup()
 {
-    qmlRegisterType<Fixture>("org.qlcplus.classes", 1, 0, "Fixture");
-    qmlRegisterType<Function>("org.qlcplus.classes", 1, 0, "Function");
+    qmlRegisterUncreatableType<Fixture>("org.qlcplus.classes", 1, 0, "Fixture", "Can't create a Fixture !");
+    qmlRegisterUncreatableType<Function>("org.qlcplus.classes", 1, 0, "Function", "Can't create a Function !");
     qmlRegisterType<ModelSelector>("org.qlcplus.classes", 1, 0, "ModelSelector");
     qmlRegisterUncreatableType<App>("org.qlcplus.classes", 1, 0, "App", "Can't create an App !");
 
@@ -189,7 +191,6 @@ void App::show()
 {
     QScreen *currScreen = screen();
     QRect rect(0, 0, 800, 600);
-    //QRect rect(0, 0, 1272, 689); // youtube recording
     rect.moveTopLeft(currScreen->geometry().topLeft());
     setGeometry(rect);
     showMaximized();
@@ -203,6 +204,15 @@ qreal App::pixelDensity() const
 int App::accessMask() const
 {
     return m_accessMask;
+}
+
+bool App::is3DSupported() const
+{
+    if (openglContext() == NULL)
+        return false;
+
+    int glVersion = (openglContext()->format().majorVersion() * 10) + openglContext()->format().minorVersion();
+    return glVersion < 33 ? false : true;
 }
 
 void App::exit()
@@ -252,6 +262,14 @@ bool App::event(QEvent *event)
         }
     }
     return QQuickView::event(event);
+}
+
+void App::slotSceneGraphInitialized()
+{
+    if (openglContext() == NULL)
+        return;
+
+    qDebug() << "OpenGL version: " << openglContext()->format().majorVersion() << openglContext()->format().minorVersion();
 }
 
 void App::slotScreenChanged(QScreen *screen)
@@ -364,7 +382,8 @@ void App::initDoc()
 
 void App::enableKioskMode()
 {
-
+    // enable Virtual console only
+    setAccessMask(AC_VCControl);
 }
 
 void App::createKioskCloseButton(const QRect &rect)
@@ -710,7 +729,7 @@ bool App::loadXML(QXmlStreamReader &doc, bool goToConsole, bool fromMemory)
         }
     }
 
-    if (goToConsole == true)
+    if (goToConsole == true || accessMask() == AC_VCControl)
         // Force the active window to be Virtual Console
         m_contextManager->switchToContext("VirtualConsole");
     else

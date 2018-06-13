@@ -35,6 +35,8 @@ SidePanel
         // reset the currently loaded item first
         loaderSource = ""
 
+        console.log("Requested to create function type " + fType)
+
         if (fType === Function.AudioType)
         {
             var extList = functionManager.audioExtensions
@@ -66,7 +68,6 @@ SidePanel
             openFileDialog.open()
             return
         }
-
 
         var newFuncID = functionManager.createFunction(fType)
         var fEditor = functionManager.getEditorResource(newFuncID)
@@ -247,6 +248,18 @@ SidePanel
                     title: qsTr("Rename functions")
                 }
             }
+            IconButton
+            {
+                id: cloneFunction
+                z: 2
+                width: iconSize
+                height: iconSize
+                imgSource: "qrc:/edit-copy.svg"
+                tooltip: qsTr("Clone the selected functions")
+                counter: functionManager.selectionCount && !functionManager.isEditing
+                onClicked: functionManager.cloneFunctions()
+            }
+
 
             IconButton
             {

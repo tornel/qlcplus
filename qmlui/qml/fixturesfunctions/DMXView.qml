@@ -18,6 +18,7 @@
 */
 
 import QtQuick 2.0
+import QtQuick.Controls 2.1
 
 import "."
 
@@ -28,6 +29,7 @@ Rectangle
     color: UISettings.bgMain
 
     property alias contextItem: flowLayout
+    property int viewMargin: 20
 
     function hasSettings()
     {
@@ -43,9 +45,9 @@ Rectangle
     {
         id: fixtureDMXView
         anchors.fill: parent
-        anchors.leftMargin: 20
-        anchors.topMargin: 20
-        anchors.bottomMargin: 20
+        anchors.leftMargin: viewMargin
+        anchors.topMargin: viewMargin
+        //anchors.bottomMargin: viewMargin
 
         contentHeight: flowLayout.height
         contentWidth: flowLayout.width
@@ -60,14 +62,15 @@ Rectangle
             id: flowLayout
             objectName: "DMXFlowView"
             spacing: 5
-            width: dmxViewRoot.width
+            width: dmxViewRoot.width - viewMargin
 
             Component.onCompleted: contextManager.enableContext("DMX", true, flowLayout)
             Component.onDestruction: if(contextManager) contextManager.enableContext("DMX", false, flowLayout)
         }
+
+        ScrollBar.vertical: CustomScrollBar { }
+        ScrollBar.horizontal : CustomScrollBar { orientation: Qt.Horizontal }
     }
-    CustomScrollBar { flickable: fixtureDMXView; doubleBars: true }
-    CustomScrollBar { orientation: Qt.Horizontal; flickable: fixtureDMXView }
 
     SettingsViewDMX
     {

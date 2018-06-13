@@ -49,6 +49,7 @@ class ContextManager : public QObject
     Q_PROPERTY(QVector3D fixturesRotation READ fixturesRotation WRITE setFixturesRotation NOTIFY fixturesRotationChanged)
     Q_PROPERTY(int dumpValuesCount READ dumpValuesCount NOTIFY dumpValuesCountChanged)
     Q_PROPERTY(quint32 dumpChannelMask READ dumpChannelMask NOTIFY dumpChannelMaskChanged)
+    Q_PROPERTY(bool multipleSelection READ multipleSelection WRITE setMultipleSelection NOTIFY multipleSelectionChanged)
     Q_PROPERTY(bool positionPicking READ positionPicking WRITE setPositionPicking NOTIFY positionPickingChanged)
 
 public:
@@ -81,6 +82,10 @@ public:
     QVector3D environmentSize() const;
     void setEnvironmentSize(QVector3D environmentSize);
 
+    /** Get/Set multiple item selection mode */
+    bool multipleSelection() const;
+    void setMultipleSelection(bool multipleSelection);
+
     /** Enable/Disable a position picking process */
     bool positionPicking() const;
     void setPositionPicking(bool enable);
@@ -91,6 +96,7 @@ signals:
     void currentContextChanged();
     void environmentSizeChanged();
     void positionPickingChanged();
+    void multipleSelectionChanged();
 
 public slots:
     /** Resets the data structures and update the currently enabled views */
@@ -126,6 +132,8 @@ private:
 
     QMap <QString, PreviewContext *> m_contextsMap;
 
+    /** Flag that indicates if multiple item selection is active */
+    bool m_multipleSelection;
     /** Flag that indicates if a position picking is active */
     bool m_positionPicking;
 
@@ -149,8 +157,14 @@ private:
      * Common fixture helpers
      *********************************************************************/
 public:
-    /** Select/Deselect a fixture with the provided $itemID */
-    Q_INVOKABLE void setFixtureSelection(quint32 itemID, bool enable);
+    /** Select/Deselect a preview item with the provided $itemID */
+    Q_INVOKABLE void setItemSelection(quint32 itemID, bool enable, int keyModifiers);
+
+    /** Select/Deselect a fixture with the provided $itemID and $headIndex */
+    Q_INVOKABLE void setFixtureSelection(quint32 itemID, int headIndex, bool enable);
+
+    /** Select/Deselect a fixture with the provided $fixtureID */
+    Q_INVOKABLE void setFixtureIDSelection(quint32 fixtureID, bool enable);
 
     /** Deselect all the currently selected fixtures */
     Q_INVOKABLE void resetFixtureSelection();
@@ -197,6 +211,8 @@ public:
 protected slots:
     void slotNewFixtureCreated(quint32 fxID, qreal x, qreal y, qreal z = 0);
     void slotFixtureDeleted(quint32 itemID);
+    void slotFixtureFlagsChanged(quint32 itemID, quint32 flags);
+
     void slotChannelValueChanged(quint32 fxID, quint32 channel, quint8 value);
     void slotChannelTypeValueChanged(int type, quint8 value, quint32 channel = UINT_MAX);
     void slotColorChanged(QColor col, QColor wauv);
@@ -267,6 +283,10 @@ public:
     Q_INVOKABLE void resetDumpValues();
 
     GenericDMXSource *dmxSource() const;
+
+private:
+    /** Return a list only of the fixture IDs from the selected preview items */
+    QList<quint32> selectedFixtureIDList() const;
 
 signals:
     void dumpValuesCountChanged();

@@ -18,6 +18,7 @@
 */
 
 #include <QApplication>
+#include <QSurfaceFormat>
 #include <QCommandLineParser>
 #include <QQmlApplicationEngine>
 
@@ -39,6 +40,12 @@ void debugMessageHandler(QtMsgType type, const QMessageLogContext &context, cons
 
 int main(int argc, char *argv[])
 {
+    QSurfaceFormat format;
+    format.setMajorVersion(3);
+    format.setMinorVersion(3);
+    format.setProfile(QSurfaceFormat::CoreProfile);
+    QSurfaceFormat::setDefaultFormat(format);
+
     QApplication app(argc, argv);
 
     QApplication::setOrganizationName("qlcplus");
@@ -60,6 +67,10 @@ int main(int argc, char *argv[])
                                       "filename", "");
     parser.addOption(openFileOption);
 
+    QCommandLineOption kioskOption(QStringList() << "k" << "kiosk",
+                                      "Enable kiosk mode (only Virtual Console)");
+    parser.addOption(kioskOption);
+
     parser.process(app);
 
     if (parser.isSet(debugOption))
@@ -67,6 +78,10 @@ int main(int argc, char *argv[])
 
     App qlcplusApp;
     qlcplusApp.startup();
+
+    if (parser.isSet(kioskOption))
+        qlcplusApp.enableKioskMode();
+
     qlcplusApp.show();
 
     QString filename = parser.value(openFileOption);

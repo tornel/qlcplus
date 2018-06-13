@@ -129,6 +129,9 @@ public:
     /** Move the currently selected Function to the specified $newPath */
     Q_INVOKABLE void moveFunctions(QString newPath);
 
+    /** Clone the currently selected Functions */
+    Q_INVOKABLE void cloneFunctions();
+
     /** Generic method to delete a list of item IDs specified in $list.
      *  This is used from within a Function editor and items can be of any type
      *  such as Functions, Fixtures, etc. as long as they have an ID.
@@ -136,6 +139,8 @@ public:
     Q_INVOKABLE void deleteEditorItems(QVariantList list);
 
     Q_INVOKABLE void renameFunctions(QVariantList IDList, QString newName, bool numbering, int startNumber, int digits);
+
+    Q_INVOKABLE void createFolder();
 
     /** Returns the number of the currently selected Functions */
     int selectionCount() const;
@@ -200,6 +205,11 @@ private:
     /** List of the Function IDs currently selected
      *  and previewed, if preview is enabled */
     QVariantList m_selectedIDList;
+
+    QString m_selectedFolder;
+
+    /** List of the folder paths that don't include any Function yet */
+    QStringList m_emptyFolderList;
 
     quint32 m_filter;
     QString m_searchFilter;

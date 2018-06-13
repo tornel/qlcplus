@@ -19,6 +19,7 @@
 
 import QtQuick 2.0
 import QtQuick.Layouts 1.1
+import QtQuick.Controls 2.1
 
 import org.qlcplus.classes 1.0
 import "."
@@ -286,21 +287,19 @@ Rectangle
                           item.textLabel = label
                           item.isSelected = Qt.binding(function() { return isSelected })
                           item.dragItem = fDragItem
+                          item.itemType = type
 
-                          if (hasChildren)
+                          if (type === App.FunctionDragItem)
                           {
-                              console.log("Item path: " + path + ",label: " + label)
-                              item.itemType = App.FolderDragItem
-                              item.nodePath = path
-                              item.isExpanded = isExpanded
-                              item.nodeChildren = childrenModel
-                              item.dropKeys = "function"
+                              item.cRef = classRef
                           }
                           else
                           {
-                              item.cRef = classRef
-                              item.itemType = App.FunctionDragItem
-                              //item.functionType = funcType
+                              console.log("Item path: " + path + ",label: " + label)
+                              item.nodePath = Qt.binding(function() { return path })
+                              item.isExpanded = isExpanded
+                              item.nodeChildren = childrenModel
+                              item.dropKeys = "function"
                           }
                       }
                       Connections
@@ -373,7 +372,7 @@ Rectangle
                       }
                   } // Loader
               } // Component
-              CustomScrollBar { id: fMgrScrollBar; flickable: functionsListView }
+              ScrollBar.vertical: CustomScrollBar { id: fMgrScrollBar }
 
               GenericMultiDragItem
               {

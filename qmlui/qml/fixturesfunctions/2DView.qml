@@ -18,6 +18,7 @@
 */
 
 import QtQuick 2.3
+import QtQuick.Controls 2.1
 
 import org.qlcplus.classes 1.0
 import "."
@@ -117,8 +118,6 @@ Rectangle
             var w = twoDSettings.visible ? (width - twoDSettings.width) : width
             var xDiv = w / gridSize.width
             var yDiv = height / gridSize.height
-            twoDContents.x = 0
-            twoDContents.y = 0
 
             if (yDiv < xDiv)
                 View2D.cellPixels = yDiv * View2D.gridScale
@@ -127,18 +126,22 @@ Rectangle
 
             //console.log("Cell size calculated: " + View2D.cellPixels)
 
-            contentWidth = View2D.cellPixels * gridSize.width;
-            contentHeight = View2D.cellPixels * gridSize.height;
+            var gridWidth = View2D.cellPixels * gridSize.width
+            var gridHeight = View2D.cellPixels * gridSize.height
 
-            if (contentWidth < w)
-                twoDContents.x = (w - contentWidth) / 2;
-            if (contentHeight < height)
-                twoDContents.y = (height - contentHeight) / 2;
+            if (gridWidth < w)
+                twoDContents.xOffset = (w - gridWidth) / 2
+            if (gridHeight < height)
+                twoDContents.yOffset = (height - gridHeight) / 2
 
-            View2D.gridPosition = Qt.point(twoDContents.x, twoDContents.y)
+            View2D.gridPosition = Qt.point(twoDContents.xOffset, twoDContents.yOffset)
 
+            contentWidth = gridWidth + (twoDContents.xOffset * 2)
+            contentHeight = gridHeight + (twoDContents.yOffset * 2)
+
+            console.log("Grid offset x: " + twoDContents.xOffset + ", y: " + twoDContents.yOffset)
             if (View2D.cellPixels > 0)
-                twoDContents.requestPaint();
+                twoDContents.requestPaint()
         }
 
         Canvas
@@ -147,8 +150,6 @@ Rectangle
             objectName: "twoDContents"
             width: twoDView.contentWidth
             height: twoDView.contentHeight
-            x: 0
-            y: 0
             z: 0
 
             antialiasing: true
@@ -157,6 +158,8 @@ Rectangle
             property real cellSize: View2D.cellPixels
             property int gridUnits: twoDView.gridUnits
             property bool justSelected: false
+            property real xOffset: 0
+            property real yOffset: 0
 
             function showPovPopup()
             {
@@ -171,6 +174,7 @@ Rectangle
 
             onPaint:
             {
+                var context = getContext("2d")
                 context.globalAlpha = 1.0
                 context.strokeStyle = "#5F5F5F"
                 context.fillStyle = "black"
@@ -179,29 +183,27 @@ Rectangle
                 context.beginPath()
                 context.clearRect(0, 0, width, height)
                 context.fillRect(0, 0, width, height)
-                context.rect(0, 0, width, height)
+                context.rect(xOffset, yOffset, width - (xOffset * 2), height - (yOffset * 2))
 
                 for (var vl = 1; vl < twoDView.gridSize.width; vl++)
                 {
-                    var xPos = cellSize * vl
-                    context.moveTo(xPos, 0)
-                    context.lineTo(xPos, height)
+                    var xPos = (cellSize * vl) + xOffset
+                    context.moveTo(xPos, yOffset)
+                    context.lineTo(xPos, height - yOffset)
                 }
                 for (var hl = 1; hl < twoDView.gridSize.height; hl++)
                 {
-                    var yPos = cellSize * hl
-                    context.moveTo(0, yPos)
-                    context.lineTo(width, yPos)
+                    var yPos = (cellSize * hl) + yOffset
+                    context.moveTo(xOffset, yPos)
+                    context.lineTo(width - xOffset, yPos)
                 }
+
                 context.closePath()
                 context.stroke()
             }
 
             MouseArea
             {
-                // set the size to cover the whole twoDView
-                x: -twoDContents.x
-                y: -twoDContents.y
                 width: twoDSettings.visible ? twoDView.width - twoDSettings.width : twoDView.width
                 height: twoDView.height
                 z: 2
@@ -212,11 +214,12 @@ Rectangle
                 onPressed:
                 {
                     console.log("button: " + mouse.button + ", mods: " + mouse.modifiers)
-                    var fixtureID = View2D.fixtureAtPos(Qt.point(mouse.x, mouse.y))
+                    var itemID = View2D.itemIDAtPos(Qt.point(mouse.x, mouse.y))
 
-                    if (fixtureID === -1)
+                    // pressing on nothing starts to draw the selection rectangle
+                    if (itemID === -1)
                     {
-                        //console.log("Flickable shift-clicked !")
+                        //console.log("Starting selection rectangle !")
                         // initialize local variables to determine the selection orientation
                         initialXPos = mouse.x
                         initialYPos = mouse.y
@@ -229,11 +232,11 @@ Rectangle
                     }
                     else
                     {
-                        if (contextManager.isFixtureSelected(fixtureID) === false)
+                        if (contextManager.isFixtureSelected(itemID) === false)
                             twoDContents.justSelected = true
 
                         // select the Fixture in case a drag is starting on a deselected one
-                        contextManager.setFixtureSelection(fixtureID, true)
+                        contextManager.setItemSelection(itemID, true, mouse.modifiers)
 
                         // forward the event to the drag area
                         mouse.accepted = false
@@ -282,8 +285,8 @@ Rectangle
                 {
                     if (selectionRect.visible === true && selectionRect.width && selectionRect.height)
                     {
-                        var rx = selectionRect.x // - twoDContents.x
-                        var ry = selectionRect.y // - twoDContents.y
+                        var rx = selectionRect.x
+                        var ry = selectionRect.y
                         var rw = selectionRect.width
                         var rh = selectionRect.height
                         switch (selectionRect.rotation)
@@ -318,8 +321,6 @@ Rectangle
             {
                 id: contentsDragArea
                 objectName: "contentsDragArea"
-                x: -twoDContents.x
-                y: -twoDContents.y
                 width: twoDSettings.visible ? twoDView.width - twoDSettings.width : twoDView.width
                 height: twoDView.height
                 color: "transparent"
@@ -353,18 +354,18 @@ Rectangle
 
                             contextManager.setFixturesOffset(xDelta, yDelta)
 
-                            contentsDragArea.x = -twoDContents.x
-                            contentsDragArea.y = -twoDContents.y
+                            contentsDragArea.x = 0
+                            contentsDragArea.y = 0
                         }
                         else
                         {
                             if (twoDContents.justSelected == false)
                             {
                                 // handle Fixture selection/deselection here
-                                var fixtureID = View2D.fixtureAtPos(Qt.point(mouse.x, mouse.y))
+                                var itemID = View2D.itemIDAtPos(Qt.point(mouse.x, mouse.y))
 
-                                console.log("Fixture ID on release " + fixtureID)
-                                contextManager.setFixtureSelection(fixtureID, false)
+                                console.log("Fixture ID on release " + itemID)
+                                contextManager.setItemSelection(itemID, false, mouse.modifiers)
                             }
                             twoDContents.justSelected = false
                         }
@@ -377,6 +378,9 @@ Rectangle
                 anchors.fill: parent
             }
         } // Canvas
+
+        ScrollBar.vertical: CustomScrollBar { }
+        ScrollBar.horizontal : CustomScrollBar { orientation: Qt.Horizontal }
     } // Flickable
 
     Rectangle
@@ -394,7 +398,7 @@ Rectangle
         border.color: "#103A6E"
         transformOrigin: Item.TopLeft
     }
-
+/*
     CustomScrollBar
     {
         anchors.right: parent.right
@@ -409,7 +413,7 @@ Rectangle
         flickable: twoDView
         orientation: Qt.Horizontal
     }
-
+*/
     PopupMonitor
     {
         id: monitorPOVPopup

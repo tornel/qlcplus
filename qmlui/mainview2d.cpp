@@ -142,9 +142,13 @@ void MainView2D::createFixtureItem(quint32 fxID, quint16 headIndex, quint16 link
     quint32 itemID = FixtureUtils::fixtureItemID(fxID, headIndex, linkedIndex);
     QLCFixtureMode *fxMode = fixture->fixtureMode();
     QQuickItem *newFixtureItem = qobject_cast<QQuickItem*>(fixtureComponent->create());
+    quint32 itemFlags = m_monProps->fixtureFlags(fxID, headIndex, linkedIndex);
 
-    newFixtureItem->setParentItem(contextItem());
+    newFixtureItem->setParentItem(m_gridItem);
     newFixtureItem->setProperty("itemID", itemID);
+
+    if (itemFlags & MonitorProperties::HiddenFlag)
+        newFixtureItem->setProperty("visible", false);
 
     if (fxMode != NULL && fixture->type() != QLCFixtureDef::Dimmer)
     {
@@ -208,6 +212,16 @@ void MainView2D::createFixtureItem(quint32 fxID, quint16 headIndex, quint16 link
     updateFixture(fixture);
 }
 
+void MainView2D::setFixtureFlags(quint32 itemID, quint32 flags)
+{
+    QQuickItem *fxItem = m_itemsMap.value(itemID, NULL);
+
+    if (fxItem == NULL)
+        return;
+
+    fxItem->setProperty("visible", flags & MonitorProperties::HiddenFlag ? false : true);
+}
+
 QList<quint32> MainView2D::selectFixturesRect(QRectF rect)
 {   
     QList<quint32>fxList;
@@ -241,7 +255,7 @@ QList<quint32> MainView2D::selectFixturesRect(QRectF rect)
     return fxList;
 }
 
-int MainView2D::fixtureAtPos(QPointF pos)
+int MainView2D::itemIDAtPos(QPointF pos)
 {
     QMap<quint32, QQuickItem *>::const_iterator i = m_itemsMap.constBegin();
     while (i != m_itemsMap.constEnd())
@@ -493,7 +507,7 @@ void MainView2D::selectFixture(QQuickItem *fxItem, bool enable)
     }
     else
     {
-        fxItem->setParentItem(contextItem());
+        fxItem->setParentItem(m_gridItem);
     }
 }
 

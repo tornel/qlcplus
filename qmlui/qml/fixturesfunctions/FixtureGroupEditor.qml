@@ -32,7 +32,7 @@ Rectangle
 
     property int viewMargin: UISettings.listItemHeight * 0.5
 
-    function hasSettings() { return false; }
+    function hasSettings() { return false }
 
     Rectangle
     {
@@ -183,11 +183,13 @@ Rectangle
         height: parent.height - editToolbar.height - viewMargin
 
         boundsBehavior: Flickable.StopAtBounds
+        ScrollBar.vertical: CustomScrollBar { }
+        ScrollBar.horizontal : CustomScrollBar { orientation: Qt.Horizontal }
 
         GridEditor
         {
             id: groupGrid
-            width: parent.width
+            width: fGroupEditor.width - (viewMargin * 2)
             height: parent.height - (viewMargin * 3)
 
             onHeightChanged: gridFlickable.contentHeight = height + cellSize
@@ -201,9 +203,9 @@ Rectangle
             gridSize: fixtureGroupEditor.groupSize
             fillDirection: Qt.Horizontal | Qt.Vertical
             mininumCellSize: UISettings.iconSizeDefault * 1.5
+            labelsFontSize: cellSize / 5
             gridData: fixtureGroupEditor.groupMap
             gridLabels: fixtureGroupEditor.groupLabels
-            labelsFontSize: cellSize / 5
             evenColor: UISettings.fgLight
 
             onPressed:
@@ -251,14 +253,16 @@ Rectangle
                     switch(dragEvent.source.itemsList[i].itemType)
                     {
                         case App.FixtureDragItem:
-                            tmp = fixtureGroupEditor.dragSelection(dragEvent.source.itemsList[i].cRef, xPos, yPos, mods)
+                            tmp = fixtureGroupEditor.fixtureSelection(dragEvent.source.itemsList[i].cRef, xPos, yPos, mods)
                         break;
                         case App.HeadDragItem:
-                            efxEditor.addHead(dragEvent.source.itemsList[i].fixtureID, dragEvent.source.itemsList[i].headIndex)
+                            tmp = fixtureGroupEditor.headSelection(xPos, yPos, mods)
                         break;
                     }
                     mods = 1
                 }
+
+                validSelection = fixtureGroupEditor.checkSelection(xPos, yPos, 0)
                 setSelectionData(tmp)
             }
 
@@ -277,21 +281,13 @@ Rectangle
                         case App.FixtureDragItem:
                             fixtureGroupEditor.addFixture(dragEvent.source.itemsList[i].cRef, xPos, yPos)
                         break;
+                        case App.HeadDragItem:
+                            fixtureGroupEditor.addHead(dragEvent.source.itemsList[i].itemID,
+                                                       dragEvent.source.itemsList[i].headIndex, xPos, yPos)
+                        break;
                     }
                 }
             }
         } // GridEditor
     } // Flickable
-
-    CustomScrollBar
-    {
-        anchors.right: parent.right
-        flickable: gridFlickable
-        doubleBars: true
-    }
-    CustomScrollBar
-    {
-        flickable: gridFlickable
-        orientation: Qt.Horizontal
-    }
 }

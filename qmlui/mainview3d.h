@@ -114,6 +114,9 @@ public:
 
     void createFixtureItem(quint32 fxID, quint16 headIndex, quint16 linkedIndex, QVector3D pos, bool mmCoords = true);
 
+    /** Set/update the flags of a fixture item */
+    void setFixtureFlags(quint32 itemID, quint32 flags);
+
     Q_INVOKABLE void initializeFixture(quint32 itemID, QEntity *fxEntity, QComponent *picker, QSceneLoader *loader);
 
     /** Update the fixture preview items when some channels have changed */
@@ -200,7 +203,6 @@ signals:
 private:
     QStringList m_stagesList;
     QStringList m_stageResourceList;
-    int m_stageIndex;
 
     /** Reference to the selected stage Entity */
     QEntity *m_stageEntity;

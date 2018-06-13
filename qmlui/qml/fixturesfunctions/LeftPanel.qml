@@ -31,6 +31,12 @@ SidePanel
     anchors.leftMargin: 0
     panelAlignment: Qt.AlignLeft
 
+    onContentLoaded:
+    {
+        item.width = Qt.binding(function() { return leftSidePanel.width - collapseWidth })
+        item.height = Qt.binding(function() { return leftSidePanel.height })
+    }
+
     Rectangle
     {
         id: sideBar
@@ -300,9 +306,22 @@ SidePanel
                 width: iconSize
                 height: iconSize
                 checkable: true
+                checked: contextManager.positionPicking
                 faSource: FontAwesome.fa_crosshairs
                 tooltip: qsTr("Pick a 3D point") + " (CTRL+P)"
                 onToggled: contextManager.positionPicking = checked
+            }
+
+            IconButton
+            {
+                z: 2
+                width: iconSize
+                height: iconSize
+                imgSource: "qrc:/multiple.svg"
+                tooltip: qsTr("Toggle multiple item selection")
+                checkable: true
+                checked: contextManager.multipleSelection
+                onToggled: contextManager.multipleSelection = checked
             }
 
             IconButton

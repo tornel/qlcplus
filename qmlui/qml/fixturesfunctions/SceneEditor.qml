@@ -19,6 +19,7 @@
 
 import QtQuick 2.0
 import QtQuick.Layouts 1.1
+import QtQuick.Controls 2.1
 
 import org.qlcplus.classes 1.0
 import "."
@@ -44,6 +45,7 @@ Rectangle
     {
         EditorTopBar
         {
+            id: toolbar
             visible: showToolBar
             text: sceneEditor.functionName
             onTextChanged: sceneEditor.functionName = text
@@ -72,7 +74,7 @@ Rectangle
             id: sfxList
             width: seContainer.width
             height: seContainer.height - UISettings.iconSizeMedium
-            y: UISettings.iconSizeMedium
+            y: toolbar.height
             boundsBehavior: Flickable.StopAtBounds
             model: sceneEditor.fixtureList
             delegate:
@@ -81,8 +83,8 @@ Rectangle
                     cRef: model.fxRef
                     width: seContainer.width
                     isSelected: model.isSelected
-                    Component.onCompleted: contextManager.setFixtureSelection(cRef.id, true)
-                    Component.onDestruction: contextManager.setFixtureSelection(cRef.id, false)
+                    Component.onCompleted: contextManager.setFixtureIDSelection(cRef.id, true)
+                    Component.onDestruction: contextManager.setFixtureIDSelection(cRef.id, false)
                     onMouseEvent:
                     {
                         if (type === App.Clicked)
@@ -92,12 +94,12 @@ Rectangle
                             if (!(mouseMods & Qt.ControlModifier))
                                 contextManager.resetFixtureSelection()
 
-                            contextManager.setFixtureSelection(cRef.id, true)
+                            contextManager.setFixtureIDSelection(cRef.id, true)
                             sceneEditor.setFixtureSelection(cRef.id)
                         }
                     }
                 }
-            CustomScrollBar { flickable: sfxList }
+            ScrollBar.vertical: CustomScrollBar { }
         }
     }
 }

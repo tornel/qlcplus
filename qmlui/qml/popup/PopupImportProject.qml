@@ -148,7 +148,11 @@ CustomPopupDialog
                             {
                                 item.itemIcon = "qrc:/group.svg"
                                 if (type)
+                                {
                                     item.itemType = type
+                                    if (type == App.UniverseDragItem)
+                                        isExpanded = true
+                                }
                                 item.nodePath = path
                                 item.isExpanded = isExpanded
                                 item.childrenDelegate = "qrc:/FixtureDelegate.qml"
@@ -183,7 +187,7 @@ CustomPopupDialog
                         }
                     } // Loader
                   } // Component
-                CustomScrollBar { id: gEditScrollBar; flickable: groupListView }
+                ScrollBar.vertical: CustomScrollBar { id: gEditScrollBar }
             } // ListView
 
             ListView
@@ -255,7 +259,7 @@ CustomPopupDialog
                             }
                         } // Loader
                     } // Component
-                CustomScrollBar { id: fMgrScrollBar; flickable: functionsListView }
+                ScrollBar.vertical: CustomScrollBar { id: fMgrScrollBar }
             } // ListView
         }
 }

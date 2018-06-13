@@ -18,6 +18,7 @@
 */
 
 import QtQuick 2.2
+import QtQuick.Layouts 1.0
 
 import org.qlcplus.classes 1.0
 import "."
@@ -32,11 +33,15 @@ Column
     property string textLabel
     property string itemIcon
     property int itemType: App.FixtureDragItem
+    property int itemID
+    property int linkedIndex: 0
     property bool isExpanded: false
     property bool isSelected: false
     property bool isCheckable: false
     property bool isChecked: false
-    property string nodePath    
+    property bool showFlags: false
+    property int itemFlags: 0
+    property string nodePath
     property var nodeChildren
     property Item dragItem
 
@@ -45,6 +50,7 @@ Column
     signal pathChanged(string oldPath, string newPath)
 
     onCRefChanged: itemIcon = cRef ? cRef.iconResource(true) : ""
+    onItemIDChanged: linkedIndex = (itemID & 0x00FF)
 
     function getItemAtPos(x, y)
     {
@@ -61,7 +67,9 @@ Column
         color: nodeIconImg.visible ? "transparent" : UISettings.sectionHeader
         width: nodeContainer.width
         height: UISettings.listItemHeight
+        z: 1
 
+        // icon background for contrast
         Rectangle
         {
             visible: itemIcon == "" ? false : true
@@ -83,8 +91,10 @@ Column
             visible: isSelected
         }
 
-        Row
+        RowLayout
         {
+            width: parent.width
+
             CustomCheckBox
             {
                 visible: isCheckable
@@ -106,13 +116,23 @@ Column
                 sourceSize: Qt.size(width, height)
             }
 
+            Text
+            {
+                visible: linkedIndex
+                color: UISettings.fgMain
+                font.family: "FontAwesome"
+                font.pixelSize: UISettings.listItemHeight - 6
+                text: FontAwesome.fa_link
+            }
+
             TextInput
             {
                 property string originalText
 
                 id: nodeLabel
+                Layout.fillWidth: true
                 z: 0
-                width: nodeBgRect.width - x - 1
+                //width: nodeBgRect.width - x - 1
                 height: UISettings.listItemHeight
                 readOnly: true
                 text: textLabel
@@ -164,18 +184,114 @@ Column
                     nodeContainer.pathChanged(nodePath, text)
                 }
             }
-        } // Row
 
-        RobotoText
-        {
-            anchors.right: parent.right
-            height: UISettings.listItemHeight
-            label: cRef ? "" + (cRef.address + 1) + "-" + (cRef.address + cRef.channels) : ""
-        }
+            // DMX address range
+            RobotoText
+            {
+                visible: !showFlags
+                implicitWidth: width
+                height: UISettings.listItemHeight
+                label: cRef ? "" + (cRef.address + 1) + "-" + (cRef.address + cRef.channels) : ""
+            }
+
+            // divider
+            Rectangle
+            {
+                visible: showFlags
+                width: 1
+                height: parent.height
+            }
+
+            // fixture flags
+            Rectangle
+            {
+                id: fxFlags
+                visible: showFlags
+                width: UISettings.chPropsFlagsWidth
+                height: parent.height
+                color: "transparent"
+                z: 1
+
+                Row
+                {
+                    height: parent.height
+                    spacing: 2
+
+                    IconButton
+                    {
+                        height: parent.height - 2
+                        width: height
+                        border.width: 0
+                        faSource: checked ? FontAwesome.fa_eye : FontAwesome.fa_eye_slash
+                        faColor: checked ? "#00FF00" : UISettings.fgMedium
+                        bgColor: "transparent"
+                        checkedColor: "transparent"
+                        checkable: true
+                        checked: itemFlags & MonitorProperties.HiddenFlag ? false : true
+                        onToggled:
+                        {
+                            if (itemFlags & MonitorProperties.HiddenFlag)
+                                fixtureManager.setItemRoleData(itemID, -1, "flags", (itemFlags & ~MonitorProperties.HiddenFlag))
+                            else
+                                fixtureManager.setItemRoleData(itemID, -1, "flags", itemFlags | MonitorProperties.HiddenFlag)
+                        }
+                    }
+
+                    IconButton
+                    {
+                        height: parent.height - 2
+                        width: height
+                        border.width: 0
+                        faSource: FontAwesome.fa_arrows_h
+                        faColor: checked ? "#00FF00" : UISettings.fgMedium
+                        bgColor: "transparent"
+                        checkedColor: "transparent"
+                        checkable: true
+                        checked: itemFlags & MonitorProperties.InvertedPanFlag ? true : false
+                        onToggled:
+                        {
+                            if (itemFlags & MonitorProperties.InvertedPanFlag)
+                                fixtureManager.setItemRoleData(itemID, -1, "flags", (itemFlags & ~MonitorProperties.InvertedPanFlag))
+                            else
+                                fixtureManager.setItemRoleData(itemID, -1, "flags", itemFlags | MonitorProperties.InvertedPanFlag)
+                        }
+                    }
+
+
+                    IconButton
+                    {
+                        height: parent.height - 2
+                        width: height
+                        border.width: 0
+                        faSource: FontAwesome.fa_arrows_v
+                        faColor: checked ? "#00FF00" : UISettings.fgMedium
+                        bgColor: "transparent"
+                        checkedColor: "transparent"
+                        checkable: true
+                        checked: itemFlags & MonitorProperties.InvertedTiltFlag ? true : false
+                        onToggled:
+                        {
+                            if (itemFlags & MonitorProperties.InvertedTiltFlag)
+                                fixtureManager.setItemRoleData(itemID, -1, "flags", (itemFlags & ~MonitorProperties.InvertedTiltFlag))
+                            else
+                                fixtureManager.setItemRoleData(itemID, -1, "flags", itemFlags | MonitorProperties.InvertedTiltFlag)
+                        }
+                    }
+                }
+            }
+
+            Rectangle { visible: showFlags; width: 1; height: parent.height } // divider
+            Rectangle { visible: showFlags; width: UISettings.chPropsCanFadeWidth; height: parent.height; color: "transparent" } // stub
+            Rectangle { visible: showFlags; width: 1; height: parent.height } // divider
+            Rectangle { visible: showFlags; width: UISettings.chPropsPrecedenceWidth; height: parent.height; color: "transparent" } // stub
+            Rectangle { visible: showFlags; width: 1; height: parent.height } // divider
+            Rectangle { visible: showFlags; width: UISettings.chPropsModifierWidth; height: parent.height; color: "transparent" } // stub
+        } // RowLayout
 
         MouseArea
         {
-            anchors.fill: parent
+            width: showFlags ? fxFlags.x : parent.width
+            height: parent.height
 
             property bool dragActive: drag.active
 
@@ -191,7 +307,7 @@ Column
             onClicked:
             {
                 nodeLabel.forceActiveFocus()
-                nodeContainer.mouseEvent(App.Clicked, cRef ? cRef.id : -1, -1, nodeContainer, mouse.modifiers)
+                nodeContainer.mouseEvent(App.Clicked, itemID, -1, nodeContainer, mouse.modifiers)
             }
             onDoubleClicked: isExpanded = !isExpanded
         }
@@ -208,12 +324,13 @@ Column
             {
                 Loader
                 {
-                    width: nodeChildrenView.width
+                    //width: nodeChildrenView.width
                     x: 20
                     //height: 35
                     source: type == App.ChannelDragItem ? "qrc:/FixtureChannelDelegate.qml" : "qrc:/FixtureHeadDelegate.qml"
                     onLoaded:
                     {
+                        item.width = Qt.binding(function() { return nodeChildrenView.width })
                         item.textLabel = label
                         item.isSelected = Qt.binding(function() { return model.isSelected })
                         item.isCheckable = model.isCheckable
@@ -224,6 +341,8 @@ Column
                         if (item.hasOwnProperty('cRef'))
                             item.cRef = classRef
 
+                        item.itemID = id
+
                         if (type == App.ChannelDragItem)
                         {
                             console.log("Channel node, fixture " + cRef + " index: " + chIdx + " label: " + label)
@@ -231,12 +350,20 @@ Column
                             item.isChecked = Qt.binding(function() { return isChecked })
                             item.chIndex = chIdx
                             item.itemIcon = cRef ? fixtureManager.channelIcon(cRef.id, chIdx) : ""
+
+                            if (model.flags !== undefined && item.hasOwnProperty("itemFlags"))
+                            {
+                                item.showFlags = true
+                                item.itemFlags = Qt.binding(function() { return model.flags })
+                                item.canFade = Qt.binding(function() { return model.canFade })
+                                item.precedence = Qt.binding(function() { return model.precedence })
+                                item.modifier = Qt.binding(function() { return model.modifier })
+                            }
                         }
                         else
                         {
-                            console.log("Head node, fixture " + cRef + " index: " + head + " label: " + label)
-                            item.fixtureID = cRef ? cRef.id : -1
-                            item.headIndex = head
+                            console.log("Head node, fixture " + cRef + " index: " + chIdx + " label: " + label)
+                            item.headIndex = chIdx
                         }
                     }
                     Connections
@@ -273,6 +400,7 @@ Column
                                 break;
                             }
 
+                            // forward the event to the parent node
                             nodeContainer.mouseEvent(type, iID, iType, qItem, mouseMods)
                         }
                     }

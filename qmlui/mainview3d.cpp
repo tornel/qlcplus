@@ -52,12 +52,12 @@ MainView3D::MainView3D(QQuickView *view, Doc *doc, QObject *parent)
 
     qRegisterMetaType<Qt3DCore::QEntity*>();
 
-    // the following two lists must always have the same items number
-    m_stagesList << tr("Simple ground") << tr("Simple box") << tr("Rock stage");
-    m_stageResourceList << "qrc:/StageSimple.qml" << "qrc:/StageBox.qml" << "qrc:/StageRock.qml";
+    // the following two lists must always have the same items number and must respect
+    // the order of StageType enum in MonitorProperties class
+    m_stagesList << tr("Simple ground") << tr("Simple box") << tr("Rock stage") << tr("Theatre stage");
+    m_stageResourceList << "qrc:/StageSimple.qml" << "qrc:/StageBox.qml" << "qrc:/StageRock.qml" << "qrc:/StageTheatre.qml";
 
     m_stageEntity = NULL;
-    m_stageIndex = 0;
 }
 
 MainView3D::~MainView3D()
@@ -162,13 +162,13 @@ void MainView3D::setUniverseFilter(quint32 universeFilter)
 
         if (universeFilter == Universe::invalid() || fixture->universe() == (quint32)universeFilter)
         {
-            meshRef->m_rootItem->setProperty("enabled", "true");
-            meshRef->m_selectionBox->setProperty("enabled", "true");
+            meshRef->m_rootItem->setProperty("enabled", true);
+            meshRef->m_selectionBox->setProperty("enabled", true);
         }
         else
         {
-            meshRef->m_rootItem->setProperty("enabled", "false");
-            meshRef->m_selectionBox->setProperty("enabled", "false");
+            meshRef->m_rootItem->setProperty("enabled", false);
+            meshRef->m_selectionBox->setProperty("enabled", false);
         }
     }
 }
@@ -228,7 +228,7 @@ void MainView3D::initialize3DProperties()
 
     if (m_stageEntity == NULL)
     {
-        QQmlComponent *stageComponent = new QQmlComponent(m_view->engine(), QUrl(m_stageResourceList.at(m_stageIndex)));
+        QQmlComponent *stageComponent = new QQmlComponent(m_view->engine(), QUrl(m_stageResourceList.at(m_monProps->stageType())));
         if (stageComponent->isError())
             qDebug() << stageComponent->errors();
 
@@ -317,11 +317,27 @@ void MainView3D::createFixtureItem(quint32 fxID, quint16 headIndex, quint16 link
         meshPath.append("par.dae");
     else if (fixture->type() == QLCFixtureDef::MovingHead)
         meshPath.append("moving_head.dae");
+    else if (fixture->type() == QLCFixtureDef::Scanner)
+        meshPath.append("scanner.dae");
+    else if (fixture->type() == QLCFixtureDef::Hazer)
+        meshPath.append("hazer.dae");
+    else if (fixture->type() == QLCFixtureDef::Smoke)
+        meshPath.append("smoke.dae");
 
     QEntity *newItem = qobject_cast<QEntity *>(m_fixtureComponent->create());
     newItem->setProperty("itemID", itemID);
     newItem->setProperty("itemSource", meshPath);
     newItem->setParent(m_sceneRootEntity);
+}
+
+void MainView3D::setFixtureFlags(quint32 itemID, quint32 flags)
+{
+    FixtureMesh *meshRef = m_entitiesMap.value(itemID, NULL);
+    if (meshRef == NULL)
+        return;
+
+    meshRef->m_rootItem->setProperty("enabled", flags & MonitorProperties::HiddenFlag ? false : true);
+    meshRef->m_selectionBox->setProperty("enabled", flags & MonitorProperties::HiddenFlag ? false : true);
 }
 
 Qt3DCore::QTransform *MainView3D::getTransform(QEntity *entity)
@@ -565,6 +581,7 @@ void MainView3D::initializeFixture(quint32 itemID, QEntity *fxEntity, QComponent
     if (fixture == NULL)
         return;
 
+    quint32 itemFlags = m_monProps->fixtureFlags(fxID, headIndex, linkedIndex);
     QLCFixtureMode *fxMode = fixture->fixtureMode();
     QVector3D fxSize(0.3, 0.3, 0.3);
     int panDeg = 0;
@@ -714,10 +731,17 @@ void MainView3D::initializeFixture(quint32 itemID, QEntity *fxEntity, QComponent
     meshRef->m_selectionBox->setProperty("center", meshRef->m_volume.m_center);
 
     if (meshRef->m_rootTransform != NULL)
+    {
         QMetaObject::invokeMethod(meshRef->m_selectionBox, "bindFixtureTransform",
                 Q_ARG(QVariant, fixture->id()),
                 Q_ARG(QVariant, QVariant::fromValue(meshRef->m_rootTransform)));
+    }
 
+    if (itemFlags & MonitorProperties::HiddenFlag)
+    {
+        meshRef->m_rootItem->setProperty("enabled", false);
+        meshRef->m_selectionBox->setProperty("enabled", false);
+    }
     // at last, preview the fixture channels
     updateFixture(fixture);
 }
@@ -749,6 +773,8 @@ void MainView3D::updateFixtureItem(Fixture *fixture, quint16 headIndex, quint16 
         return;
 
     QEntity *fixtureItem = meshItem->m_rootItem;
+    if (fixtureItem == NULL)
+        return;
 
     // in case of a dimmer pack, headIndex is actually the fixture channel
     // so treat this as a special case and go straight to the point
@@ -986,20 +1012,20 @@ QStringList MainView3D::stagesList() const
 
 int MainView3D::stageIndex() const
 {
-    return m_stageIndex;
+    return m_monProps->stageType();
 }
 
 void MainView3D::setStageIndex(int stageIndex)
 {
-    if (m_stageIndex == stageIndex)
+    if (stageIndex == m_monProps->stageType())
         return;
 
-    m_stageIndex = stageIndex;
+    m_monProps->setStageType(MonitorProperties::StageType(stageIndex));
 
     if (m_stageEntity)
         delete m_stageEntity;
 
-    QQmlComponent *stageComponent = new QQmlComponent(m_view->engine(), QUrl(m_stageResourceList.at(m_stageIndex)));
+    QQmlComponent *stageComponent = new QQmlComponent(m_view->engine(), QUrl(m_stageResourceList.at(stageIndex)));
     if (stageComponent->isError())
         qDebug() << stageComponent->errors();
 
@@ -1011,7 +1037,7 @@ void MainView3D::setStageIndex(int stageIndex)
     m_stageEntity->setProperty("sceneLayer", QVariant::fromValue(sceneDeferredLayer));
     m_stageEntity->setProperty("effect", QVariant::fromValue(sceneEffect));
 
-    emit stageIndexChanged(m_stageIndex);
+    emit stageIndexChanged(stageIndex);
 }
 
 

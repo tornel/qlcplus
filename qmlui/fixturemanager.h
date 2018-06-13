@@ -28,12 +28,14 @@
 #include <QDir>
 
 #include "scenevalue.h"
-#include "treemodel.h"
 
 class Doc;
 class Fixture;
+class TreeModel;
+class TreeModelItem;
 class FixtureGroup;
 class ColorFilters;
+class MonitorProperties;
 
 class FixtureManager : public QObject
 {
@@ -47,6 +49,7 @@ class FixtureManager : public QObject
     Q_PROPERTY(quint32 universeFilter READ universeFilter WRITE setUniverseFilter NOTIFY universeFilterChanged)
     Q_PROPERTY(QString searchFilter READ searchFilter WRITE setSearchFilter NOTIFY searchFilterChanged)
     Q_PROPERTY(quint32 itemID READ itemID WRITE setItemID NOTIFY itemIDChanged)
+    Q_PROPERTY(bool propertyEditEnabled READ propertyEditEnabled WRITE setPropertyEditEnabled NOTIFY propertyEditEnabledChanged)
 
     Q_PROPERTY(QVariantList goboChannels READ goboChannels NOTIFY goboChannelsChanged)
     Q_PROPERTY(QVariantList colorWheelChannels READ colorWheelChannels NOTIFY colorWheelChannelsChanged)
@@ -79,7 +82,7 @@ public:
 
     /** Returns a data structure with all the information of
      *  a Fixture with the specified $id */
-    Q_INVOKABLE QVariant fixtureInfo(quint32 id);
+    Q_INVOKABLE QVariant fixtureInfo(quint32 itemID);
 
 signals:
     /** Notify the listeners that the universe filter has changed */
@@ -99,12 +102,16 @@ private:
     QQuickView *m_view;
     /** Reference to the project workspace */
     Doc *m_doc;
+    /** Reference to the Doc Monitor properties */
+    MonitorProperties *m_monProps;
     /** A filter for m_fixturesMap to restrict data to a specific universe */
     quint32 m_universeFilter;
     /** A string to filter the displayed tree items */
     QString m_searchFilter;
     /** A generic ID for Universe/Group/Fixture editing/info */
     quint32 m_itemID;
+    /** Flag that indicates if property editing is active */
+    bool m_propertyEditEnabled;
 
     QVariantList m_universeInfo;
 
@@ -114,9 +121,31 @@ private:
 public:
     enum
     {
-        GroupMatch = (1 << 0),
+        ShowCheckBoxes  = (1 << 0),
+        ShowGroups      = (1 << 1),
+        ShowChannels    = (1 << 2),
+        ShowHeads       = (1 << 3),
+        ShowFlags       = (1 << 4),
+        ShowCanFade     = (1 << 5),
+        ShowPrecedence  = (1 << 6),
+        ShowModifier    = (1 << 7)
+    };
+
+    enum PrecedenceType
+    {
+        AutoHTP = 0,
+        AutoLTP,
+        ForcedHTP,
+        ForcedLTP
+    };
+    Q_ENUM(PrecedenceType)
+
+    enum
+    {
+        GroupMatch   = (1 << 0),
         FixtureMatch = (1 << 1),
-        ChannelMatch = (1 << 2)
+        HeadMatch    = (1 << 2),
+        ChannelMatch = (1 << 3)
     };
 
     /** Returns a constant value for an invalid Fixture ID */
@@ -143,13 +172,24 @@ public:
     /** Returns the data model to display a tree of Fixture Groups/Fixtures */
     QVariant groupsTreeModel();
 
+    /** Enable/Disable the fixture/channel properties editing mode */
+    bool propertyEditEnabled();
+    void setPropertyEditEnabled(bool enable);
+
+    Q_INVOKABLE void setItemRoleData(int itemID, int index, QString role, QVariant value);
+
+    static void addFixtureNode(Doc *doc, TreeModel *treeModel, Fixture *fixture, QString basePath, quint32 nodeSubID,
+                               int &matchMask, QString searchFilter = QString(), int showFlags = ShowGroups | ShowHeads,
+                               QList<SceneValue> checkedChannels = QList<SceneValue>());
+
     static void addFixtureGroupTreeNode(Doc *doc, TreeModel *treeModel, FixtureGroup *group,
-                                        QString searchFilter = QString(), bool showChannels = true,
+                                        QString searchFilter = QString(), int showFlags = ShowGroups | ShowHeads,
                                         QList<SceneValue> checkedChannels = QList<SceneValue>());
 
     /** Update the tree of groups/fixtures/channels */
     static void updateGroupsTree(Doc *doc, TreeModel *treeModel, QString searchFilter = QString(),
-                                 bool showChannels = true, QList<SceneValue> checkedChannels = QList<SceneValue>());
+                                 int showFlags = ShowGroups | ShowHeads,
+                                 QList<SceneValue> checkedChannels = QList<SceneValue>());
 
     /** Return the type as string of the Fixture with ID $fixtureID */
     Q_INVOKABLE QString fixtureIcon(quint32 fixtureID);
@@ -168,6 +208,14 @@ signals:
     /** Notify the listeners that a fixture has been deleted */
     void fixtureDeleted(quint32 fxID);
 
+    void fixtureFlagsChanged(quint32 itemID, quint32 flags);
+
+    void propertyEditEnabledChanged();
+
+public slots:
+    /** Slot called whenever a new fixture has been created */
+    void slotFixtureAdded(quint32 id, QVector3D pos = QVector3D(0, 0, 0));
+
 private:
     /** Comparison method to sort a Fixture list by DMX address */
     static bool compareFixtures(Fixture *left, Fixture *right);
@@ -177,6 +225,8 @@ private:
     QList<Fixture *> m_fixtureList;
     /** Data model used by the QML UI to represent groups/fixtures/channels */
     TreeModel *m_fixtureTree;
+    /** Current flags being used for filling the tree data */
+    int m_treeShowFlags;
 
     /*********************************************************************
      * Fixture groups
@@ -193,7 +243,7 @@ signals:
     void groupsTreeModelChanged();
 
 public slots:
-    /** Slot called whenever a new fixture groups has been created */
+    /** Slot called whenever a new fixture group has been created */
     void slotFixtureGroupAdded(quint32 id);
 
     /*********************************************************************
@@ -201,28 +251,28 @@ public slots:
      *********************************************************************/
 
 public:
-    enum Orientation
+    enum PanelOrientation
     {
         TopLeft,
         TopRight,
         BottomLeft,
         BottomRight
     };
-    Q_ENUM(Orientation)
+    Q_ENUM(PanelOrientation)
 
-    enum Type
+    enum PanelType
     {
         Snake,
         ZigZag
     };
-    Q_ENUM(Type)
+    Q_ENUM(PanelType)
 
-    enum Direction
+    enum PanelDirection
     {
         Horizontal,
         Vertical
     };
-    Q_ENUM(Direction)
+    Q_ENUM(PanelDirection)
 
     bool addRGBPanel(QString name, qreal xPos, qreal yPos);
 
@@ -312,11 +362,12 @@ public:
 
     /**
      * @brief setFixtureCapabilities
-     * @param fxID the Fixture unique ID
+     * @param itemID the preview item ID
+     * @param headIndex index of the head to consider or -1 to not considering it at all
      * @param enable used to increment/decrement the UI tools counters
      * @return A multihash containg the fixture capabilities by channel type
      */
-    QMultiHash<int, SceneValue> getFixtureCapabilities(quint32 fxID, bool enable);
+    QMultiHash<int, SceneValue> getFixtureCapabilities(quint32 itemID, int headIndex, bool enable);
 
     /** Reset any previously elapsed capability */
     void resetCapabilities();
