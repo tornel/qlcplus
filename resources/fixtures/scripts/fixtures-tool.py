@@ -2,6 +2,7 @@
 
 import sys
 import os
+import re
 import argparse
 import lxml.etree as etree
 
@@ -10,18 +11,18 @@ singleCapCount = 0
 namespace = "http://www.qlcplus.org/FixtureDefinition"
 
 def getPresetsArray():
-    return [ 
-        "Custom", 
+    return [
+        "Custom",
         "IntensityMasterDimmer", "IntensityMasterDimmerFine", "IntensityDimmer", "IntensityDimmerFine",
         "IntensityRed", "IntensityRedFine", "IntensityGreen", "IntensityGreenFine", "IntensityBlue", "IntensityBlueFine",
         "IntensityCyan", "IntensityCyanFine", "IntensityMagenta", "IntensityMagentaFine", "IntensityYellow", "IntensityYellowFine",
         "IntensityAmber", "IntensityAmberFine", "IntensityWhite", "IntensityWhiteFine", "IntensityUV", "IntensityUVFine",
         "IntensityIndigo", "IntensityIndigoFine", "IntensityLime", "IntensityLimeFine", "IntensityHue", "IntensityHueFine",
-        "IntensitySaturation", "IntensitySaturationFine", "IntensityLightness", "IntensityLightnessFine", 
+        "IntensitySaturation", "IntensitySaturationFine", "IntensityLightness", "IntensityLightnessFine",
         "IntensityValue", "IntensityValueFine",
         "PositionPan", "PositionPanFine", "PositionTilt", "PositionTiltFine", "PositionXAxis", "PositionYAxis",
         "SpeedPanSlowFast", "SpeedPanFastSlow", "SpeedTiltSlowFast", "SpeedTiltFastSlow", "SpeedPanTiltSlowFast", "SpeedPanTiltFastSlow",
-        "ColorMacro", "ColorWheel", "ColorWheelFine", "ColorRGBMixer", "ColorCTOMixer", "ColorCTBMixer", 
+        "ColorMacro", "ColorWheel", "ColorWheelFine", "ColorRGBMixer", "ColorCTOMixer", "ColorCTBMixer",
         "GoboWheel", "GoboWheelFine", "GoboIndex", "GoboIndexFine",
         "ShutterStrobeSlowFast", "ShutterStrobeFastSlow",
         "BeamFocusNearFar", "BeamFocusFarNear", "BeamIris", "BeamIrisFine", "BeamZoomSmallBig", "BeamZoomBigSmall",
@@ -30,38 +31,38 @@ def getPresetsArray():
 
 def printPresets(group):
     presets = getPresetsArray()
-    min = 1
-    max = presets.index("NoFunction")
+    pMin = 1
+    pMax = presets.index("NoFunction")
 
     if group == "Intensity":
-        min = presets.index("IntensityMasterDimmer")
-        max = presets.index("IntensityValueFine")
+        pMin = presets.index("IntensityMasterDimmer")
+        pMax = presets.index("IntensityValueFine")
     elif group == "Pan":
-        min = presets.index("PositionPan")
-        max = presets.index("PositionPanFine")
+        pMin = presets.index("PositionPan")
+        pMax = presets.index("PositionPanFine")
     elif group == "Tilt":
-        min = presets.index("PositionTilt")
-        max = presets.index("PositionTiltFine")
+        pMin = presets.index("PositionTilt")
+        pMax = presets.index("PositionTiltFine")
     elif group == "Speed":
-        min = presets.index("SpeedPanSlowFast")
-        max = presets.index("SpeedPanTiltFastSlow")
+        pMin = presets.index("SpeedPanSlowFast")
+        pMax = presets.index("SpeedPanTiltFastSlow")
     elif group == "Colour":
-        min = presets.index("ColorMacro")
-        max = presets.index("ColorCTBMixer")
+        pMin = presets.index("ColorMacro")
+        pMax = presets.index("ColorCTBMixer")
     elif group == "Gobo":
-        min = presets.index("GoboWheel")
-        max = presets.index("GoboIndexFine")
+        pMin = presets.index("GoboWheel")
+        pMax = presets.index("GoboIndexFine")
     elif group == "Shutter":
-        min = presets.index("ShutterStrobeSlowFast")
-        max = presets.index("ShutterStrobeFastSlow")
+        pMin = presets.index("ShutterStrobeSlowFast")
+        pMax = presets.index("ShutterStrobeFastSlow")
     elif group == "Beam":
-        min = presets.index("BeamFocusNearFar")
-        max = presets.index("BeamZoomBigSmall")
+        pMin = presets.index("BeamFocusNearFar")
+        pMax = presets.index("BeamZoomBigSmall")
     elif group == "Prism":
-        min = presets.index("PrismRotationSlowFast")
-        max = presets.index("PrismRotationFastSlow")
+        pMin = presets.index("PrismRotationSlowFast")
+        pMax = presets.index("PrismRotationFastSlow")
 
-    for i in range(min, max + 1):
+    for i in range(pMin, pMax + 1):
         sys.stdout.write("[" + str(i) + "] " + presets[i] + " ")
         sys.stdout.flush()
     print ""
@@ -70,7 +71,7 @@ def printPresets(group):
 # update_fixture
 #
 # Convert an 'old' syntax definition to the 'new' syntax, which includes:
-# - single capability channels 
+# - single capability channels
 # - global physical dimension
 #
 # path: the source path with the fixtures to convert
@@ -84,28 +85,28 @@ def update_fixture(path, filename, destpath):
     xmlObj = etree.parse(absname, parser=parser)
     root = xmlObj.getroot()
     fxSingleCapCount = 0
-    
+
     global namespace
-    
+
     ################################## PHYSICAL PROCESSING ################################
 
     global_phy = {}
     gphy_tag = etree.Element("Physical")
-    
+
     for mode in root.findall('{' + namespace + '}Mode'):
         phy_dict = {}
         phy_tag = mode.find('{' + namespace + '}Physical')
-        
+
         if not phy_tag:
             # Mode already processed. Skip
             continue
-        
+
         bulb_tag = phy_tag.find('{' + namespace + '}Bulb')
         dim_tag = phy_tag.find('{' + namespace + '}Dimensions')
         lens_tag = phy_tag.find('{' + namespace + '}Lens')
         focus_tag = phy_tag.find('{' + namespace + '}Focus')
         tech_tag = phy_tag.find('{' + namespace + '}Technical')
-        
+
         phy_dict.update(phy_tag.attrib)
         phy_dict.update(bulb_tag.attrib)
         phy_dict.update(dim_tag.attrib)
@@ -121,12 +122,12 @@ def update_fixture(path, filename, destpath):
             print "Moving mode " + mode.attrib['Name'] + " to global"
         elif phy_dict == global_phy:
             mode.remove(phy_tag)
-            print "Mode " + mode.attrib['Name'] + " is identical to global"     
+            print "Mode " + mode.attrib['Name'] + " is identical to global"
 
     root.append(gphy_tag)
 
     ##################################### CHANNELS PROCESSING #################################
-    
+
     for channel in root.findall('{' + namespace + '}Channel'):
         locCapCount = 0
 
@@ -196,7 +197,7 @@ def update_fixture(path, filename, destpath):
                     preset = "IntensityLightness" + fineWord
                 elif color == "Value":
                     preset = "IntensityValue" + fineWord
-                    
+
             elif group == "Pan":
                 preset = "PositionPan" + fineWord
             elif group == "Tilt":
@@ -240,6 +241,299 @@ def update_fixture(path, filename, destpath):
     return fxSingleCapCount
 
 ###########################################################################################
+# validate_fixture
+#
+# Check the syntax of a definition and reports errors if found
+#
+# path: the source path with the fixtures to validate
+# filename: the relative file name
+###########################################################################################
+
+def validate_fixture(path, filename):
+    absname = os.path.join(path, filename)
+    parser = etree.XMLParser(ns_clean=True, recover=True)
+    xmlObj = etree.parse(absname, parser=parser)
+    root = xmlObj.getroot()
+
+    global namespace
+    errNum = 0
+    hasPan = False
+    hasTilt = False
+    needSave = False
+
+    ##################################### CHECK CREATOR #################################
+
+    creator_tag = root.find('{' + namespace + '}Creator')
+
+    if creator_tag is None:
+        print "Creator tag not found"
+    else:
+        author_tag = creator_tag.find('{' + namespace + '}Author')
+        name_tag = creator_tag.find('{' + namespace + '}Name')
+        version_tag = creator_tag.find('{' + namespace + '}Version')
+
+        numversion_tok = re.findall('\d+', version_tag.text)
+        #print "Definition version: " + version_tag.text
+
+        # extract a unified number from the QLC version string
+        if len(numversion_tok) == 3:
+            qlc_version = (int(numversion_tok[0]) * 10000) + (int(numversion_tok[1]) * 100) + int(numversion_tok[2])
+        else:
+            qlc_version = (int(numversion_tok[0]) * 10000) + (int(numversion_tok[1]) * 100)
+
+        if author_tag is None:
+            print absname + ": Author tag not found"
+            errNum += 1
+        else:
+            # pre QLC+ definition didn't have the Author tag. Let's do
+            # the following check only for newer defs
+            if name_tag.text == "Q Light Controller Plus":
+                if not author_tag.text:
+                    print absname + ": Empty author name detected"
+                    errNum += 1
+                else:
+                    authName = author_tag.text
+                    if "@" in authName or "://" in authName or "www" in authName:
+                        print absname + ": URLs or emails not allowed in author tag"
+                        errNum += 1
+
+    ################################ CHECK FIXTURE GENERALS ##############################
+
+    manuf_tag = root.find('{' + namespace + '}Manufacturer')
+    model_tag = root.find('{' + namespace + '}Model')
+    type_tag = root.find('{' + namespace + '}Type')
+
+    if manuf_tag is None or not manuf_tag.text:
+        print absname + ": Invalid manufacturer detected"
+        errNum += 1
+    if model_tag is None or not model_tag.text:
+        print absname + ": Invalid model detected"
+        errNum += 1
+    if type_tag is None or not type_tag.text:
+        print absname + ": Invalid type detected"
+        errNum += 1
+
+    ##################################### CHECK CHANNELS #################################
+
+    chCount = 0
+    channelNames = []
+
+    for channel in root.findall('{' + namespace + '}Channel'):
+        chName = ""
+        chPreset = ""
+        if not 'Name' in channel.attrib:
+            print absname + ": Invalid channel. No name specified"
+            errNum += 1
+        else:
+            chName = channel.attrib['Name']
+            channelNames.append(chName)
+
+        if 'Preset' in channel.attrib:
+            chPreset = channel.attrib['Preset']
+
+        childrenCount = len(channel.getchildren())
+        group_tag = channel.find('{' + namespace + '}Group')
+        groupByte = -1
+
+        if not chPreset and childrenCount == 0:
+            print absname + "/" + chName + ": Invalid channel. Not a preset and no capabilities found"
+            errNum += 1
+
+        if not chPreset and group_tag is None:
+            print absname + "/" + chName + ": Invalid channel. Not a preset and no group tag found"
+            errNum += 1
+
+        if group_tag is not None:
+            if not group_tag.text:
+                print absname + "/" + chName + ": Invalid channel. Empty group tag detected"
+                errNum += 1
+            else:
+                if group_tag.text == 'Pan':
+                    hasPan = True
+                if group_tag.text == 'Tilt':
+                    hasTilt = True
+
+            if not 'Byte' in group_tag.attrib:
+                print absname + "/" + chName + ": Invalid channel. Group byte attribute not found"
+                errNum += 1
+            else:
+                groupByte = group_tag.attrib['Byte']
+
+        if chPreset:
+            # no need to go further is this is a preset
+            chCount += 1
+            continue
+
+        # check the word 'fine' against control byte
+        if groupByte == 0 and 'fine' in chName:
+            print absname + "/" + chName + ": control byte should be set to Fine (LSB)"
+            errNum += 1
+
+        ################################# CHECK CAPABILITIES ##############################
+
+        rangeMin = 255
+        rangeMax = 0
+        lastMax = -1
+        capCount = 0
+
+        for capability in channel.findall('{' + namespace + '}Capability'):
+
+            newResSyntax = False
+            capName = capability.text
+            if not capName:
+                print absname + "/" + chName + ": Capability with no description detected"
+                errNum += 1
+
+            # check capabilities overlapping
+            currMin = int(capability.attrib['Min'])
+            currMax = int(capability.attrib['Max'])
+
+            #print "Min: " + str(currMin) + ", max: " + str(currMax)
+
+            if currMin <= lastMax:
+                print absname + "/" + chName + "/" + capName + ": Overlapping values detected " + str(currMin) + "/" + str(lastMax)
+                errNum += 1
+
+            # disabled for now. 710 errors with this !
+            #if currMin != lastMax + 1:
+            #    print absname + "/" + chName + "/" + capName + ": Non contiguous range detected " + str(currMin) + "/" + str(lastMax)
+            #    errNum += 1
+
+            lastMax = currMax
+
+            resource = capability.attrib.get('Res', "")
+
+            # try and see if new sytax is on
+            if not resource:
+                resource = capability.attrib.get('Res1', "")
+                newResSyntax = True
+
+            if resource.startswith('/'):
+                print absname + "/" + chName + "/" + capName + ": Absolute paths not allowed in resources"
+                errNum += 1
+
+            # check the actual existence of a gobo. If possible, migrate to SVG
+            if resource and '/' in resource:
+                goboPath = os.getcwd() + "/../gobos/" + resource
+                #print "GOBO path: " + goboPath
+
+                if not os.path.isfile(goboPath):
+                    # check if a SVG version of the gobo exists
+                    resource = resource.replace('png', 'svg')
+                    goboPath = os.getcwd() + "/../gobos/" + resource
+
+                    if not os.path.isfile(goboPath):
+                        print absname + "/" + chName + "/" + capName + ": Non existing gobo file detected (" + resource + ")"
+                        errNum += 1
+                    else:
+                        needSave = True
+                        if newResSyntax:
+                            capability.set('Res1', resource)
+                        else:
+                            capability.set('Res', resource)
+
+            capCount += 1
+
+        if capCount == 0:
+            print absname + "/" + chName + ": Channel has no capabilities"
+            errNum += 1
+
+        chCount += 1
+
+    if chCount == 0:
+        print absname + ": Invalid fixture. No channels found !"
+        errNum += 1
+
+    ###################################### CHECK MODES ###################################
+
+    modeCount = 0
+
+    for mode in root.findall('{' + namespace + '}Mode'):
+
+        modeName = ""
+
+        if not 'Name' in mode.attrib:
+            print absname + ": mode name attribute not found"
+            errNum += 1
+        else:
+            modeName = mode.attrib['Name']
+
+        if not modeName:
+            print absname + ": Empty mode name detected"
+            errNum += 1
+
+        # better to skip this for now. Still too many errors
+        #if qlc_version >= 41100 and 'mode' in modeName.lower():
+        #    print absname + "/" + modeName + ": word 'mode' found in mode name"
+        #    errNum += 1
+
+        modeChanCount = 0
+
+        for mchan in mode.findall('{' + namespace + '}Channel'):
+
+            if mchan.text is None:
+                print absname + "/" + modeName + ": Empty channel name found. This definition won't work."
+                errNum += 1
+            else:
+                if not mchan.text in channelNames:
+                    print absname + "/" + modeName + ": Channel " + mchan.text + " doesn't exist. This definition won't work."
+                    errNum += 1
+
+            modeChanCount += 1
+
+        if modeChanCount == 0:
+            print absname + "/" + modeName + ": No channel found in mode"
+            errNum += 1
+
+        modeCount += 1
+
+    if modeCount == 0:
+        print absname + ": Invalid fixture. No modes found !"
+        errNum += 1
+
+    ################################ CHECK GLOBAL PHYSICAL ################################
+
+    gphy_tag = root.find('{' + namespace + '}Physical')
+
+    if gphy_tag is not None:
+
+        dim_tag = gphy_tag.find('{' + namespace + '}Dimensions')
+        focus_tag = gphy_tag.find('{' + namespace + '}Focus')
+        tech_tag = gphy_tag.find('{' + namespace + '}Technical')
+
+        width = int(dim_tag.attrib.get('Width', 0))
+        height = int(dim_tag.attrib.get('Height', 0))
+        depth = int(dim_tag.attrib.get('Depth', 0))
+        panDeg = int(focus_tag.attrib.get('PanMax', 0))
+        tiltDeg = int(focus_tag.attrib.get('TiltMax', 0))
+
+        if width == 0 or height == 0 or depth == 0:
+            print absname + ": Invalid physical dimenstions detected"
+            errNum += 1
+
+        if hasPan and panDeg == 0:
+            print absname + ": Invalid PAN degrees"
+            errNum += 1
+
+        if hasTilt and tiltDeg == 0:
+            print absname + ": Invalid TILT degrees"
+            errNum += 1
+
+        if tech_tag is not None:
+            power = int(tech_tag.attrib.get('PowerConsumption', 0))
+            if power == 0:
+                print absname + ": Invalid power consumption"
+                errNum += 1
+
+    if needSave:
+        print "Saving back " + filename + "..."
+        xmlFile = open(absname, "w")
+        xmlFile.write(etree.tostring(root, pretty_print=True, xml_declaration=True, encoding="UTF-8", doctype="<!DOCTYPE FixtureDefinition>"))
+        xmlFile.close()
+
+    return errNum
+
+###########################################################################################
 # createFixtureMap
 #
 # Creates the Fixture definition map read by QLC+ at startup
@@ -255,7 +549,7 @@ def createFixtureMap():
     root.set('xmlns', 'http://www.qlcplus.org/FixturesMap')
 
     for dirname in sorted(os.listdir('.'), key=lambda s: s.lower()):
-        
+
         if not os.path.isdir(dirname): continue
 
         if dirname != "scripts" and dirname != manufacturer:
@@ -287,12 +581,13 @@ def createFixtureMap():
 #                                       MAIN
 #
 ###########################################################################################
-    
+
 parser = argparse.ArgumentParser(description='Unified Fixture tool.')
 parser.add_argument('--map', help='Create the Fixture map', action='store_true')
-parser.add_argument('--convert [source] [destination]', help='Convert an "old" syntax Fixture definition', 
+parser.add_argument('--convert [source] [destination]', help='Convert an "old" syntax Fixture definition',
                     nargs='*', dest='convert')
-
+parser.add_argument('--validate [path]', help='Validate fixtures in the specified path',
+                    nargs='*', dest='validate')
 args = parser.parse_args()
 
 print args
@@ -318,3 +613,26 @@ elif args.convert:
         singleCapCount += update_fixture(path, filename, destpath)
 
     print "Scan done. Single cap found: " + str(singleCapCount)
+elif args.validate:
+    if len(sys.argv) < 2:
+        print "Usage " + sys.argv[0] + "--validate [path]"
+        sys.exit()
+
+    path = sys.argv[2]
+
+    fileCount = 0
+    errorCount = 0
+
+    for dirname in sorted(os.listdir(path), key=lambda s: s.lower()):
+
+        if not os.path.isdir(dirname): continue
+
+        for filename in sorted(os.listdir(dirname), key=lambda s: s.lower()):
+            if not filename.endswith('.qxf'): continue
+
+            #print "Processing file " + filename
+            errorCount += validate_fixture(dirname, filename)
+            fileCount += 1
+
+    print str(fileCount) + " definitions processed. " + str(errorCount) + " errors detected"
+

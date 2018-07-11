@@ -28,7 +28,9 @@
 #include "rgbmatrixeditor.h"
 #include "contextmanager.h"
 #include "treemodelitem.h"
+#include "scriptwrapper.h"
 #include "chasereditor.h"
+#include "scripteditor.h"
 #include "sceneeditor.h"
 #include "audioeditor.h"
 #include "videoeditor.h"
@@ -39,7 +41,6 @@
 #include "function.h"
 #include "sequence.h"
 #include "chaser.h"
-#include "script.h"
 #include "scene.h"
 #include "audio.h"
 #include "video.h"
@@ -93,6 +94,21 @@ FunctionManager::~FunctionManager()
     m_view->rootContext()->setContextProperty("functionManager", NULL);
 }
 
+quint32 FunctionManager::startupFunctionID() const
+{
+    return m_doc->startupFunction();
+}
+
+void FunctionManager::setStartupFunctionID(quint32 fid)
+{
+    if (fid == m_doc->startupFunction())
+        m_doc->setStartupFunction(Function::invalidId());
+    else
+        m_doc->setStartupFunction(fid);
+
+    emit startupFunctionIDChanged();
+}
+
 QVariant FunctionManager::functionsList()
 {
     return QVariant::fromValue(m_functionTree);
@@ -130,7 +146,7 @@ QVariantList FunctionManager::selectedFunctionsID()
     return m_selectedIDList;
 }
 
-QStringList FunctionManager::selectedFunctionsName()
+QStringList FunctionManager::selectedItemNames()
 {
     QStringList names;
 
@@ -140,6 +156,11 @@ QStringList FunctionManager::selectedFunctionsName()
         if (f == NULL)
             continue;
         names.append(f->name());
+    }
+    for (QString path : m_selectedFolderList)
+    {
+        QStringList tokens = path.split(TreeModel::separator());
+        names.append(tokens.last());
     }
 
     return names;
@@ -153,7 +174,7 @@ void FunctionManager::setFunctionFilter(quint32 filter, bool enable)
         m_filter &= ~filter;
 
     updateFunctionsTree();
-    emit selectionCountChanged(m_selectedIDList.count());
+    emit selectedFunctionCountChanged(m_selectedIDList.count());
 }
 
 int FunctionManager::functionsFilter() const
@@ -182,54 +203,6 @@ void FunctionManager::setSearchFilter(QString searchFilter)
     emit searchFilterChanged();
 }
 
-void FunctionManager::setFolderPath(QString oldAbsPath, QString newRelPath)
-{
-    QStringList tokens = oldAbsPath.split(TreeModel::separator());
-    QString newAbsPath;
-
-    if (tokens.count() > 0)
-    {
-        tokens.removeLast();
-        tokens.append(newRelPath);
-        newAbsPath = tokens.join(TreeModel::separator());
-    }
-    else
-    {
-        newAbsPath = newRelPath;
-    }
-
-    tokens = newAbsPath.split(TreeModel::separator());
-
-    qDebug() << "Folder path changed from" << oldAbsPath << "to" << newAbsPath;
-
-    // change the item label first
-    m_functionTree->setItemRoleData(oldAbsPath, tokens.last(), TreeModel::LabelRole);
-    // once label has changed, the item can now be accessed with the new path
-    m_functionTree->setItemRoleData(newAbsPath, tokens.last(), TreeModel::PathRole);
-
-    if (m_emptyFolderList.contains(oldAbsPath))
-    {
-        m_emptyFolderList.removeOne(oldAbsPath);
-        m_emptyFolderList.append(newAbsPath);
-    }
-    else
-    {
-        oldAbsPath.replace(TreeModel::separator(), "/");
-        newAbsPath.replace(TreeModel::separator(), "/");
-
-        for (Function *f : m_doc->functions())
-        {
-            if (f->path(true).startsWith(oldAbsPath))
-            {
-                Tardis::instance()->enqueueAction(Tardis::FunctionSetPath, f->id(), f->path(true), newAbsPath);
-                f->setPath(newAbsPath);
-            }
-        }
-    }
-
-    //m_functionTree->printTree();
-}
-
 quint32 FunctionManager::addFunctiontoDoc(Function *func, QString name, bool select)
 {
     if (func == NULL)
@@ -248,7 +221,7 @@ quint32 FunctionManager::addFunctiontoDoc(Function *func, QString name, bool sel
         if (select)
         {
             m_selectedIDList.append(QVariant(func->id()));
-            emit selectionCountChanged(m_selectedIDList.count());
+            emit selectedFunctionCountChanged(m_selectedIDList.count());
         }
 
         Tardis::instance()->enqueueAction(Tardis::FunctionCreate, func->id(), QVariant(),
@@ -489,6 +462,8 @@ void FunctionManager::setPreview(bool enable)
 
 void FunctionManager::selectFunctionID(quint32 fID, bool multiSelection)
 {
+    qDebug() << "Selected function:" << fID << multiSelection;
+
     if (multiSelection == false)
     {
         for (QVariant fID : m_selectedIDList)
@@ -501,6 +476,8 @@ void FunctionManager::selectFunctionID(quint32 fID, bool multiSelection)
             }
         }
         m_selectedIDList.clear();
+        m_selectedFolderList.clear();
+        emit selectedFolderCountChanged(0);
     }
 
     if (m_previewEnabled == true)
@@ -512,7 +489,7 @@ void FunctionManager::selectFunctionID(quint32 fID, bool multiSelection)
     if (fID != Function::invalidId())
         m_selectedIDList.append(QVariant(fID));
 
-    emit selectionCountChanged(m_selectedIDList.count());
+    emit selectedFunctionCountChanged(m_selectedIDList.count());
 }
 
 QString FunctionManager::getEditorResource(int funcID)
@@ -607,6 +584,11 @@ void FunctionManager::setEditorFunction(quint32 fID, bool requestUI, bool back)
             m_currentEditor = new RGBMatrixEditor(m_view, m_doc, this);
         }
         break;
+        case Function::ScriptType:
+        {
+             m_currentEditor = new ScriptEditor(m_view, m_doc, this);
+        }
+        break;
         case Function::AudioType:
         {
             m_currentEditor = new AudioEditor(m_view, m_doc, this);
@@ -660,6 +642,30 @@ bool FunctionManager::isEditing() const
     return false;
 }
 
+void FunctionManager::deleteFunction(quint32 fid)
+{
+    Function *f = m_doc->function(fid);
+    if (f == NULL)
+        return;
+
+    if (f->isRunning())
+        f->stop(FunctionParent::master());
+
+    Tardis::instance()->enqueueAction(Tardis::FunctionDelete, f->id(),
+                                      Tardis::instance()->actionToByteArray(Tardis::FunctionDelete, f->id()),
+                                      QVariant());
+
+    QString fullPath = f->name();
+    QString funcPath = f->path(true);
+    if (funcPath.isEmpty() == false)
+    {
+        funcPath.replace("/", TreeModel::separator());
+        fullPath = QString("%1%2%3").arg(funcPath).arg(TreeModel::separator()).arg(f->name());
+    }
+    m_doc->deleteFunction(f->id());
+    m_functionTree->removeItem(fullPath);
+}
+
 void FunctionManager::deleteFunctions(QVariantList IDList)
 {
     for (QVariant fID : IDList)
@@ -674,15 +680,10 @@ void FunctionManager::deleteFunctions(QVariantList IDList)
         if (m_selectedIDList.contains(fID))
             m_selectedIDList.removeAll(fID);
 
-        Tardis::instance()->enqueueAction(Tardis::FunctionDelete, f->id(),
-                                          Tardis::instance()->actionToByteArray(Tardis::FunctionDelete, f->id()),
-                                          QVariant());
-        m_doc->deleteFunction(f->id());
+        deleteFunction(f->id());
     }
 
-    m_selectedIDList.clear();
-    emit selectionCountChanged(0);
-    updateFunctionsTree();
+    emit selectedFunctionCountChanged(m_selectedIDList.count());
 }
 
 void FunctionManager::moveFunctions(QString newPath)
@@ -777,47 +778,145 @@ void FunctionManager::deleteEditorItems(QVariantList list)
         m_currentEditor->deleteItems(list);
 }
 
-void FunctionManager::renameFunctions(QVariantList IDList, QString newName, bool numbering, int startNumber, int digits)
+void FunctionManager::renameSelectedItems(QString newName, bool numbering, int startNumber, int digits)
 {
-    if (IDList.isEmpty())
+    if (m_selectedIDList.isEmpty() && m_selectedFolderList.isEmpty())
         return;
 
-    if (IDList.count() == 1)
+    int currNumber = startNumber;
+
+    // rename folders first
+    for (QString path : m_selectedFolderList)
+        setFolderPath(path, newName);
+
+    for (QVariant id : m_selectedIDList) // C++11
     {
-        // single Function rename
-        Function *f = m_doc->function(IDList.first().toUInt());
-        if (f != NULL)
+        Function *f = m_doc->function(id.toUInt());
+        if (f == NULL)
+            continue;
+
+        if (numbering)
+        {
+            QString fName = QString("%1 %2").arg(newName.simplified()).arg(currNumber, digits, 10, QChar('0'));
+            Tardis::instance()->enqueueAction(Tardis::FunctionSetName, f->id(), f->name(), fName);
+            f->setName(fName);
+            currNumber++;
+        }
+        else
         {
             Tardis::instance()->enqueueAction(Tardis::FunctionSetName, f->id(), f->name(), newName.simplified());
             f->setName(newName.simplified());
         }
     }
+}
+
+int FunctionManager::selectedFunctionCount() const
+{
+    return m_selectedIDList.count();
+}
+
+QStringList FunctionManager::audioExtensions() const
+{
+    return m_doc->audioPluginCache()->getSupportedFormats();
+}
+
+QStringList FunctionManager::pictureExtensions() const
+{
+    return Video::getPictureCapabilities();
+}
+
+QStringList FunctionManager::videoExtensions() const
+{
+    return Video::getVideoCapabilities();
+}
+
+void FunctionManager::setViewPosition(int viewPosition)
+{
+    if (m_viewPosition == viewPosition)
+        return;
+
+    m_viewPosition = viewPosition;
+    emit viewPositionChanged(viewPosition);
+}
+
+int FunctionManager::viewPosition() const
+{
+    return m_viewPosition;
+}
+
+/*********************************************************************
+ * Folders
+ *********************************************************************/
+
+void FunctionManager::selectFolder(QString path, bool multiSelection)
+{
+    qDebug() << "Selected folder:" << path << multiSelection;
+
+    if (multiSelection == false && !path.isEmpty())
+    {
+        m_selectedFolderList.clear();
+        m_selectedIDList.clear();
+        emit selectedFunctionCountChanged(0);
+    }
+
+    if (path.isEmpty())
+        return;
+
+    m_selectedFolderList.append(path);
+    emit selectedFolderCountChanged(m_selectedFolderList.count());
+}
+
+int FunctionManager::selectedFolderCount() const
+{
+    return m_selectedFolderList.count();
+}
+
+void FunctionManager::setFolderPath(QString oldAbsPath, QString newRelPath)
+{
+    QStringList tokens = oldAbsPath.split(TreeModel::separator());
+    QString newAbsPath;
+
+    if (tokens.count() > 0)
+    {
+        tokens.removeLast();
+        tokens.append(newRelPath);
+        newAbsPath = tokens.join(TreeModel::separator());
+    }
     else
     {
-        int currNumber = startNumber;
+        newAbsPath = newRelPath;
+    }
 
-        for(QVariant id : IDList) // C++11
+    tokens = newAbsPath.split(TreeModel::separator());
+
+    qDebug() << "Folder path changed from" << oldAbsPath << "to" << newAbsPath;
+
+    // change the item label first
+    m_functionTree->setItemRoleData(oldAbsPath, tokens.last(), TreeModel::LabelRole);
+    // once label has changed, the item can now be accessed with the new path
+    m_functionTree->setItemRoleData(newAbsPath, tokens.last(), TreeModel::PathRole);
+
+    if (m_emptyFolderList.contains(oldAbsPath))
+    {
+        m_emptyFolderList.removeOne(oldAbsPath);
+        m_emptyFolderList.append(newAbsPath);
+    }
+    else
+    {
+        oldAbsPath.replace(TreeModel::separator(), "/");
+        newAbsPath.replace(TreeModel::separator(), "/");
+
+        for (Function *f : m_doc->functions())
         {
-            Function *f = m_doc->function(id.toUInt());
-            if (f == NULL)
-                continue;
-
-            if (numbering)
+            if (f->path(true).startsWith(oldAbsPath))
             {
-                QString fName = QString("%1 %2").arg(newName.simplified()).arg(currNumber, digits, 10, QChar('0'));
-                Tardis::instance()->enqueueAction(Tardis::FunctionSetName, f->id(), f->name(), fName);
-                f->setName(fName);
-                currNumber++;
-            }
-            else
-            {
-                Tardis::instance()->enqueueAction(Tardis::FunctionSetName, f->id(), f->name(), newName.simplified());
-                f->setName(newName.simplified());
+                Tardis::instance()->enqueueAction(Tardis::FunctionSetPath, f->id(), f->path(true), newAbsPath);
+                f->setPath(newAbsPath);
             }
         }
     }
 
-    updateFunctionsTree();
+    //m_functionTree->printTree();
 }
 
 void FunctionManager::createFolder()
@@ -862,38 +961,31 @@ void FunctionManager::createFolder()
     m_functionTree->printTree();
 }
 
-int FunctionManager::selectionCount() const
+void FunctionManager::deleteSelectedFolders()
 {
-    return m_selectedIDList.count();
-}
+    for (QString path : m_selectedFolderList)
+    {
+        if (m_emptyFolderList.contains(path))
+        {
+            m_emptyFolderList.removeAll(path);
+        }
+        else
+        {
+            for (Function *func : m_doc->functions())
+            {
+                if (func == NULL)
+                    continue;
 
-QStringList FunctionManager::audioExtensions() const
-{
-    return m_doc->audioPluginCache()->getSupportedFormats();
-}
+                if (func->path(true).startsWith(path))
+                    deleteFunction(func->id());
+            }
+        }
 
-QStringList FunctionManager::pictureExtensions() const
-{
-    return Video::getPictureCapabilities();
-}
+        m_functionTree->removeItem(path);
+    }
 
-QStringList FunctionManager::videoExtensions() const
-{
-    return Video::getVideoCapabilities();
-}
-
-void FunctionManager::setViewPosition(int viewPosition)
-{
-    if (m_viewPosition == viewPosition)
-        return;
-
-    m_viewPosition = viewPosition;
-    emit viewPositionChanged(viewPosition);
-}
-
-int FunctionManager::viewPosition() const
-{
-    return m_viewPosition;
+    m_selectedFolderList.clear();
+    emit selectedFolderCountChanged(0);
 }
 
 /*********************************************************************
@@ -1066,7 +1158,6 @@ void FunctionManager::updateFunctionsTree()
     m_collectionCount = m_rgbMatrixCount = m_scriptCount = 0;
     m_showCount = m_audioCount = m_videoCount = 0;
 
-    //m_selectedIDList.clear();
     m_functionTree->clear();
 
     for (Function *func : m_doc->functions()) // C++11

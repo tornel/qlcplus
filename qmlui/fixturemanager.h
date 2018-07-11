@@ -56,8 +56,8 @@ class FixtureManager : public QObject
     Q_PROPERTY(QVariantList shutterChannels READ shutterChannels NOTIFY shutterChannelsChanged)
     Q_PROPERTY(int colorsMask READ colorsMask NOTIFY colorsMaskChanged)
 
-    Q_PROPERTY(QStringList colorFiltersList READ colorFiltersList NOTIFY colorFiltersListChanged)
-    Q_PROPERTY(int colorFilterIndex READ colorFilterIndex WRITE setColorFilterIndex NOTIFY colorFilterIndexChanged)
+    Q_PROPERTY(QStringList colorFiltersFileList READ colorFiltersFileList NOTIFY colorFiltersFileListChanged)
+    Q_PROPERTY(int colorFilterFileIndex READ colorFilterFileIndex WRITE setColorFilterFileIndex NOTIFY colorFilterFileIndexChanged)
     Q_PROPERTY(ColorFilters *selectedFilters READ selectedFilters NOTIFY selectedFiltersChanged)
 
 public:
@@ -123,12 +123,13 @@ public:
     {
         ShowCheckBoxes  = (1 << 0),
         ShowGroups      = (1 << 1),
-        ShowChannels    = (1 << 2),
-        ShowHeads       = (1 << 3),
-        ShowFlags       = (1 << 4),
-        ShowCanFade     = (1 << 5),
-        ShowPrecedence  = (1 << 6),
-        ShowModifier    = (1 << 7)
+        ShowLinked      = (1 << 2),
+        ShowChannels    = (1 << 3),
+        ShowHeads       = (1 << 4),
+        ShowFlags       = (1 << 5),
+        ShowCanFade     = (1 << 6),
+        ShowPrecedence  = (1 << 7),
+        ShowModifier    = (1 << 8)
     };
 
     enum PrecedenceType
@@ -179,20 +180,29 @@ public:
     Q_INVOKABLE void setItemRoleData(int itemID, int index, QString role, QVariant value);
 
     static void addFixtureNode(Doc *doc, TreeModel *treeModel, Fixture *fixture, QString basePath, quint32 nodeSubID,
-                               int &matchMask, QString searchFilter = QString(), int showFlags = ShowGroups | ShowHeads,
+                               int &matchMask, QString searchFilter = QString(), int showFlags = ShowGroups | ShowLinked | ShowHeads,
                                QList<SceneValue> checkedChannels = QList<SceneValue>());
 
     static void addFixtureGroupTreeNode(Doc *doc, TreeModel *treeModel, FixtureGroup *group,
-                                        QString searchFilter = QString(), int showFlags = ShowGroups | ShowHeads,
+                                        QString searchFilter = QString(), int showFlags = ShowGroups | ShowLinked | ShowHeads,
                                         QList<SceneValue> checkedChannels = QList<SceneValue>());
 
     /** Update the tree of groups/fixtures/channels */
     static void updateGroupsTree(Doc *doc, TreeModel *treeModel, QString searchFilter = QString(),
-                                 int showFlags = ShowGroups | ShowHeads,
+                                 int showFlags = ShowGroups | ShowLinked | ShowHeads,
                                  QList<SceneValue> checkedChannels = QList<SceneValue>());
 
     /** Return the type as string of the Fixture with ID $fixtureID */
     Q_INVOKABLE QString fixtureIcon(quint32 fixtureID);
+
+    /** Return the Fixture ID of the provided $itemID */
+    Q_INVOKABLE int fixtureIDfromItemID(quint32 itemID);
+
+    /** Return the linked index of the provided $itemID */
+    Q_INVOKABLE int fixtureLinkedIndex(quint32 itemID);
+
+    /** Add/Remove a linked fixture node */
+    void updateLinkedFixtureNode(quint32 itemID, bool add);
 
     /** Generic helper to retrieve a channel icon resource as string, from
      *  the provided Fixture ID $fxID and channel index $chIdx */
@@ -308,14 +318,14 @@ private:
      *********************************************************************/
 public:
     /** Returns a list of the currently installed color filters XMLs */
-    QStringList colorFiltersList();
+    QStringList colorFiltersFileList();
 
     /** Create a new empty color filters file in the user folder */
-    Q_INVOKABLE void createColorFilters();
+    Q_INVOKABLE void addColorFiltersFile();
 
-    /** Get/Set the currently selected color filter index */
-    int colorFilterIndex() const;
-    void setColorFilterIndex(int colorFilterIndex);
+    /** Get/Set the currently selected color filter file index */
+    int colorFilterFileIndex() const;
+    void setColorFilterFileIndex(int index);
 
     /** Return a refererence to the currently selected color filters */
     ColorFilters *selectedFilters();
@@ -335,13 +345,13 @@ protected:
     void resetColorFilters();
 
 signals:
-    void colorFiltersListChanged();
-    void colorFilterIndexChanged(int colorFilterIndex);
+    void colorFiltersFileListChanged();
+    void colorFilterFileIndexChanged(int index);
     void selectedFiltersChanged();
 
 private:
     QList<ColorFilters *> m_colorFilters;
-    int m_colorFilterIndex;
+    int m_colorFiltersFileIndex;
 
     /*********************************************************************
      * Channel capabilities

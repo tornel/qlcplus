@@ -44,10 +44,13 @@ class FunctionManager : public QObject
 {
     Q_OBJECT
 
+    Q_PROPERTY(quint32 startupFunctionID READ startupFunctionID WRITE setStartupFunctionID NOTIFY startupFunctionIDChanged)
+
     Q_PROPERTY(QVariant functionsList READ functionsList NOTIFY functionsListChanged)
     Q_PROPERTY(int functionsFilter READ functionsFilter CONSTANT)
     Q_PROPERTY(QString searchFilter READ searchFilter WRITE setSearchFilter NOTIFY searchFilterChanged)
-    Q_PROPERTY(int selectionCount READ selectionCount NOTIFY selectionCountChanged)
+    Q_PROPERTY(int selectedFunctionCount READ selectedFunctionCount NOTIFY selectedFunctionCountChanged)
+    Q_PROPERTY(int selectedFolderCount READ selectedFolderCount NOTIFY selectedFolderCountChanged)
     Q_PROPERTY(bool isEditing READ isEditing NOTIFY isEditingChanged)
     Q_PROPERTY(int viewPosition READ viewPosition WRITE setViewPosition NOTIFY viewPositionChanged)
 
@@ -70,9 +73,16 @@ public:
     FunctionManager(QQuickView *view, Doc *doc, QObject *parent = 0);
     ~FunctionManager();
 
+    quint32 startupFunctionID() const;
+    void setStartupFunctionID(quint32 fid);
+
+signals:
+    void startupFunctionIDChanged();
+
     /*********************************************************************
      * Functions
      *********************************************************************/
+public:
     /** Read only property to expose the function tree to the QML UI */
     QVariant functionsList();
 
@@ -82,8 +92,8 @@ public:
     /** Get a list of the currently selected Function IDs, suitable to be used in QML */
     Q_INVOKABLE QVariantList selectedFunctionsID();
 
-    /** Get a list of the currently selected Function names, suitable to be used in QML */
-    Q_INVOKABLE QStringList selectedFunctionsName();
+    /** Get a list of the currently selected item names, suitable to be used in QML */
+    Q_INVOKABLE QStringList selectedItemNames();
 
     /** Enable/disable the display of a Function type in the functions tree */
     Q_INVOKABLE void setFunctionFilter(quint32 filter, bool enable);
@@ -92,9 +102,6 @@ public:
     /** Get/Set a string to filter Function names */
     QString searchFilter() const;
     void setSearchFilter(QString searchFilter);
-
-    /** Change the path of an existing folder and all its children */
-    Q_INVOKABLE void setFolderPath(QString oldAbsPath, QString newRelPath);
 
     /** Create a new Function with the specified $type */
     Q_INVOKABLE quint32 createFunction(int type, QStringList fileList = QStringList());
@@ -118,10 +125,13 @@ public:
     /** Set $fID as the current Function ID being edited */
     Q_INVOKABLE void setEditorFunction(quint32 fID, bool requestUI, bool back);
 
+    /** Return a reference of the currently open Function editor */
     FunctionEditor *currentEditor() const;
 
     /** Returns if the UI is editing a Function */
     bool isEditing() const;
+
+    void deleteFunction(quint32 fid);
 
     /** Delete the list of Function IDs in $IDList. This happens AFTER a popup confirmation */
     Q_INVOKABLE void deleteFunctions(QVariantList IDList);
@@ -138,12 +148,14 @@ public:
      *  This happens AFTER a popup confirmation */
     Q_INVOKABLE void deleteEditorItems(QVariantList list);
 
-    Q_INVOKABLE void renameFunctions(QVariantList IDList, QString newName, bool numbering, int startNumber, int digits);
-
-    Q_INVOKABLE void createFolder();
+    /** Rename the currently selected items (functions and/or folders)
+     *  with the provided $newName.
+     *  If $numbering is true, then $startNumber and $digits will compose
+     *  a progress number following $newName */
+    Q_INVOKABLE void renameSelectedItems(QString newName, bool numbering, int startNumber, int digits);
 
     /** Returns the number of the currently selected Functions */
-    int selectionCount() const;
+    int selectedFunctionCount() const;
 
     int sceneCount() const { return m_sceneCount; }
     int chaserCount() const { return m_chaserCount; }
@@ -182,7 +194,7 @@ signals:
     void showCountChanged();
     void audioCountChanged();
     void videoCountChanged();
-    void selectionCountChanged(int count);
+    void selectedFunctionCountChanged(int count);
     void isEditingChanged(bool editing);
     void viewPositionChanged(int viewPosition);
 
@@ -206,11 +218,6 @@ private:
      *  and previewed, if preview is enabled */
     QVariantList m_selectedIDList;
 
-    QString m_selectedFolder;
-
-    /** List of the folder paths that don't include any Function yet */
-    QStringList m_emptyFolderList;
-
     quint32 m_filter;
     QString m_searchFilter;
 
@@ -220,6 +227,36 @@ private:
 
     FunctionEditor *m_currentEditor;
     FunctionEditor *m_sceneEditor;
+
+    /*********************************************************************
+     * Folders
+     *********************************************************************/
+public:
+    /** Select a folder with the given $path */
+    Q_INVOKABLE void selectFolder(QString path, bool multiSelection);
+
+    /** Return the number of currently selected folders */
+    int selectedFolderCount() const;
+
+    /** Change the path of an existing folder and all its children */
+    Q_INVOKABLE void setFolderPath(QString oldAbsPath, QString newRelPath);
+
+    /** Create an empty folder with path starting from the currently
+     *  selected item */
+    Q_INVOKABLE void createFolder();
+
+    /** Delete the currently selected folders. If a folder is not empty,
+     *  delete also all the sub items in it */
+    Q_INVOKABLE void deleteSelectedFolders();
+
+signals:
+    void selectedFolderCountChanged(int count);
+
+private:
+    /** List of the folder paths that don't include any Function yet */
+    QStringList m_emptyFolderList;
+    /** List of the folders currently selected */
+    QStringList m_selectedFolderList;
 
     /*********************************************************************
      * DMX values (dumping and Scene editor)

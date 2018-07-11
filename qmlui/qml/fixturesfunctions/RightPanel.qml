@@ -29,6 +29,8 @@ SidePanel
     id: rightSidePanel
     objectName: "funcRightPanel"
 
+    property int selectedItemsCount: functionManager.selectedFunctionCount + functionManager.selectedFolderCount
+
     function createFunctionAndEditor(fType)
     {
         var i
@@ -37,7 +39,7 @@ SidePanel
 
         console.log("Requested to create function type " + fType)
 
-        if (fType === Function.AudioType)
+        if (fType === QLCFunction.AudioType)
         {
             var extList = functionManager.audioExtensions
             var exts = qsTr("Audio files") + " ("
@@ -50,7 +52,7 @@ SidePanel
             openFileDialog.open()
             return
         }
-        else if (fType === Function.VideoType)
+        else if (fType === QLCFunction.VideoType)
         {
             var videoExtList = functionManager.videoExtensions
             var picExtList = functionManager.pictureExtensions
@@ -73,7 +75,7 @@ SidePanel
         var fEditor = functionManager.getEditorResource(newFuncID)
         functionManager.setEditorFunction(newFuncID, false, false)
 
-        if (fType === Function.ShowType)
+        if (fType === QLCFunction.ShowType)
         {
             showManager.currentShowID = newFuncID
             mainView.switchToContext("SHOWMGR", fEditor)
@@ -209,20 +211,24 @@ SidePanel
                 height: iconSize
                 imgSource: "qrc:/remove.svg"
                 tooltip: qsTr("Delete the selected functions")
-                counter: functionManager.selectionCount && !functionManager.isEditing
+                counter: selectedItemsCount && !functionManager.isEditing
                 onClicked:
                 {
-                    var selNames = functionManager.selectedFunctionsName()
+                    var selNames = functionManager.selectedItemNames()
                     //console.log(selNames)
-                    deleteItemsPopup.message = qsTr("Are you sure you want to delete the following functions ?") + "\n" + selNames
+                    deleteItemsPopup.message = qsTr("Are you sure you want to delete the following items ?") + "\n" + selNames
                     deleteItemsPopup.open()
                 }
 
                 CustomPopupDialog
                 {
                     id: deleteItemsPopup
-                    title: qsTr("Delete functions")
-                    onAccepted: functionManager.deleteFunctions(functionManager.selectedFunctionsID())
+                    title: qsTr("Delete items")
+                    onAccepted:
+                    {
+                        functionManager.deleteSelectedFolders()
+                        functionManager.deleteFunctions(functionManager.selectedFunctionsID())
+                    }
                 }
             }
             IconButton
@@ -232,20 +238,27 @@ SidePanel
                 width: iconSize
                 height: iconSize
                 imgSource: "qrc:/rename.svg"
-                tooltip: qsTr("Rename the selected functions")
-                counter: functionManager.selectionCount && !functionManager.isEditing
+                tooltip: qsTr("Rename the selected items")
+                counter: selectedItemsCount && !functionManager.isEditing
                 onClicked:
                 {
-                    var selNames = functionManager.selectedFunctionsName()
-                    renameFuncPopup.baseName = selNames[0]
-                    renameFuncPopup.functionIDs = functionManager.selectedFunctionsID()
+                    var selNames = functionManager.selectedItemNames()
+                    if (selNames.length === 0)
+                        return
+                    if (selNames.length > 1)
+                        renameFuncPopup.showNumbering = true
+                    renameFuncPopup.editText = selNames[0]
                     renameFuncPopup.open()
                 }
 
-                PopupRenameFunctions
+                PopupRenameItems
                 {
                     id: renameFuncPopup
-                    title: qsTr("Rename functions")
+                    title: qsTr("Rename items")
+                    onAccepted:
+                    {
+                        functionManager.renameSelectedItems(editText, numberingEnabled, startNumber, digits)
+                    }
                 }
             }
             IconButton
@@ -256,10 +269,9 @@ SidePanel
                 height: iconSize
                 imgSource: "qrc:/edit-copy.svg"
                 tooltip: qsTr("Clone the selected functions")
-                counter: functionManager.selectionCount && !functionManager.isEditing
+                counter: functionManager.selectedFunctionCount && !functionManager.isEditing
                 onClicked: functionManager.cloneFunctions()
             }
-
 
             IconButton
             {
@@ -269,13 +281,29 @@ SidePanel
                 faSource: FontAwesome.fa_sitemap
                 faColor: UISettings.fgMedium
                 tooltip: qsTr("Show function usage")
-                counter: functionManager.selectionCount
+                counter: functionManager.selectedFunctionCount
                 onClicked:
                 {
                     var idList = functionManager.selectedFunctionsID()
                     loaderSource = ""
                     itemID = idList[0]
                     loaderSource = "qrc:/UsageList.qml"
+                }
+            }
+            IconButton
+            {
+                z: 2
+                width: iconSize
+                height: iconSize
+                imgSource: "qrc:/autostart.svg"
+                tooltip: qsTr("Set/Unset autostart function")
+                counter: functionManager.selectedFunctionCount
+                onClicked:
+                {
+                    var idList = functionManager.selectedFunctionsID()
+                    if (idList.length === 0)
+                        return
+                    functionManager.startupFunctionID = idList[0]
                 }
             }
 
@@ -413,7 +441,7 @@ SidePanel
                 imgSource: "qrc:/play.svg"
                 tooltip: qsTr("Function Preview")
                 checkable: true
-                counter: functionManager.selectionCount
+                counter: functionManager.selectedFunctionCount
                 onToggled: functionManager.setPreview(checked)
             }
 

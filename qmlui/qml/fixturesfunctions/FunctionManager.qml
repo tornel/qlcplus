@@ -31,7 +31,10 @@ Rectangle
     color: "transparent"
     clip: true
 
+    property bool allowEditing: true
+
     signal requestView(int ID, string qmlSrc)
+    signal doubleClicked(int ID, int type)
 
     function loadFunctionEditor(funcID, funcType)
     {
@@ -43,7 +46,7 @@ Rectangle
         functionManager.viewPosition = functionsListView.contentY
         var editorRes = functionManager.getEditorResource(funcID)
 
-        if (funcType === Function.ShowType)
+        if (funcType === QLCFunction.ShowType)
         {
             showManager.currentShowID = funcID
             mainView.switchToContext("SHOWMGR", editorRes)
@@ -93,10 +96,10 @@ Rectangle
                 height: topBar.height - 2
                 imgSource: "qrc:/scene.svg"
                 checkable: true
-                checked: functionManager.functionsFilter & Function.SceneType
+                checked: functionManager.functionsFilter & QLCFunction.SceneType
                 tooltip: qsTr("Scenes")
                 counter: functionManager.sceneCount
-                onCheckedChanged: setFunctionFilter(Function.SceneType, checked)
+                onCheckedChanged: setFunctionFilter(QLCFunction.SceneType, checked)
             }
             IconButton
             {
@@ -105,10 +108,10 @@ Rectangle
                 height: topBar.height - 2
                 imgSource: "qrc:/chaser.svg"
                 checkable: true
-                checked: functionManager.functionsFilter & Function.ChaserType
+                checked: functionManager.functionsFilter & QLCFunction.ChaserType
                 tooltip: qsTr("Chasers")
                 counter: functionManager.chaserCount
-                onCheckedChanged: setFunctionFilter(Function.ChaserType, checked)
+                onCheckedChanged: setFunctionFilter(QLCFunction.ChaserType, checked)
             }
             IconButton
             {
@@ -117,10 +120,10 @@ Rectangle
                 height: topBar.height - 2
                 imgSource: "qrc:/sequence.svg"
                 checkable: true
-                checked: functionManager.functionsFilter & Function.SequenceType
+                checked: functionManager.functionsFilter & QLCFunction.SequenceType
                 tooltip: qsTr("Sequences")
                 counter: functionManager.sequenceCount
-                onCheckedChanged: setFunctionFilter(Function.SequenceType, checked)
+                onCheckedChanged: setFunctionFilter(QLCFunction.SequenceType, checked)
             }
             IconButton
             {
@@ -129,10 +132,10 @@ Rectangle
                 height: topBar.height - 2
                 imgSource: "qrc:/efx.svg"
                 checkable: true
-                checked: functionManager.functionsFilter & Function.EFXType
+                checked: functionManager.functionsFilter & QLCFunction.EFXType
                 tooltip: qsTr("EFX")
                 counter: functionManager.efxCount
-                onCheckedChanged: setFunctionFilter(Function.EFXType, checked)
+                onCheckedChanged: setFunctionFilter(QLCFunction.EFXType, checked)
             }
             IconButton
             {
@@ -141,10 +144,10 @@ Rectangle
                 height: topBar.height - 2
                 imgSource: "qrc:/collection.svg"
                 checkable: true
-                checked: functionManager.functionsFilter & Function.CollectionType
+                checked: functionManager.functionsFilter & QLCFunction.CollectionType
                 tooltip: qsTr("Collections")
                 counter: functionManager.collectionCount
-                onCheckedChanged: setFunctionFilter(Function.CollectionType, checked)
+                onCheckedChanged: setFunctionFilter(QLCFunction.CollectionType, checked)
             }
             IconButton
             {
@@ -153,10 +156,10 @@ Rectangle
                 height: topBar.height - 2
                 imgSource: "qrc:/rgbmatrix.svg"
                 checkable: true
-                checked: functionManager.functionsFilter & Function.RGBMatrixType
+                checked: functionManager.functionsFilter & QLCFunction.RGBMatrixType
                 tooltip: qsTr("RGB Matrices")
                 counter: functionManager.rgbMatrixCount
-                onCheckedChanged: setFunctionFilter(Function.RGBMatrixType, checked)
+                onCheckedChanged: setFunctionFilter(QLCFunction.RGBMatrixType, checked)
             }
             IconButton
             {
@@ -165,10 +168,10 @@ Rectangle
                 height: topBar.height - 2
                 imgSource: "qrc:/showmanager.svg"
                 checkable: true
-                checked: functionManager.functionsFilter & Function.ShowType
+                checked: functionManager.functionsFilter & QLCFunction.ShowType
                 tooltip: qsTr("Shows")
                 counter: functionManager.showCount
-                onCheckedChanged: setFunctionFilter(Function.ShowType, checked)
+                onCheckedChanged: setFunctionFilter(QLCFunction.ShowType, checked)
             }
             IconButton
             {
@@ -177,10 +180,10 @@ Rectangle
                 height: topBar.height - 2
                 imgSource: "qrc:/script.svg"
                 checkable: true
-                checked: functionManager.functionsFilter & Function.ScriptType
+                checked: functionManager.functionsFilter & QLCFunction.ScriptType
                 tooltip: qsTr("Scripts")
                 counter: functionManager.scriptCount
-                onCheckedChanged: setFunctionFilter(Function.ScriptType, checked)
+                onCheckedChanged: setFunctionFilter(QLCFunction.ScriptType, checked)
             }
             IconButton
             {
@@ -189,10 +192,10 @@ Rectangle
                 height: topBar.height - 2
                 imgSource: "qrc:/audio.svg"
                 checkable: true
-                checked: functionManager.functionsFilter & Function.AudioType
+                checked: functionManager.functionsFilter & QLCFunction.AudioType
                 tooltip: qsTr("Audio")
                 counter: functionManager.audioCount
-                onCheckedChanged: setFunctionFilter(Function.AudioType, checked)
+                onCheckedChanged: setFunctionFilter(QLCFunction.AudioType, checked)
             }
             IconButton
             {
@@ -201,10 +204,10 @@ Rectangle
                 height: topBar.height - 2
                 imgSource: "qrc:/video.svg"
                 checkable: true
-                checked: functionManager.functionsFilter & Function.VideoType
+                checked: functionManager.functionsFilter & QLCFunction.VideoType
                 tooltip: qsTr("Videos")
                 counter: functionManager.videoCount
-                onCheckedChanged: setFunctionFilter(Function.VideoType, checked)
+                onCheckedChanged: setFunctionFilter(QLCFunction.VideoType, checked)
             }
 
             Rectangle { Layout.fillWidth: true }
@@ -284,10 +287,9 @@ Rectangle
 
                       onLoaded:
                       {
-                          item.textLabel = label
+                          item.textLabel = Qt.binding(function() { return label })
                           item.isSelected = Qt.binding(function() { return isSelected })
                           item.dragItem = fDragItem
-                          item.itemType = type
 
                           if (type === App.FunctionDragItem)
                           {
@@ -324,10 +326,16 @@ Rectangle
                                         if (model.hasChildren)
                                             model.isExpanded = item.isExpanded
                                     }
-                                    functionManager.selectFunctionID(iID, mouseMods & Qt.ControlModifier)
+                                    if (qItem.itemType === App.FunctionDragItem)
+                                        functionManager.selectFunctionID(iID, mouseMods & Qt.ControlModifier)
+                                    else
+                                        functionManager.selectFolder(qItem.nodePath, mouseMods & Qt.ControlModifier)
                                 break;
                                 case App.DoubleClicked:
-                                    loadFunctionEditor(iID, iType)
+                                    if (allowEditing)
+                                        loadFunctionEditor(iID, iType)
+                                    else
+                                        fmContainer.doubleClicked(iID, iType)
                                 break;
                                 case App.DragStarted:
                                     if (qItem == item && !model.isSelected)

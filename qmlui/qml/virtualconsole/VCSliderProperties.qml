@@ -30,7 +30,7 @@ Rectangle
     height: sPropsColumn.height
 
     property VCSlider widgetRef: null
-    property Function func
+    property QLCFunction func
     property int funcID: widgetRef ? widgetRef.controlledFunction : -1
     property int gridItemsHeight: UISettings.listItemHeight
 
@@ -296,8 +296,8 @@ Rectangle
                           {
                               if (checked)
                               {
-                                  vcRightPanel.width += mainView.width / 3
-                                  sideLoader.width = mainView.width / 3
+                                  vcRightPanel.width += UISettings.sidePanelWidth
+                                  sideLoader.width = UISettings.sidePanelWidth
                                   sideLoader.modelProvider = widgetRef
                                   sideLoader.source = "qrc:/FixtureGroupManager.qml"
                               }

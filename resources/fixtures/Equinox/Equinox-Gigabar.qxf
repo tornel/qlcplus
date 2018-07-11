@@ -1,9 +1,9 @@
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE FixtureDefinition>
 <FixtureDefinition xmlns="http://www.qlcplus.org/FixtureDefinition">
  <Creator>
   <Name>Q Light Controller Plus</Name>
-  <Version>4.9.0 GIT</Version>
+  <Version>4.11.3 GIT</Version>
   <Author>Juski</Author>
  </Creator>
  <Manufacturer>Equinox</Manufacturer>
@@ -35,7 +35,7 @@
  </Channel>
  <Channel Name="Program">
   <Group Byte="0">Effect</Group>
-  <Capability Min="0" Max="255"/>
+  <Capability Min="0" Max="255">Built in programs</Capability>
  </Channel>
  <Channel Name="Sound sensitivity / Flash">
   <Group Byte="0">Intensity</Group>
@@ -206,11 +206,11 @@
   <Channel Number="2">CH3</Channel>
   <Channel Number="3">CH4</Channel>
  </Mode>
-<Physical>
+ <Physical>
    <Bulb Type="LED" Lumens="0" ColourTemperature="0"/>
    <Dimensions Weight="7.6" Width="1000" Depth="82" Height="320"/>
    <Lens Name="Fresnel" DegreesMin="25" DegreesMax="90"/>
    <Focus TiltMax="0" Type="Fixed" PanMax="0"/>
    <Technical DmxConnector="3-pin" PowerConsumption="135"/>
-  </Physical>
+ </Physical>
 </FixtureDefinition>

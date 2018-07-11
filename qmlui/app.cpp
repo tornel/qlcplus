@@ -64,6 +64,7 @@
 
 App::App()
     : QQuickView()
+    , m_translator(NULL)
     , m_fixtureBrowser(NULL)
     , m_fixtureManager(NULL)
     , m_contextManager(NULL)
@@ -107,7 +108,7 @@ QString App::appVersion() const
 void App::startup()
 {
     qmlRegisterUncreatableType<Fixture>("org.qlcplus.classes", 1, 0, "Fixture", "Can't create a Fixture !");
-    qmlRegisterUncreatableType<Function>("org.qlcplus.classes", 1, 0, "Function", "Can't create a Function !");
+    qmlRegisterUncreatableType<Function>("org.qlcplus.classes", 1, 0, "QLCFunction", "Can't create a Function !");
     qmlRegisterType<ModelSelector>("org.qlcplus.classes", 1, 0, "ModelSelector");
     qmlRegisterUncreatableType<App>("org.qlcplus.classes", 1, 0, "App", "Can't create an App !");
 
@@ -115,7 +116,10 @@ void App::startup()
     setIcon(QIcon(":/qlcplus.svg"));
 
     if (QFontDatabase::addApplicationFont(":/RobotoCondensed-Regular.ttf") < 0)
-        qWarning() << "Roboto font cannot be loaded !";
+        qWarning() << "Roboto condensed cannot be loaded !";
+
+    if (QFontDatabase::addApplicationFont(":/RobotoMono-Regular.ttf") < 0)
+        qWarning() << "Roboto mono cannot be loaded !";
 
     rootContext()->setContextProperty("qlcplus", this);
 
@@ -185,6 +189,27 @@ void App::toggleFullscreen()
         wstate = windowState();
         showFullScreen();
     }
+}
+
+void App::setLanguage(QString locale)
+{
+    if (m_translator != NULL)
+    {
+        QCoreApplication::removeTranslator(m_translator);
+        delete m_translator;
+    }
+
+    QString translationPath = QLCFile::systemDirectory(TRANSLATIONDIR).absolutePath();
+
+    if (locale.isEmpty() == true)
+        locale = QLocale::system().name();
+
+    QString file(QString("%1_%2").arg("qlcplus").arg(locale));
+    m_translator = new QTranslator(QCoreApplication::instance());
+    if (m_translator->load(file, translationPath) == true)
+        QCoreApplication::installTranslator(m_translator);
+
+    engine()->retranslate();
 }
 
 void App::show()
@@ -539,6 +564,23 @@ bool App::loadWorkspace(const QString &fileName)
         m_contextManager->resetContexts();
         m_doc->resetModified();
         m_videoProvider = new VideoProvider(this, m_doc);
+
+        // autostart Function if set
+        if (m_doc->startupFunction() != Function::invalidId())
+        {
+            Function *func = m_doc->function(m_doc->startupFunction());
+            if (func != NULL)
+            {
+                qDebug() << Q_FUNC_INFO << "Starting startup function. (" << m_doc->startupFunction() << ")";
+                func->start(m_doc->masterTimer(), FunctionParent::master());
+            }
+            else
+            {
+                qWarning() << Q_FUNC_INFO << "Startup function does not exist, erasing. (" << m_doc->startupFunction() << ")";
+                m_doc->setStartupFunction(Function::invalidId());
+            }
+        }
+
         return true;
     }
     return false;
@@ -679,8 +721,7 @@ QFileDevice::FileError App::loadXML(const QString &fileName)
     else
     {
         retval = QFile::ReadError;
-        qWarning() << Q_FUNC_INFO << fileName
-                   << "is not a workspace file";
+        qWarning() << Q_FUNC_INFO << fileName << "is not a workspace file";
     }
 
     QLCFile::releaseXMLReader(doc);

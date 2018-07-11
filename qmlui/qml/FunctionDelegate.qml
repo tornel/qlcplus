@@ -30,7 +30,7 @@ Rectangle
 
     color: "transparent"
 
-    property Function cRef
+    property QLCFunction cRef
     property string textLabel
     property string itemIcon: ""
     property int itemType: App.FunctionDragItem
@@ -45,7 +45,7 @@ Rectangle
             return
 
         itemIcon = functionManager.functionIcon(cRef.type)
-        if (cRef.type == Function.SceneType)
+        if (cRef.type == QLCFunction.SceneType)
             fdDropArea.keys = [ "dumpValues" ]
     }
 
@@ -118,6 +118,16 @@ Rectangle
                 onDropped: drag.source.itemDropped(cRef.id, cRef.name)
             }
         }
+    }
+
+    Image
+    {
+        anchors.right: parent.right
+        source: "qrc:/autostart.svg"
+        height: UISettings.listItemHeight
+        width: height
+        sourceSize: Qt.size(width, height)
+        visible: cRef && cRef.id === functionManager.startupFunctionID ? true : false
     }
 
     Rectangle

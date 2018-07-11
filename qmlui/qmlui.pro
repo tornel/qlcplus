@@ -49,6 +49,7 @@ HEADERS += \
     previewcontext.h \
     rgbmatrixeditor.h \
     sceneeditor.h \
+    scripteditor.h \
     showmanager.h \
     treemodel.h \
     treemodelitem.h \
@@ -79,6 +80,7 @@ SOURCES += main.cpp \
     previewcontext.cpp \
     rgbmatrixeditor.cpp \
     sceneeditor.cpp \
+    scripteditor.cpp \
     showmanager.cpp \
     treemodel.cpp \
     treemodelitem.cpp \
@@ -130,6 +132,20 @@ SOURCES += \
     virtualconsole/vccuelist.cpp
 
 RESOURCES += qmlui.qrc ../resources/icons/svg/svgicons.qrc ../resources/fonts/fonts.qrc
+
+lupdate_only {
+    SOURCES += \
+        qml/*.qml \
+        qml/fixturesfunctions/*.qml \
+        qml/inputoutput/*.qml \
+        qml/popup/*.qml \
+        qml/showmanager/*.qml \
+        qml/virtualconsole/*.qml
+}
+
+TRANSLATIONS += \
+    qlcplus_it_IT.ts \
+    qlcplus_ca_ES.ts
 
 macx {
     # This must be after "TARGET = " and before target installation so that

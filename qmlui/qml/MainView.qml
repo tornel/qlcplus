@@ -35,6 +35,9 @@ Rectangle
 
     property string currentContext: "FIXANDFUNC"
 
+    Component.onCompleted: UISettings.sidePanelWidth = Math.min(width / 3, UISettings.bigItemHeight * 5)
+    onWidthChanged: UISettings.sidePanelWidth = Math.min(width / 3, UISettings.bigItemHeight * 5)
+
     function enableContext(ctx, setChecked)
     {
         var item = null
@@ -100,7 +103,7 @@ Rectangle
     Rectangle
     {
         id: mainToolbar
-        visible: qlcplus.accessMask != App.AC_VCControl
+        visible: qlcplus.accessMask !== App.AC_VCControl
         width: parent.width
         height: UISettings.iconSizeDefault
         z: 50
