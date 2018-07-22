@@ -289,7 +289,7 @@ void ContextManager::setPositionPickPoint(QVector3D point)
     if (positionPicking() == false)
         return;
 
-    point = QVector3D(point.x() + m_monProps->gridSize().x() / 2, 0.0, point.z() + m_monProps->gridSize().z() / 2);
+    point = QVector3D(point.x() + m_monProps->gridSize().x() / 2, point.y(), point.z() + m_monProps->gridSize().z() / 2);
 
     for (quint32 itemID : m_selectedFixtures)
     {
@@ -323,14 +323,26 @@ void ContextManager::setPositionPickPoint(QVector3D point)
             qreal c = qAbs(lightPos.z() - point.z()); // Cathetus
             qreal panDeg = qRadiansToDegrees(M_PI_2 - qAtan(c / b)); // PI/2 - angle
 
-            if (xLeft && !zBack)
-                panDeg = 90.0 + (90.0 - panDeg);
-            else if(!xLeft && !zBack)
-                panDeg = 180.0 + panDeg;
-            else if(!xLeft && zBack)
-                panDeg = 270.0 + (90.0 - panDeg);
+            if (qAbs(m_monProps->fixtureRotation(fxID, headIndex, linkedIndex).x()) == 180)
+            {
+                if (xLeft && zBack)
+                    panDeg = 90.0 + (90.0 - panDeg);
+                else if(!xLeft && !zBack)
+                    panDeg = 270.0 + (90.0 - panDeg);
+                else if(!xLeft && zBack)
+                    panDeg = 180.0 + panDeg;
+            }
+            else
+            {
+                if (xLeft && !zBack)
+                    panDeg = 90.0 + (90.0 - panDeg);
+                else if(!xLeft && !zBack)
+                    panDeg = 180.0 + panDeg;
+                else if(!xLeft && zBack)
+                    panDeg = 270.0 + (90.0 - panDeg);
+            }
 
-            // subtract the current fixture rotation
+            // subtract the current fixture Y rotation
             panDeg -= m_monProps->fixtureRotation(fxID, headIndex, linkedIndex).y();
             if (panDeg < 0)
                 panDeg += 360;
@@ -357,7 +369,10 @@ void ContextManager::setPositionPickPoint(QVector3D point)
             qreal tiltDeg = qRadiansToDegrees(M_PI_2 - qAtan(c / b)); // PI/2 - angle
             QLCPhysical phy = fixture->fixtureMode()->physical();
 
-            tiltDeg = phy.focusTiltMax() / 2 - tiltDeg;
+            if (qAbs(m_monProps->fixtureRotation(fxID, headIndex, linkedIndex).x()) == 180)
+                tiltDeg = qMin((qreal)phy.focusTiltMax(), phy.focusTiltMax() / 2 + (180 - tiltDeg));
+            else
+                tiltDeg = phy.focusTiltMax() / 2 - tiltDeg;
 
             qDebug() << "Fixture" << fxID << "tilt degrees:" << tiltDeg;
 
@@ -384,6 +399,8 @@ void ContextManager::resetContexts()
 
     m_selectedFixtures.clear();
     m_editingEnabled = false;
+
+    emit environmentSizeChanged();
 
     if (m_DMXView->isEnabled())
         m_DMXView->slotRefreshView();
@@ -1231,14 +1248,17 @@ void ContextManager::slotUniversesWritten(int idx, const QByteArray &ua)
         if (fixture->universe() != (quint32)idx)
             continue;
 
+        QByteArray prevValues;
+        prevValues.append(fixture->channelValues());
+
         if (fixture->setChannelValues(ua) == true)
         {
             if (m_DMXView->isEnabled())
                 m_DMXView->updateFixture(fixture);
             if (m_2DView->isEnabled())
-                m_2DView->updateFixture(fixture);
+                m_2DView->updateFixture(fixture, prevValues);
             if (m_3DView->isEnabled())
-                m_3DView->updateFixture(fixture);
+                m_3DView->updateFixture(fixture, prevValues);
         }
     }
 }
