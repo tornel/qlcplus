@@ -41,9 +41,9 @@
     </message>
     <message>
         <location filename="qml/ActionsMenu.qml" line="95"/>
-        <source>Do you wish to save the current project first ?
+        <source>Do you wish to save the current project first?
 Changes will be lost if you don&apos;t save them.</source>
-        <translation>Vuoi salvare il progetto corrente ?
+        <translation>Vuoi salvare il progetto corrente?
 I cambiamenti verranno perduti se non salvati.</translation>
     </message>
     <message>
@@ -331,8 +331,8 @@ I cambiamenti verranno perduti se non salvati.</translation>
     </message>
     <message>
         <location filename="qml/fixturesfunctions/ChaserEditor.qml" line="124"/>
-        <source>Are you sure you want to remove the selected steps ?</source>
-        <translation>Sei sicuro di voler rimuovere gli step selezionati ?</translation>
+        <source>Are you sure you want to remove the selected steps?</source>
+        <translation>Sei sicuro di voler rimuovere gli step selezionati?</translation>
     </message>
     <message>
         <location filename="qml/fixturesfunctions/ChaserEditor.qml" line="157"/>
@@ -482,8 +482,8 @@ I cambiamenti verranno perduti se non salvati.</translation>
     </message>
     <message>
         <location filename="qml/fixturesfunctions/CollectionEditor.qml" line="130"/>
-        <source>Are you sure you want to remove the selected functions ?</source>
-        <translation>Sei sicuro di voler rimuovere le funzioni selezionate ?</translation>
+        <source>Are you sure you want to remove the selected functions?</source>
+        <translation>Sei sicuro di voler rimuovere le funzioni selezionate?</translation>
     </message>
 </context>
 <context>
@@ -1630,27 +1630,27 @@ I cambiamenti verranno perduti se non salvati.</translation>
 <context>
     <name>MainView3D</name>
     <message>
-        <location filename="mainview3d.cpp" line="63"/>
+        <location filename="mainview3d.cpp" line="71"/>
         <source>3D View</source>
         <translation>Vista 3D</translation>
     </message>
     <message>
-        <location filename="mainview3d.cpp" line="70"/>
+        <location filename="mainview3d.cpp" line="78"/>
         <source>Simple ground</source>
         <translation>Palco semplice</translation>
     </message>
     <message>
-        <location filename="mainview3d.cpp" line="70"/>
+        <location filename="mainview3d.cpp" line="78"/>
         <source>Simple box</source>
         <translation>Stanza semplice</translation>
     </message>
     <message>
-        <location filename="mainview3d.cpp" line="70"/>
+        <location filename="mainview3d.cpp" line="78"/>
         <source>Rock stage</source>
         <translation>Palco rock</translation>
     </message>
     <message>
-        <location filename="mainview3d.cpp" line="70"/>
+        <location filename="mainview3d.cpp" line="78"/>
         <source>Theatre stage</source>
         <translation>Palco teatro</translation>
     </message>
@@ -1957,8 +1957,11 @@ I cambiamenti verranno perduti se non salvati.</translation>
     <message>
         <location filename="qml/popup/PopupNetworkConnect.qml" line="49"/>
         <source>&gt;
-has request to access this session.
+is requesting access to this session.
 Access level:</source>
+        <oldsource>&gt;
+has request to access this session.
+Access level:</oldsource>
         <translation>&gt;
 ha richiesto di accedere a questa sessione.
 Livello di accesso:</translation>
@@ -2479,8 +2482,8 @@ Livello di accesso:</translation>
     </message>
     <message>
         <location filename="qml/fixturesfunctions/RightPanel.qml" line="219"/>
-        <source>Are you sure you want to delete the following items ?</source>
-        <translation>Sei sicuro di voler eliminare gli elementi seguenti ?</translation>
+        <source>Are you sure you want to delete the following items?</source>
+        <translation>Sei sicuro di voler eliminare gli elementi seguenti?</translation>
     </message>
     <message>
         <location filename="qml/fixturesfunctions/RightPanel.qml" line="226"/>
@@ -2823,52 +2826,57 @@ Livello di accesso:</translation>
         <translation>Quantità di fumo</translation>
     </message>
     <message>
-        <location filename="qml/fixturesfunctions/3DView/SettingsView3D.qml" line="419"/>
+        <location filename="qml/fixturesfunctions/3DView/SettingsView3D.qml" line="251"/>
+        <source>Show FPS</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="qml/fixturesfunctions/3DView/SettingsView3D.qml" line="429"/>
         <source>Scale</source>
         <translation>Scalamento</translation>
     </message>
     <message>
-        <location filename="qml/fixturesfunctions/3DView/SettingsView3D.qml" line="544"/>
+        <location filename="qml/fixturesfunctions/3DView/SettingsView3D.qml" line="554"/>
         <source>Custom items</source>
         <translation>Oggetti personalizzati</translation>
     </message>
     <message>
-        <location filename="qml/fixturesfunctions/3DView/SettingsView3D.qml" line="550"/>
+        <location filename="qml/fixturesfunctions/3DView/SettingsView3D.qml" line="560"/>
         <source>Select a mesh file</source>
         <translation>Seleziona un file 3D</translation>
     </message>
     <message>
-        <location filename="qml/fixturesfunctions/3DView/SettingsView3D.qml" line="552"/>
+        <location filename="qml/fixturesfunctions/3DView/SettingsView3D.qml" line="562"/>
         <source>3D files</source>
         <translation>File 3D</translation>
     </message>
     <message>
-        <location filename="qml/fixturesfunctions/3DView/SettingsView3D.qml" line="552"/>
+        <location filename="qml/fixturesfunctions/3DView/SettingsView3D.qml" line="562"/>
         <source>All files</source>
         <translation>Tutti i file</translation>
     </message>
     <message>
-        <location filename="qml/fixturesfunctions/3DView/SettingsView3D.qml" line="563"/>
+        <location filename="qml/fixturesfunctions/3DView/SettingsView3D.qml" line="573"/>
         <source>Actions</source>
         <translation>Azioni</translation>
     </message>
     <message>
-        <location filename="qml/fixturesfunctions/3DView/SettingsView3D.qml" line="569"/>
+        <location filename="qml/fixturesfunctions/3DView/SettingsView3D.qml" line="579"/>
         <source>Add a new item to the scene</source>
         <translation>Aggiungi un nuovo elemento alla scena</translation>
     </message>
     <message>
-        <location filename="qml/fixturesfunctions/3DView/SettingsView3D.qml" line="578"/>
+        <location filename="qml/fixturesfunctions/3DView/SettingsView3D.qml" line="588"/>
         <source>Remove the selected items</source>
         <translation>Rimuovi gli elementi selezionati</translation>
     </message>
     <message>
-        <location filename="qml/fixturesfunctions/3DView/SettingsView3D.qml" line="256"/>
+        <location filename="qml/fixturesfunctions/3DView/SettingsView3D.qml" line="266"/>
         <source>Position</source>
         <translation>Posizione</translation>
     </message>
     <message>
-        <location filename="qml/fixturesfunctions/3DView/SettingsView3D.qml" line="339"/>
+        <location filename="qml/fixturesfunctions/3DView/SettingsView3D.qml" line="349"/>
         <source>Rotation</source>
         <translation>Rotazione</translation>
     </message>
@@ -2894,16 +2902,16 @@ Livello di accesso:</translation>
 <context>
     <name>ShowItem</name>
     <message>
-        <location filename="qml/showmanager/ShowItem.qml" line="223"/>
-        <location filename="qml/showmanager/ShowItem.qml" line="274"/>
-        <location filename="qml/showmanager/ShowItem.qml" line="311"/>
+        <location filename="qml/showmanager/ShowItem.qml" line="220"/>
+        <location filename="qml/showmanager/ShowItem.qml" line="271"/>
+        <location filename="qml/showmanager/ShowItem.qml" line="308"/>
         <source>Position: </source>
         <translation>Posizione: </translation>
     </message>
     <message>
-        <location filename="qml/showmanager/ShowItem.qml" line="275"/>
-        <location filename="qml/showmanager/ShowItem.qml" line="312"/>
-        <location filename="qml/showmanager/ShowItem.qml" line="383"/>
+        <location filename="qml/showmanager/ShowItem.qml" line="272"/>
+        <location filename="qml/showmanager/ShowItem.qml" line="309"/>
+        <location filename="qml/showmanager/ShowItem.qml" line="380"/>
         <source>Duration: </source>
         <translation>Durata: </translation>
     </message>
@@ -2947,9 +2955,9 @@ Livello di accesso:</translation>
     </message>
     <message>
         <location filename="qml/showmanager/ShowManager.qml" line="195"/>
-        <source>Are you sure you want to remove the following items ?
+        <source>Are you sure you want to remove the following items?
 (Note that the original functions will not be deleted)</source>
-        <translation>Sei sicuro di voler eliminare gli elementi seguenti ?
+        <translation>Sei sicuro di voler eliminare gli elementi seguenti?
 (Le funzioni originali non verranno eliminate)</translation>
     </message>
     <message>
@@ -3009,8 +3017,8 @@ Livello di accesso:</translation>
         <translation>Traccia %1</translation>
     </message>
     <message>
-        <location filename="showmanager.cpp" line="678"/>
-        <location filename="showmanager.cpp" line="691"/>
+        <location filename="showmanager.cpp" line="680"/>
+        <location filename="showmanager.cpp" line="693"/>
         <source>(Copy)</source>
         <translation>(Copia)</translation>
     </message>
@@ -3622,8 +3630,8 @@ Livello di accesso:</translation>
     </message>
     <message>
         <location filename="qml/virtualconsole/VCPageProperties.qml" line="167"/>
-        <source>Are you sure you want to delete the selected page ?</source>
-        <translation>Sei sicuro di voler eliminare la pagina selezionata ?</translation>
+        <source>Are you sure you want to delete the selected page?</source>
+        <translation>Sei sicuro di voler eliminare la pagina selezionata?</translation>
     </message>
 </context>
 <context>
@@ -3650,8 +3658,8 @@ Livello di accesso:</translation>
     </message>
     <message>
         <location filename="qml/virtualconsole/VCRightPanel.qml" line="131"/>
-        <source>Are you sure you want to remove the following widgets ?</source>
-        <translation>Sei sicuro di voler eliminare i seguenti widget ?</translation>
+        <source>Are you sure you want to remove the following widgets?</source>
+        <translation>Sei sicuro di voler eliminare i seguenti widget?</translation>
     </message>
     <message>
         <location filename="qml/virtualconsole/VCRightPanel.qml" line="138"/>

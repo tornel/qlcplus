@@ -27,6 +27,7 @@
 class Doc;
 class Fixture;
 class QLCChannel;
+class QLCCapability;
 class QLCFixtureMode;
 class MonitorProperties;
 
@@ -56,19 +57,23 @@ public:
      * This method works with the monitor properties and the fixtures list */
     static QPointF available2DPosition(Doc *doc, int pointOfView, QRectF fxRect);
 
+    /** Perform a linear blending of $b over $a with the given $mix amount */
+    static QColor blendColors(QColor a, QColor b, float mix);
+
     /** Return the color of the head with $headIndex of $fixture.
      *  This considers: RGB / CMY / WAUVLI channels, dimmers and gel color */
     static QColor headColor(Fixture *fixture, int headIndex = 0);
 
+    static QColor applyColorFilter(QColor source, QColor filter);
+
     /** Calculate the pan/tilt speed depending on the $ch preset */
     static void positionTimings(const QLCChannel *ch, uchar value, int &panDuration, int &tiltDuration);
 
+    /** Calculate the gobo wheel speed depending on $cap preset */
+    static bool goboTiming(const QLCCapability *cap, uchar value, int &speed);
+
     /** Calculate the rise/fall periods for a shutter channel $ch, considering presets */
     static int shutterTimings(const QLCChannel *ch, uchar value, int &highTime, int &lowTime);
-
-private:
-    /** Perform a linear blending of $b over $a with the given $mix amount */
-    static QColor blendColors(QColor a, QColor b, float mix);
 };
 
 #endif // FIXTUREUTILS_H

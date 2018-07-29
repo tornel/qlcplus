@@ -121,7 +121,10 @@ Contributors
 * Eric Arnebäck (3D preview features)
 * Santiago Benejam Torres (Catalan translation)
 * Luis García Tornel (Spanish translation)
-* Nils Van Zuijlen (French translation)
+* Nils Van Zuijlen, Jérôme Lebleu (French translation)
+* Felix Edelmann, Florian Edelmann (fixture definitions, German translation)
+* Jannis Achstetter (German translation)
+* Dai Suetake (Japanese translation)
 
 ### QLC+ 4:
 
@@ -140,6 +143,7 @@ Contributors
 * Stefan Krupop (HID DMXControl Projects e.V. Nodle U1 support)
 * Nathan Durnan (RGB scripts, new features)
 * Giorgio Rebecchi (new features)
+* Florian Edelmann (code cleanup, German translation)
 * Heiko Fanieng, Jannis Achstetter (German translation)
 * NiKoyes, Jérôme Lebleu, Olivier Humbert, Nils Van Zuijlen (French translation)
 * Raymond Van Laake (Dutch translation)
@@ -147,7 +151,7 @@ Contributors
 * Jan Lachman (Czech translation)
 * Nuno Almeida, Carlos Eduardo Porto de Oliveira (Portuguese translation)
 * Santiago Benejam Torres (Catalan translation)
-* Koichiro Saito (Japanese translation)
+* Koichiro Saito, Dai Suetake (Japanese translation)
 
 ### QLC:
 

@@ -62,9 +62,9 @@ FixtureManager::FixtureManager(QQuickView *view, Doc *doc, QObject *parent)
     m_monProps = m_doc->monitorProperties();
 
     m_view->rootContext()->setContextProperty("fixtureManager", this);
-    qmlRegisterUncreatableType<FixtureManager>("org.qlcplus.classes", 1, 0,  "FixtureManager", "Can't create a FixtureManager !");
-    qmlRegisterUncreatableType<QLCCapability>("org.qlcplus.classes", 1, 0, "QLCCapability", "Can't create a QLCCapability !");
-    qmlRegisterUncreatableType<ColorFilters>("org.qlcplus.classes", 1, 0, "ColorFilters", "Can't create a ColorFilters !");
+    qmlRegisterUncreatableType<FixtureManager>("org.qlcplus.classes", 1, 0,  "FixtureManager", "Can't create a FixtureManager!");
+    qmlRegisterUncreatableType<QLCCapability>("org.qlcplus.classes", 1, 0, "QLCCapability", "Can't create a QLCCapability!");
+    qmlRegisterUncreatableType<ColorFilters>("org.qlcplus.classes", 1, 0, "ColorFilters", "Can't create a ColorFilters!");
 
     connect(m_doc, SIGNAL(loaded()), this, SLOT(slotDocLoaded()));
     connect(m_doc, SIGNAL(fixtureAdded(quint32)), this, SLOT(slotFixtureAdded(quint32)));
@@ -133,23 +133,28 @@ QVariantList FixtureManager::universeInfo(quint32 id)
 {
     m_universeInfo.clear();
 
-    QList<Fixture*> origList = m_doc->fixtures();
-    // sort the fixture list by address and not by ID
-    std::sort(origList.begin(), origList.end(), compareFixtures);
-
-    // add the current universes as groups
-    for (Fixture *fixture : origList) // C++11
+    for (quint32 fixtureID : m_monProps->fixtureItemsID())
     {
-        if (fixture->universe() != id)
-            continue;
+        for (quint32 subID : m_monProps->fixtureIDList(fixtureID))
+        {
+            quint16 headIndex = m_monProps->fixtureHeadIndex(subID);
+            quint16 linkedIndex = m_monProps->fixtureLinkedIndex(subID);
+            int flags = m_monProps->fixtureFlags(fixtureID, headIndex, linkedIndex);
+            if (flags & MonitorProperties::HiddenFlag)
+                continue;
 
-        QVariantMap fxMap;
-        fxMap.insert("classRef", QVariant::fromValue(fixture));
-        fxMap.insert("manuf", fixture->fixtureDef() ? fixture->fixtureDef()->manufacturer() : "");
-        fxMap.insert("fmodel", fixture->fixtureDef() ? fixture->fixtureDef()->model() : "");
-        fxMap.insert("weight", fixture->fixtureMode() ? fixture->fixtureMode()->physical().weight() : 0);
-        fxMap.insert("power", fixture->fixtureMode() ? fixture->fixtureMode()->physical().powerConsumption() : 0);
-        m_universeInfo.append(fxMap);
+            Fixture *fixture = m_doc->fixture(fixtureID);
+            if (fixture == NULL || fixture->universe() != id)
+                continue;
+
+            QVariantMap fxMap;
+            fxMap.insert("classRef", QVariant::fromValue(fixture));
+            fxMap.insert("manuf", fixture->fixtureDef() ? fixture->fixtureDef()->manufacturer() : "");
+            fxMap.insert("fmodel", fixture->fixtureDef() ? fixture->fixtureDef()->model() : "");
+            fxMap.insert("weight", fixture->fixtureMode() ? fixture->fixtureMode()->physical().weight() : 0);
+            fxMap.insert("power", fixture->fixtureMode() ? fixture->fixtureMode()->physical().powerConsumption() : 0);
+            m_universeInfo.append(fxMap);
+        }
     }
 
     return m_universeInfo;

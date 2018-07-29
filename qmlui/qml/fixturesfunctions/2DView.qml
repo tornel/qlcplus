@@ -139,7 +139,7 @@ Rectangle
             contentWidth = gridWidth + (twoDContents.xOffset * 2)
             contentHeight = gridHeight + (twoDContents.yOffset * 2)
 
-            console.log("Grid offset x: " + twoDContents.xOffset + ", y: " + twoDContents.yOffset)
+            //console.log("Grid offset x: " + twoDContents.xOffset + ", y: " + twoDContents.yOffset)
             if (View2D.cellPixels > 0)
                 twoDContents.requestPaint()
         }
@@ -219,7 +219,7 @@ Rectangle
                     // pressing on nothing starts to draw the selection rectangle
                     if (itemID === -1)
                     {
-                        //console.log("Starting selection rectangle !")
+                        //console.log("Starting selection rectangle!")
                         // initialize local variables to determine the selection orientation
                         initialXPos = mouse.x
                         initialYPos = mouse.y

@@ -78,7 +78,7 @@ ContextManager::ContextManager(QQuickView *view, Doc *doc,
     registerContext(m_3DView);
     m_view->rootContext()->setContextProperty("View3D", m_3DView);
 
-    qmlRegisterUncreatableType<MonitorProperties>("org.qlcplus.classes", 1, 0, "MonitorProperties", "Can't create MonitorProperties !");
+    qmlRegisterUncreatableType<MonitorProperties>("org.qlcplus.classes", 1, 0, "MonitorProperties", "Can't create MonitorProperties!");
 
     connect(m_fixtureManager, &FixtureManager::newFixtureCreated, this, &ContextManager::slotNewFixtureCreated);
     connect(m_fixtureManager, &FixtureManager::fixtureDeleted, this, &ContextManager::slotFixtureDeleted);
@@ -791,6 +791,24 @@ void ContextManager::setFixturesPosition(QVector3D position)
     }
 
     emit fixturesPositionChanged();
+}
+
+void ContextManager::setFixturesGelColor(QColor color)
+{
+    QByteArray ba;
+    for (quint32 itemID : m_selectedFixtures)
+    {
+        quint32 fxID = FixtureUtils::itemFixtureID(itemID);
+        quint16 headIndex = FixtureUtils::itemHeadIndex(itemID);
+        quint16 linkedIndex = FixtureUtils::itemLinkedIndex(itemID);
+        Fixture *fixture = m_doc->fixture(fxID);
+
+        m_monProps->setFixtureGelColor(fxID, headIndex, linkedIndex, color);
+        if (m_2DView->isEnabled())
+            m_2DView->updateFixtureItem(fixture, headIndex, linkedIndex, ba);
+        if (m_3DView->isEnabled())
+            m_3DView->updateFixtureItem(fixture, headIndex, linkedIndex, ba);
+    }
 }
 
 void ContextManager::setFixturesAlignment(int alignment)
