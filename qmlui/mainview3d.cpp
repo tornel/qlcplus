@@ -492,7 +492,7 @@ void MainView3D::createFixtureItem(quint32 fxID, quint16 headIndex, quint16 link
      else if (fixture->type() == QLCFixtureDef::Scanner)
     {
         meshPath.append("scanner.dae");
-        newItem->setProperty("meshType", FixtureMeshType::DefaultMeshType);
+        newItem->setProperty("meshType", FixtureMeshType::ScannerMeshType);
     }
     else if (fixture->type() == QLCFixtureDef::Hazer)
     {
@@ -582,6 +582,17 @@ QVector3D MainView3D::lightPosition(quint32 itemID)
         return QVector3D();
 
     return meshRef->m_rootItem->property("lightPos").value<QVector3D>();
+}
+
+QMatrix4x4 MainView3D::lightMatrix(quint32 itemID)
+{
+    SceneItem *meshRef = m_entitiesMap.value(itemID, NULL);
+    if (meshRef == NULL) {
+        qDebug() << "COULD NOT FIND ";
+        return QMatrix4x4();
+    }
+
+    return meshRef->m_rootItem->property("lightMatrix").value<QMatrix4x4>();
 }
 
 void MainView3D::getMeshCorners(QGeometryRenderer *mesh,
@@ -821,10 +832,6 @@ void MainView3D::initializeFixture(quint32 itemID, QEntity *fxEntity, QSceneLoad
     meshRef->m_rootItem = fxEntity;
     meshRef->m_rootTransform = getTransform(meshRef->m_rootItem);
 
-    meshRef->m_spotlightShadingLayer = fxEntity->property("spotlightShadingLayer").value<QLayer *>();
-    meshRef->m_spotlightScatteringLayer = fxEntity->property("spotlightScatteringLayer").value<QLayer *>();
-    meshRef->m_outputDepthLayer = fxEntity->property("outputDepthLayer").value<QLayer *>();
-
     QTexture2D *tex = fxEntity->property("goboTexture").value<QTexture2D *>();
     //tex->setFormat(Qt3DRender::QAbstractTexture::RGBA8U);
     tex->addTextureImage(meshRef->m_goboTexture);
@@ -880,13 +887,9 @@ void MainView3D::initializeFixture(quint32 itemID, QEntity *fxEntity, QSceneLoad
         meshRef->m_rootItem->setProperty("focusMaxDegrees", focusMax);
 
         QMetaObject::invokeMethod(meshRef->m_rootItem, "setupScattering",
-                                  Q_ARG(QVariant, QVariant::fromValue(meshRef->m_spotlightShadingLayer)),
-                                  Q_ARG(QVariant, QVariant::fromValue(meshRef->m_spotlightScatteringLayer)),
-                                  Q_ARG(QVariant, QVariant::fromValue(meshRef->m_outputDepthLayer)),
                                   Q_ARG(QVariant, QVariant::fromValue(spotlightShadingEffect)),
                                   Q_ARG(QVariant, QVariant::fromValue(spotlightScatteringEffect)),
                                   Q_ARG(QVariant, QVariant::fromValue(outputFrontDepthEffect)),
-                                  Q_ARG(QVariant, QVariant::fromValue(meshRef->m_headItem)),
                                   Q_ARG(QVariant, QVariant::fromValue(m_sceneRootEntity)));
     }
 
